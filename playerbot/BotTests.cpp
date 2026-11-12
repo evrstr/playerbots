@@ -815,6 +815,7 @@ namespace
     }
 }
 
+// 依次执行所有日志文件分析入口（PID/事件/任务/计数/测试结果）
 void LogAnalysis::RunAnalysis()
 {
     AnalysePid();
@@ -824,6 +825,7 @@ void LogAnalysis::RunAnalysis()
     AnalyseTestResults();
 }
 
+// 解析并汇总机器人自动化测试结果日志
 void LogAnalysis::AnalyseTestResults()
 {
     const std::string logsDir = GetLogsDir();
@@ -912,6 +914,7 @@ void LogAnalysis::AnalyseTestResults()
     sLog.outString("Generated bot test report: %s", JoinPath(logsDir, LANDING_PAGE_FILE).c_str());
 }
 
+// 分析 bot_pid.csv 中的活跃度、耗时与 PID 控制指标
 void LogAnalysis::AnalysePid()
 {
     std::string m_logsDir = sConfig.GetStringDefault("LogsDir");
@@ -1002,6 +1005,7 @@ void LogAnalysis::AnalysePid()
     sLog.outString("========= AVG DIFF [%d] & AVG ACTIVE BOTS [%d/%d]", aDiff, aBots, maxBots);
 }
 
+// 统计 bot_events.csv 中的触发与动作频次分布
 void LogAnalysis::AnalyseEvents()
 {
     std::string m_logsDir = sConfig.GetStringDefault("LogsDir");
@@ -1070,6 +1074,7 @@ void LogAnalysis::AnalyseEvents()
     sPlayerbotAIConfig.log("log_analysis.csv", out.str().c_str());
 }
 
+// 分析机器人任务完成率与耗时日志
 void LogAnalysis::AnalyseQuests()
 {
     std::string m_logsDir = sConfig.GetStringDefault("LogsDir");
@@ -1155,6 +1160,7 @@ void LogAnalysis::AnalyseQuests()
     sPlayerbotAIConfig.log("log_analysis.csv", out.str().c_str());
 }
 
+// 分析角色数量与资源计数统计日志
 void LogAnalysis::AnalyseCounts()
 {
     std::string m_logsDir = sConfig.GetStringDefault("LogsDir");

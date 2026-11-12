@@ -6,6 +6,7 @@
 
 using namespace ai;
 
+/// 执行动作主逻辑（等待开怪保持安全距离动作）
 bool WaitForAttackKeepSafeDistanceAction::Execute(Event& event)
 {  
     Unit* target = ai->GetUnit(AI_VALUE(ObjectGuid, "current target"));
@@ -18,7 +19,7 @@ bool WaitForAttackKeepSafeDistanceAction::Execute(Event& event)
             basePos = WorldPosition(target);
             if (target->IsPlayer())
             {
-                // If target's target is a bot, see if we can get the pull back pos
+                // If target's target is a bot, see if we can get the pull back pos (若目标的目标是机器人，尝试获取拉回位置)
                 // else we should just base it off of the player pos
                 Player* player = (Player*)target;
 
@@ -40,14 +41,14 @@ bool WaitForAttackKeepSafeDistanceAction::Execute(Event& event)
             const float safeDistance = WaitForAttackStrategy::GetSafeDistance();
             const float safeDistanceThreshold = WaitForAttackStrategy::GetSafeDistanceThreshold();
 
-            // only reposition if it makes sense, ie. we are actually too close to danger
+            // only reposition if it makes sense, ie. we are actually too close to danger (仅在确实过于接近危险时才调整站位)
             if (WorldPosition(bot).fDist(basePos) <= safeDistance)
             {
-                // Find the best point around the target.
+                // Find the best point around the target. (查找目标周围的最佳站位点。)
                 const WorldPosition bestPoint = GetBestPoint(basePos, (safeDistance - safeDistanceThreshold), safeDistance);
                 if (bestPoint)
                 {
-                    // Move to the best point
+                    // Move to the best point (移动到最佳站位点)
                     bool success = MoveTo(bestPoint.getMapId(), bestPoint.getX(), bestPoint.getY(), bestPoint.getZ(), false, false, false, true);
                     if (success)
                         WaitForReach(WorldPosition(bot).fDist(bestPoint));
@@ -61,6 +62,7 @@ bool WaitForAttackKeepSafeDistanceAction::Execute(Event& event)
     return false;
 }
 
+/// 从候选坐标集合中评估并挑选最安全的站位点
 const ai::WorldPosition WaitForAttackKeepSafeDistanceAction::GetBestPoint(const WorldPosition& pos, float minDistance, float maxDistance) const
 {
     const WorldPosition botPosition(bot);
@@ -98,15 +100,15 @@ const ai::WorldPosition WaitForAttackKeepSafeDistanceAction::GetBestPoint(const 
                 Creature* wpCreature = bot->SummonCreature(1, point.getX(), point.getY(), point.getZ(), 0.0f, TEMPSPAWN_TIMED_DESPAWN, 5000.0f + tryAngle * 1000.0f);
             }
 
-            // Check if the target is visible from the point
+            // Check if the target is visible from the point (检查从该坐标点是否能直接看见目标)
             if (!pos.IsInLineOfSight(WorldPosition(point.getMapId(), point.getX(), point.getY(), point.getZ() + bot->GetCollisionHeight())))
                 continue;
 
-            // Check if the point is not surrounded by other enemies
+            // Check if the point is not surrounded by other enemies (检查坐标点周围是否没有其他敌人包围)
             if (IsEnemyClose(point, enemies))
                 continue;
 
-            // Check if the bot can move to this point.
+            // Check if the bot can move to this point. (检查机器人能否移动到该坐标点。)
             if (!botPosition.canPathTo(point,bot))
                 continue;
 
@@ -119,7 +121,7 @@ const ai::WorldPosition WaitForAttackKeepSafeDistanceAction::GetBestPoint(const 
         }
     }
 
-    // Use a minimal move from where we are to a safe spot. If no points were found just use original pos.
+    // Use a minimal move from where we are to a safe spot. If no points were found just use original pos. (从当前位置微调至安全点；若未找到安全点则保留原坐标。)
     WorldPosition minimumMove = botPosition;
     if (!points.empty())
     {
@@ -134,6 +136,7 @@ const ai::WorldPosition WaitForAttackKeepSafeDistanceAction::GetBestPoint(const 
     return minimumMove;
 }
 
+/// 判断附近指定半径内是否存在敌对单位
 bool WaitForAttackKeepSafeDistanceAction::IsEnemyClose(const WorldPosition& point, const std::list<ObjectGuid>& enemies) const
 {
     for (const ObjectGuid& enemyGUID : enemies)
@@ -141,7 +144,7 @@ bool WaitForAttackKeepSafeDistanceAction::IsEnemyClose(const WorldPosition& poin
         Unit* enemy = ai->GetUnit(enemyGUID);
         if (enemy)
         {
-            // If the enemy is not neutral
+            // If the enemy is not neutral (若敌对单位并非中立状态)
             if (enemy->CanAttackOnSight(bot))
             {
                 const float enemyAttackRange = enemy->GetAttackDistance(bot) + ATTACK_DISTANCE;
@@ -157,9 +160,10 @@ bool WaitForAttackKeepSafeDistanceAction::IsEnemyClose(const WorldPosition& poin
     return false;
 }
 
+/// 判断当前状态下该动作是否可用/有效（等待开怪保持安全距离动作）
 bool WaitForAttackKeepSafeDistanceAction::isUseful()
 {
-    // Not useful to keep safe distance if we need to cc.
+    // Not useful to keep safe distance if we need to cc. (需要执行控场时无需刻意保持安全距离。)
     bool notCCBusy = (!ai->GetUnit(AI_VALUE2(ObjectGuid, "cc target", getName())) || (ai->GetUnit(AI_VALUE2(ObjectGuid, "cc target", getName())) && ai->GetUnit(AI_VALUE2(ObjectGuid, "current cc target", getName()))));
 
     return !ai->HasStrategy("stay", ai->GetState()) && notCCBusy && (!ai->HasStrategy("guard", ai->GetState()) ||  WaitForAttackStrategy::GetSafeDistance() <= ai->GetRange("guard")) && ai->GetRange("flee") > 5.0f;

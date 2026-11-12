@@ -1,3 +1,4 @@
+// 策略值实现：ItemUsageValue（物品用途优先级决策树、装备对比与拍卖行估值）
 
 #include "playerbot/playerbot.h"
 #include "ItemUsageValue.h"
@@ -20,6 +21,7 @@ std::unordered_map<uint32, std::vector<std::pair<uint32, uint32>>> ItemUsageValu
 std::unordered_set<uint32> ItemUsageValue::m_allItemIdsSoldByAnyVendors;
 std::unordered_set<uint32> ItemUsageValue::m_itemIdsSoldByAnyVendorsWithLimitedMaxCount;
 
+// 构造函数：解析物品链接或冒号分隔限定符中的物品 ID 与附魔/宝石/随机属性
 ItemQualifier::ItemQualifier(std::string qualifier, bool linkQualifier) : itemId(0), enchantId(0), randomPropertyId(0), gem1(0), gem2(0), gem3(0), gem4(0), proto(nullptr) {
     std::vector<std::string> numbers = Qualified::getMultiQualifiers(qualifier, ":");
 
@@ -60,6 +62,7 @@ ItemQualifier::ItemQualifier(std::string qualifier, bool linkQualifier) : itemId
 #endif
 }
 
+// 读取物品指定宝石插槽已镶嵌的宝石 ID
 uint32 ItemQualifier::GemId(Item* item, uint8 gemSlot)
 {
 #ifdef MANGOSBOT_ZERO
@@ -74,6 +77,7 @@ uint32 ItemQualifier::GemId(Item* item, uint8 gemSlot)
 #endif
 }
 
+// 按优先级顺序（强制标记>公会需求>炉石/灵魂碎片>专业>消耗品>装备>分解>任务>弹药>银行>拍卖/卖店）判定物品用途
 ItemUsage ItemUsageValue::Calculate()
 {
     ItemQualifier itemQualifier(qualifier, false);
@@ -85,7 +89,7 @@ ItemUsage ItemUsageValue::Calculate()
     if (!proto)
         return ItemUsage::ITEM_USAGE_NONE;
 
-    //FORCE
+    //FORCE | 优先处理玩家手动设置的强制物品用途
     ForceItemUsage forceUsage = AI_VALUE2_EXISTS(ForceItemUsage, "force item usage", proto->ItemId, ForceItemUsage::FORCE_USAGE_NONE);
 
     if (forceUsage == ForceItemUsage::FORCE_USAGE_GREED)
@@ -139,15 +143,15 @@ ItemUsage ItemUsageValue::Calculate()
         }
     }
 
-    //KEEP HEARTHSTONE/SCOURGESTONE
+    //KEEP HEARTHSTONE/SCOURGESTONE | 保留炉石、银色黎明委任徽章与部落/联盟勋章
     if (proto->ItemId == 6948 || proto->ItemId == 40582)
         return ItemUsage::ITEM_USAGE_KEEP;
 
-    //WARLOCKS GOT TO KEEP SOULSHARDS (keep at least 10)
+    //WARLOCKS GOT TO KEEP SOULSHARDS (keep at least 10) | 术士至少保留 10 个灵魂碎片
     if (bot->getClass() == CLASS_WARLOCK && proto->ItemId == 6265 && CurrentStacks(ai, proto) <= 10)
         return ItemUsage::ITEM_USAGE_KEEP;
 
-    //SKILL
+    //SKILL | 专业技能相关物品评估
     if (ai->HasActivePlayerMaster())
     {
         if (IsItemUsefulForSkill(proto))
@@ -203,7 +207,7 @@ ItemUsage ItemUsageValue::Calculate()
         }
     }
 
-    //USE
+    //USE | 消耗品与可使用物品评估
     if (proto->Class == ITEM_CLASS_KEY)
         return ItemUsage::ITEM_USAGE_USE;
 
@@ -234,7 +238,7 @@ ItemUsage ItemUsageValue::Calculate()
 
         bool botHasHealingSpells = bot->getClass() == CLASS_PALADIN || bot->getClass() == CLASS_PRIEST || bot->getClass() == CLASS_DRUID || bot->getClass() == CLASS_SHAMAN;
 
-        //itemlevel 1 consumables are mostly level-independent
+        //itemlevel 1 consumables are mostly level-independent | 1 级消耗品大多不受等级限制
         bool isAppropriateConsumableLevel = proto->RequiredLevel <= bot->GetLevel()
             && (proto->ItemLevel == 1 || proto->ItemLevel >= bot->GetLevel());
 
@@ -267,7 +271,7 @@ ItemUsage ItemUsageValue::Calculate()
             return ItemUsage::ITEM_USAGE_KEEP;
     }
 
-    //EQUIP
+    //EQUIP | 坐骑、雕文与可穿戴装备评估
     if (MountValue::GetMountSpell(itemId) && bot->CanUseItem(proto) == EQUIP_ERR_OK && MountValue::GetSpeed(MountValue::GetMountSpell(itemId)))
     {
         std::vector<MountValue> mounts = AI_VALUE(std::vector<MountValue>, "mount list");
@@ -315,7 +319,7 @@ ItemUsage ItemUsageValue::Calculate()
     if (forceUsage == ForceItemUsage::FORCE_USAGE_EQUIP)
         return ItemUsage::ITEM_USAGE_KEEP;
 
-    //DISENCHANT
+    //DISENCHANT | 附魔分解评估
     if ((proto->Class == ITEM_CLASS_ARMOR || proto->Class == ITEM_CLASS_WEAPON) && proto->Bonding != BIND_WHEN_PICKED_UP &&
         ai->HasSkill(SKILL_ENCHANTING) && proto->Quality >= ITEM_QUALITY_UNCOMMON)
     {
@@ -330,7 +334,7 @@ ItemUsage ItemUsageValue::Calculate()
 #endif
                 Item* item = CurrentItem(proto, bot);
 
-                //Bot has budget to replace the item it wants to disenchant.
+                //Bot has budget to replace the item it wants to disenchant. | 确保机器人有预算替换拟分解的装备
                 if (!item || !sRandomPlayerbotMgr.IsRandomBot(bot) || AI_VALUE2(uint32, "free money for", (uint32)NeedMoneyFor::tradeskill) > proto->BuyPrice)
                     return ItemUsage::ITEM_USAGE_DISENCHANT;
 
@@ -340,16 +344,16 @@ ItemUsage ItemUsageValue::Calculate()
         }
     }
 
-    //QUEST
+    //QUEST | 任务需求物品评估
     if (!ai->GetMaster() || !sPlayerbotAIConfig.syncQuestWithPlayer || !IsNeededForQuest(ai->GetMaster(), itemId))
     {
         if (IsNeededForQuest(bot, itemId))
             return ItemUsage::ITEM_USAGE_QUEST;
-        else if (IsNeededForQuest(bot, itemId, true) && CurrentStacks(ai, proto) < 2) //Do not sell quest items unless selling a full stack will stil keep enough in inventory.
+        else if (IsNeededForQuest(bot, itemId, true) && CurrentStacks(ai, proto) < 2) //Do not sell quest items unless selling a full stack will stil keep enough in inventory. | 至少保留不到两组的任务关联物品以免误卖
             return ItemUsage::ITEM_USAGE_KEEP;
     }
 
-    // AMMO
+    // AMMO | 猎人箭矢/子弹评估
 if ((proto->Class == ITEM_CLASS_PROJECTILE || 
      (proto->Class == ITEM_CLASS_WEAPON && proto->SubClass == ITEM_SUBCLASS_WEAPON_THROWN)) &&
     bot->CanUseItem(proto) == EQUIP_ERR_OK)
@@ -420,11 +424,11 @@ if ((proto->Class == ITEM_CLASS_PROJECTILE ||
     }
 }
 
-    //KEEP
+    //KEEP | 保留当前及未来升级/制造有用的物品
     if (proto->Quality >= ITEM_QUALITY_EPIC && sPlayerbotAIConfig.botsSaveEpics && !sRandomPlayerbotMgr.IsRandomBot(bot))
         return ItemUsage::ITEM_USAGE_KEEP;
 
-    //BANK - items for future use
+    //BANK - items for future use | 适合存入个人银行留待将来使用的物品
     if (!ai->HasActivePlayerMaster() && sRandomPlayerbotMgr.IsFreeBot(bot))
     {
         if (IsItemUsefulForFutureEquip(proto))
@@ -461,7 +465,7 @@ if ((proto->Class == ITEM_CLASS_PROJECTILE ||
 
     uint32 ahPrice = 0;
 
-    //VENDOR/AH
+    //VENDOR/AH | 出售给 NPC 商人或挂入拍卖行评估
     if (proto->SellPrice > 0 || AI_VALUE2_EXISTS(int, "manual int", "expected ah sell price for " + std::to_string(itemId),-1) != 0)
     {
         ItemUsage sellUsage = ItemUsage::ITEM_USAGE_VENDOR;
@@ -484,7 +488,7 @@ if ((proto->Class == ITEM_CLASS_PROJECTILE ||
             return sellUsage;
 #endif
 
-        //if item value is significantly higher than its vendor sell price and we actually have money to place the item on ah.
+        //if item value is significantly higher than its vendor sell price and we actually have money to place the item on ah. | 若物品估值明显高于卖店价且资金充足则考虑上架拍卖行
         uint32 ahMoney = AI_VALUE2(uint32, "free money for", (uint32)NeedMoneyFor::ah);
 
         if(!ahMoney && AI_VALUE(uint8, "bag space") > 80)
@@ -536,10 +540,11 @@ if ((proto->Class == ITEM_CLASS_PROJECTILE ||
         return ItemUsage::ITEM_USAGE_AH;
     }
 
-    //NONE
+    //NONE | 无可用用途（丢弃或忽略）
     return ItemUsage::ITEM_USAGE_NONE;
 }
 
+// 判断物品是否可装备，并与当前槽位已装备物品进行装等、品质和属性权重对比
 ItemUsage ItemUsageValue::QueryItemUsageForEquip(ItemQualifier& itemQualifier, Player* bot)
 {
     PlayerbotAI* ai = bot->GetPlayerbotAI();
@@ -613,7 +618,7 @@ ItemUsage ItemUsageValue::QueryItemUsageForEquip(ItemQualifier& itemQualifier, P
                     return ItemUsage::ITEM_USAGE_EQUIP;
                 }
 
-                //no need to check for quiver container slots size, higher ilvl/quality checks is enough
+                //no need to check for quiver container slots size, higher ilvl/quality checks is enough | 箭袋无需比较格子数，装等与品质已足够判断
             }
         }
 
@@ -657,7 +662,7 @@ ItemUsage ItemUsageValue::QueryItemUsageForEquip(ItemQualifier& itemQualifier, P
     }
 
 
-    //No item equiped
+    //No item equiped | 对应槽位当前未穿戴装备
     if (!oldItem)
     {
         if (shouldEquip)
@@ -716,7 +721,7 @@ ItemUsage ItemUsageValue::QueryItemUsageForEquip(ItemQualifier& itemQualifier, P
     if (oldItemProto->Class == ITEM_CLASS_ARMOR && !oldStatWeight)
         existingShouldEquip = false;
 
-    //Compare items based on item level, quality.
+    //Compare items based on item level, quality. | 综合对比新旧装备的装等、品质与属性评分
     bool isBetter = false;
     if (statWeight > oldStatWeight)
         isBetter = true;
@@ -753,14 +758,15 @@ ItemUsage ItemUsageValue::QueryItemUsageForEquip(ItemQualifier& itemQualifier, P
                     return ItemUsage::ITEM_USAGE_BAD_EQUIP;
         }
     }
-    //Item is not better but current item is broken and new one is not.
+    //Item is not better but current item is broken and new one is not. | 新物品属性未超越但当前装备已破损时，暂用新物品替换
     if (oldItemIsBroken && !itemIsBroken)
         return ItemUsage::ITEM_USAGE_EQUIP;
 
     return ItemUsage::ITEM_USAGE_NONE;
 }
 
-//Return smaltest bag size equipped
+//Return smaltest bag size equipped | 返回已装备背包中的最小格数
+// 返回当前已装备背包槽位中的最小容量（含空槽返回 0）
 uint32 ItemUsageValue::GetSmallestBagSize(Player* bot)
 {
     int8 curSlot = 0;
@@ -783,6 +789,7 @@ uint32 ItemUsageValue::GetSmallestBagSize(Player* bot)
     return curSlots;
 }
 
+// 生成解释机器人为何需要或处置该物品的格式化提示文本
 std::string ItemUsageValue::ReasonForNeed(ItemUsage usage, ItemQualifier qualifier, uint32 count, Player* bot)
 {
     std::map<std::string, std::string> placeholders;
@@ -847,6 +854,7 @@ std::string ItemUsageValue::ReasonForNeed(ItemUsage usage, ItemQualifier qualifi
     return "";
 }
 
+// 计算物品在拍卖行上架所需的保证金费用
 uint32 ItemUsageValue::GetAhDepositCost(ItemPrototype const* proto, uint32 count)
 {
     uint32 time;
@@ -870,11 +878,12 @@ uint32 ItemUsageValue::GetAhDepositCost(ItemPrototype const* proto, uint32 count
     return deposit;
 }
 
+// 查询特定转化/重铸物品对应的前置源物品 ID
 uint32 ItemUsageValue::ItemCreatedFrom(uint32 wantItemId)
 {
     switch (wantItemId) {
-    case 38631: //Runebladed Sword 
-        return 38607; //Battle-worn Sword
+    case 38631: //Runebladed Sword  | 符文利剑（由破损的剑转化）
+        return 38607; //Battle-worn Sword | 破损的剑
     default:
         return 0;
     }
@@ -882,6 +891,7 @@ uint32 ItemUsageValue::ItemCreatedFrom(uint32 wantItemId)
     return 0;
 }
 
+// 检查物品是否为机器人当前未完成任务所需的任务物品或接取/交互触发物品
 bool ItemUsageValue::IsNeededForQuest(Player* player, uint32 itemId, bool ignoreInventory)
 {
     if (!itemId)
@@ -916,6 +926,7 @@ bool ItemUsageValue::IsNeededForQuest(Player* player, uint32 itemId, bool ignore
     return false;
 }
 
+// 判断物品是否为矿锄、铁匠锤、附魔棒、剥皮刀或鱼竿等专业必备工具
 bool ItemUsageValue::IsItemNeededForSkill(ItemPrototype const* proto)
 {
     switch (proto->ItemId)
@@ -950,6 +961,7 @@ bool ItemUsageValue::IsItemNeededForSkill(ItemPrototype const* proto)
 }
 
 
+// 判断物品是否对机器人已学会的制造或采集专业有用
 bool ItemUsageValue::IsItemUsefulForSkill(ItemPrototype const* proto)
 {
     switch (proto->Class)
@@ -1029,6 +1041,7 @@ bool ItemUsageValue::IsItemUsefulForSkill(ItemPrototype const* proto)
     return false;
 }
 
+// 检查该材料是否可用于机器人当前需要/有用的配方制作
 bool ItemUsageValue::IsItemNeededForUsefullCraft(ItemPrototype const* proto, bool checkAllReagents)
 {
     std::vector<uint32> spellIds = AI_VALUE(std::vector<uint32>, "craft spells");
@@ -1075,6 +1088,7 @@ bool ItemUsageValue::IsItemNeededForUsefullCraft(ItemPrototype const* proto, boo
     return false;
 }
 
+// 从背包或装备中查找与指定物品原型匹配的实例
 Item* ItemUsageValue::CurrentItem(ItemPrototype const* proto, Player* bot)
 {
     PlayerbotAI* ai = bot->GetPlayerbotAI();
@@ -1097,6 +1111,7 @@ Item* ItemUsageValue::CurrentItem(ItemPrototype const* proto, Player* bot)
     return bestItem;
 }
 
+// 查找该物品将要装备的对应槽位上当前已穿戴的物品
 Item* ItemUsageValue::CurrentItemInSlot(ItemPrototype const* proto, Player* bot)
 {
     uint16 dest;
@@ -1110,6 +1125,7 @@ Item* ItemUsageValue::CurrentItemInSlot(ItemPrototype const* proto, Player* bot)
     return bot->GetItemByPos(dest);    
 }
 
+// 计算机器人当前持有的指定物品堆叠总组数
 float ItemUsageValue::CurrentStacks(PlayerbotAI* ai, ItemPrototype const* proto)
 {
     uint32 maxStack = proto->GetMaxStackSize();
@@ -1129,6 +1145,7 @@ float ItemUsageValue::CurrentStacks(PlayerbotAI* ai, ItemPrototype const* proto)
     return itemCount / maxStack;
 }
 
+// 统计背包中比指定物品更高级的同类型物品（如食物/药水/弹药）组数
 float ItemUsageValue::BetterStacks(ItemPrototype const* proto, std::string itemType)
 {
     std::list<Item*> items = AI_VALUE2(std::list<Item*>, "inventory items", itemType);
@@ -1155,6 +1172,7 @@ float ItemUsageValue::BetterStacks(ItemPrototype const* proto, std::string itemT
 }
 
 
+// 查找机器人已学会且需要消耗指定物品施放的法术列表
 std::vector<uint32> ItemUsageValue::SpellsUsingItem(uint32 itemId, Player* bot)
 {
     std::vector<uint32> retSpells;
@@ -1180,6 +1198,7 @@ std::vector<uint32> ItemUsageValue::SpellsUsingItem(uint32 itemId, Player* bot)
     return retSpells;
 }
 
+// 判断物品是否为恢复生命值的食物或饮料
 bool ItemUsageValue::IsHpFoodOrDrink(ItemPrototype const* proto)
 {
     if (proto->Class == ItemClass::ITEM_CLASS_CONSUMABLE
@@ -1199,6 +1218,7 @@ bool ItemUsageValue::IsHpFoodOrDrink(ItemPrototype const* proto)
     return false;
 }
 
+// 判断物品是否为恢复法力值的食物或饮料
 bool ItemUsageValue::IsManaFoodOrDrink(ItemPrototype const* proto)
 {
     if (proto->Class == ItemClass::ITEM_CLASS_CONSUMABLE
@@ -1218,6 +1238,7 @@ bool ItemUsageValue::IsManaFoodOrDrink(ItemPrototype const* proto)
     return false;
 }
 
+// 判断物品是否为治疗药水
 bool ItemUsageValue::IsHealingPotion(ItemPrototype const* proto)
 {
     if (proto->Class == ItemClass::ITEM_CLASS_CONSUMABLE &&
@@ -1241,6 +1262,7 @@ bool ItemUsageValue::IsHealingPotion(ItemPrototype const* proto)
     return false;
 }
 
+// 判断物品是否为法力药水
 bool ItemUsageValue::IsManaPotion(ItemPrototype const* proto)
 {
     if (proto->Class == ItemClass::ITEM_CLASS_CONSUMABLE &&
@@ -1264,6 +1286,7 @@ bool ItemUsageValue::IsManaPotion(ItemPrototype const* proto)
     return false;
 }
 
+// 判断物品是否为急救绷带
 bool ItemUsageValue::IsBandage(ItemPrototype const* proto)
 {
     if (proto->Class == ItemClass::ITEM_CLASS_CONSUMABLE
@@ -1275,6 +1298,7 @@ bool ItemUsageValue::IsBandage(ItemPrototype const* proto)
     return false;
 }
 
+// 判断物品是否为解毒类抗毒药剂
 bool ItemUsageValue::IsAntiVenom(ItemPrototype const* proto)
 {
     if (proto->Class == ItemClass::ITEM_CLASS_CONSUMABLE)
@@ -1296,6 +1320,7 @@ bool ItemUsageValue::IsAntiVenom(ItemPrototype const* proto)
     return false;
 }
 
+// 从配方/图纸物品原型中提取其教授的制造法术 ID
 uint32 ItemUsageValue::GetRecipeSpell(ItemPrototype const* proto)
 {
 #ifndef MANGOSBOT_ZERO
@@ -1328,6 +1353,7 @@ uint32 ItemUsageValue::GetRecipeSpell(ItemPrototype const* proto)
     return 0;
 }
 
+// 初始化缓存全游戏各专业制造/采集关联的材料物品 ID 表
 void ItemUsageValue::PopulateProfessionReagentIds()
 {
     m_allReagentItemIdsForCraftingSkillsVector.clear();
@@ -1346,7 +1372,7 @@ void ItemUsageValue::PopulateProfessionReagentIds()
                 if (!skillLine)
                     continue;
 
-                // wrong skill
+                // wrong skill | 非对应专业技能则跳过
                 if (skillLine->skillId != skillInfo->id)
                     continue;
 
@@ -1370,6 +1396,7 @@ void ItemUsageValue::PopulateProfessionReagentIds()
     }
 }
 
+// 初始化缓存每个可制造物品对应的材料配方表
 void ItemUsageValue::PopulateReagentItemIdsForCraftableItemIds()
 {
     m_craftingReagentItemIdsForCraftableItem.clear();
@@ -1411,6 +1438,7 @@ void ItemUsageValue::PopulateReagentItemIdsForCraftableItemIds()
     }
 }
 
+// 初始化缓存所有 NPC 商人及阵营模板出售的物品与限量物品集合
 void ItemUsageValue::PopulateSoldByVendorItemIds()
 {
     if (auto result = WorldDatabase.PQuery("%s", "SELECT distinct item FROM npc_vendor"))
@@ -1450,11 +1478,13 @@ void ItemUsageValue::PopulateSoldByVendorItemIds()
     }
 }
 
+// 返回所有专业相关材料物品 ID 的扁平向量
 std::vector<uint32> ItemUsageValue::GetAllReagentItemIdsForCraftingSkillsVector()
 {
     return m_allReagentItemIdsForCraftingSkillsVector;
 }
 
+// 返回制造指定物品所需的全部材料及其数量列表
 std::vector<std::pair<uint32, uint32>> ItemUsageValue::GetAllReagentItemIdsForCraftingItem(ItemPrototype const* proto)
 {
     auto items = m_craftingReagentItemIdsForCraftableItem.find(proto->ItemId);
@@ -1465,11 +1495,13 @@ std::vector<std::pair<uint32, uint32>> ItemUsageValue::GetAllReagentItemIdsForCr
     return items->second;
 }
 
+// 判断物品是否可在任意 NPC 商人处购得
 bool ItemUsageValue::IsItemSoldByAnyVendor(ItemPrototype const* proto)
 {
     return m_allItemIdsSoldByAnyVendors.count(proto->ItemId) > 0;
 }
 
+// 判断任务是否要求装备该物品（如黑翼斗篷等）
 bool ItemUsageValue::MustEquipForQuest(ItemPrototype const* proto, Player* bot)
 {
     PlayerbotAI* ai = bot->GetPlayerbotAI();
@@ -1484,21 +1516,25 @@ bool ItemUsageValue::MustEquipForQuest(ItemPrototype const* proto, Player* bot)
     return false;
 }
 
+// 判断物品是否仅由限量刷新商人出售
 bool ItemUsageValue::IsItemSoldByAnyVendorButHasLimitedMaxCount(ItemPrototype const* proto)
 {
     return m_itemIdsSoldByAnyVendorsWithLimitedMaxCount.count(proto->ItemId) > 0;
 }
 
+// 判断物品是否被指定专业技能作为材料使用
 bool ItemUsageValue::IsItemUsedBySkill(ItemPrototype const* proto, SkillType skillType)
 {
     return m_reagentItemIdsForCraftingSkills[skillType].count(proto->ItemId) > 0;
 }
 
+// 判断物品是否为任意配方所需的制造材料
 bool ItemUsageValue::IsItemUsedToCraftAnything(ItemPrototype const* proto)
 {
     return m_allReagentItemIdsForCraftingSkills.count(proto->ItemId) > 0;
 }
 
+// 计算拍卖行当前在售该物品的单价中位数
 uint32 ItemUsageValue::GetAHMedianBuyoutPricePerItem(ItemPrototype const* proto)
 {
     if (sPlayerbotAIConfig.shouldQueryAHListingsOutsideOfAH)
@@ -1521,6 +1557,7 @@ uint32 ItemUsageValue::GetAHMedianBuyoutPricePerItem(ItemPrototype const* proto)
     return 0;
 }
 
+// 查询拍卖行当前在售该物品的最低一口价单价
 uint32 ItemUsageValue::GetAHListingLowestBuyoutPricePerItem(ItemPrototype const* proto)
 {
     if (sPlayerbotAIConfig.shouldQueryAHListingsOutsideOfAH)
@@ -1538,6 +1575,7 @@ uint32 ItemUsageValue::GetAHListingLowestBuyoutPricePerItem(ItemPrototype const*
         }
        
         return minBuyout;
+        // 注释：已弃用的直接查询数据库拍卖表逻辑
         /*
         auto query = CharacterDatabase.PQuery(
             "SELECT buyoutprice / item_count"
@@ -1564,12 +1602,13 @@ uint32 ItemUsageValue::GetAHListingLowestBuyoutPricePerItem(ItemPrototype const*
     return 0;
 }
 
+// 判断拍卖行最低一口价是否已跌破保底收购价
 bool ItemUsageValue::AreCurrentAHListingsTooCheap(ItemPrototype const* proto)
 {
     uint32 lowestAhItemListingBuyoutPrice = GetAHListingLowestBuyoutPricePerItem(proto);
     uint32 lowestAcceptapleAhBuyoutPrice = GetBotAHSellMinPrice(proto);
 
-    //check if AH listings are already at the bottom price (with a 1% margin for possible calculation errors and is generally better)
+    //check if AH listings are already at the bottom price (with a 1% margin for possible calculation errors and is generally better) | 检查拍卖行当前最低价是否已接近底价（预留 1% 误差空间）
     if (lowestAhItemListingBuyoutPrice > 0 && lowestAhItemListingBuyoutPrice <= lowestAcceptapleAhBuyoutPrice + (lowestAcceptapleAhBuyoutPrice * 0.01f))
     {
         return true;
@@ -1578,6 +1617,7 @@ bool ItemUsageValue::AreCurrentAHListingsTooCheap(ItemPrototype const* proto)
     return false;
 }
 
+// 判断将物品挂上拍卖行是否比直接卖给 NPC 商人更有利可图
 bool ItemUsageValue::IsMoreProfitableToSellToAHThanToVendor(ItemPrototype const* proto, Player* bot)
 {
     if (proto->Bonding == ItemBondingType::BIND_WHEN_PICKED_UP)
@@ -1606,7 +1646,7 @@ bool ItemUsageValue::IsMoreProfitableToSellToAHThanToVendor(ItemPrototype const*
         }
     }
 
-    //exceptions
+    //exceptions | 拍卖评估例外情况处理
     //cool consumeables?
     if (proto->ItemId == 2662) //noggerfogger
         return true;
@@ -1630,7 +1670,7 @@ bool ItemUsageValue::IsMoreProfitableToSellToAHThanToVendor(ItemPrototype const*
     {
     case ItemQualities::ITEM_QUALITY_POOR:
     {
-        //gray items usually are only worth as much as their vendor sell price
+        //gray items usually are only worth as much as their vendor sell price | 灰色品质物品通常只值卖店价
         return false;
     }
     case ItemQualities::ITEM_QUALITY_NORMAL:
@@ -1683,7 +1723,7 @@ bool ItemUsageValue::IsMoreProfitableToSellToAHThanToVendor(ItemPrototype const*
 
         return true;
     }
-    //UNCOMMON+ are usually all worth at least the "buy from vendor" price
+    //UNCOMMON+ are usually all worth at least the "buy from vendor" price | 绿色（优秀）及以上品质通常至少值商人收购价
     case ItemQualities::ITEM_QUALITY_UNCOMMON:
     case ItemQualities::ITEM_QUALITY_RARE:
     case ItemQualities::ITEM_QUALITY_EPIC:
@@ -1699,6 +1739,7 @@ bool ItemUsageValue::IsMoreProfitableToSellToAHThanToVendor(ItemPrototype const*
     return false;
 }
 
+// 评估从商人处购买物品转手挂拍卖行倒卖是否划算
 bool ItemUsageValue::IsWorthBuyingFromVendorToResellAtAH(ItemPrototype const* proto, bool isLimitedSupply)
 {
     if (proto->Bonding == ItemBondingType::BIND_WHEN_PICKED_UP)
@@ -1792,14 +1833,16 @@ bool ItemUsageValue::IsWorthBuyingFromVendorToResellAtAH(ItemPrototype const* pr
     return false;
 }
 
+// 评估从拍卖行低价扫货并高价转卖是否具备套利空间
 bool ItemUsageValue::IsWorthBuyingFromAhToResellAtAH(ItemPrototype const* proto, uint32 totalCost, uint32 itemCount)
 {
     uint32 pricePerItem = totalCost / itemCount;
 
-    //bottom half is probably always worth buying? That should reduce oversupply
+    //bottom half is probably always worth buying? That should reduce oversupply | 低于中位数半价的商品通常值得扫货以减少低价积压
     return pricePerItem <= GetBotAHSellMinPrice(proto) + ((GetBotAHSellMaxPrice(proto) - GetBotAHSellMinPrice(proto)) / 2);
 }
 
+// 根据物品稀有度（品质）返回价格估值倍率
 double ItemUsageValue::GetRarityPriceMultiplier(ItemPrototype const* proto)
 {
     float x = sRandomItemMgr.GetItemRarity(proto->ItemId);
@@ -1807,12 +1850,14 @@ double ItemUsageValue::GetRarityPriceMultiplier(ItemPrototype const* proto)
     return 0.75 + exp((140 - x) / 50) / 6;
 }
 
+// 根据物品等级或需求等级返回价格估值倍率
 double ItemUsageValue::GetLevelPriceMultiplier(ItemPrototype const* proto)
 {
     float x = 0.1f + proto->ItemLevel;
     return 0.5 + exp(x / 60) / 2;
 }
 
+// 基于材料成本、品质与等级综合计算物品基准估值
 uint32 ItemUsageValue::GetItemBaseValue(ItemPrototype const* proto, uint8 maxReagentLevel)
 {
     if (proto->Quality == ItemQualities::ITEM_QUALITY_POOR)
@@ -1822,11 +1867,11 @@ uint32 ItemUsageValue::GetItemBaseValue(ItemPrototype const* proto, uint8 maxRea
 
     if (IsItemSoldByAnyVendor(proto))
     {
-        //if item is sold by a vendor - price can never be lower than BuyPrice, because bots may buy from vendor to resell
+        //if item is sold by a vendor - price can never be lower than BuyPrice, because bots may buy from vendor to resell | 若商人有售，基准价不低于购买价以防低买高卖套利错乱
         return proto->BuyPrice;
     }
 
-    //calculate total value of reagents if the item is craftable
+    //calculate total value of reagents if the item is craftable | 若物品可制造则累计其材料总价值
     if (maxReagentLevel > 0 && GetAllReagentItemIdsForCraftingItem(proto).size() > 0)
     {
         maxReagentLevel--;
@@ -1844,34 +1889,39 @@ uint32 ItemUsageValue::GetItemBaseValue(ItemPrototype const* proto, uint8 maxRea
         }
     }
 
-    //some items, which are not sold by vendors, have very low or very high vendor buy price, can't rely on it, need to adjust SellPrice
+    //some items, which are not sold by vendors, have very low or very high vendor buy price, can't rely on it, need to adjust SellPrice | 部分非商店出售物品的 BuyPrice 异常，需基于 SellPrice 修正
     return static_cast<uint32>(proto->SellPrice * GetRarityPriceMultiplier(proto) * GetLevelPriceMultiplier(proto) * 1.5f);
 }
 
+// 计算机器人愿意出价收购或竞拍该物品的价格
 uint32 ItemUsageValue::GetBotBuyPrice(ItemPrototype const* proto, Player* bot)
 {
     return static_cast<uint32>(GetItemBaseValue(proto) * sRandomPlayerbotMgr.GetBuyMultiplier(bot));
 }
 
+// 计算机器人在拍卖行出售该物品的目标参考价（不低于卖店价）
 uint32 ItemUsageValue::GetBotSellPrice(ItemPrototype const* proto, Player* bot)
 {
-    //should never sell for less than sell to vendor price
+    //should never sell for less than sell to vendor price | 拍卖底价绝不能低于直接卖给 NPC 商人的价格
     return std::max(
         static_cast<uint32>((GetItemBaseValue(proto) + 1) * sRandomPlayerbotMgr.GetSellMultiplier(bot)),
         static_cast<uint32>(proto->SellPrice * 1.1f)
     );
 }
 
+// 计算拍卖行挂单底价（基准估值 75%）
 uint32 ItemUsageValue::GetBotAHSellMinPrice(ItemPrototype const* proto)
 {
     return static_cast<uint32>(GetItemBaseValue(proto) * 2.00f);
 }
 
+// 计算拍卖行挂单最高参考价（基准估值 150%）
 uint32 ItemUsageValue::GetBotAHSellMaxPrice(ItemPrototype const* proto)
 {
     return static_cast<uint32>(GetItemBaseValue(proto) * 2.5f);
 }
 
+// 估算委托制造该物品的基准手工费
 uint32 ItemUsageValue::GetCraftingFee(ItemPrototype const* proto)
 {
     uint32 fixedMinCraftingFee = 100;
@@ -1879,6 +1929,7 @@ uint32 ItemUsageValue::GetCraftingFee(ItemPrototype const* proto)
     return fixedMinCraftingFee * level * level / 40;
 }
 
+// 结合拍卖行当前最低价和市场竞争压价计算实际挂拍单价
 uint32 ItemUsageValue::DesiredPricePerItem(Player* bot, const ItemPrototype* proto, uint32 count, uint32 priceModifier)
 {
     AuctionEntry lowestPrice;
@@ -1932,6 +1983,7 @@ uint32 ItemUsageValue::DesiredPricePerItem(Player* bot, const ItemPrototype* pro
     return desiredPricePerItem;
 }
 
+// 判断当前等级尚不能穿戴的装备在未来 10 级内是否具备升级价值
 bool ItemUsageValue::IsItemUsefulForFutureEquip(ItemPrototype const* proto)
 {
     if (proto->InventoryType == INVTYPE_NON_EQUIP)
@@ -1950,19 +2002,20 @@ bool ItemUsageValue::IsItemUsefulForFutureEquip(ItemPrototype const* proto)
         return false;
 
     if (bot->CanUseItem(proto) == EQUIP_ERR_OK)
-        return false; // can already use, should be handled by equip logic
+        return false; // can already use, should be handled by equip logic | 当前已可使用，应由常规装备逻辑处理
 
-    // Check class restriction
+    // Check class restriction | 检查职业限制
     if (proto->AllowableClass && !(proto->AllowableClass & bot->getClassMask()))
         return false;
 
-    // Check race restriction
+    // Check race restriction | 检查种族限制
     if (proto->AllowableRace && !(proto->AllowableRace & bot->getRaceMask()))
         return false;
 
     return true;
 }
 
+// 判断材料是否可用于机器人当前专业未来的高阶配方
 bool ItemUsageValue::IsItemUsefulForFutureCraft(ItemPrototype const* proto)
 {
     if (proto->Class != ITEM_CLASS_TRADE_GOODS && proto->Class != ITEM_CLASS_MISC && proto->Class != ITEM_CLASS_REAGENT)
@@ -1972,13 +2025,13 @@ bool ItemUsageValue::IsItemUsefulForFutureCraft(ItemPrototype const* proto)
         return false;
 
     if (IsItemNeededForUsefullCraft(proto, false))
-        return false; // already needed now, handled by SKILL usage
+        return false; // already needed now, handled by SKILL usage | 当前已急需，交由 SKILL 用途处理
 
-    // Check if this is a crafting reagent for any recipe the bot's professions use
+    // Check if this is a crafting reagent for any recipe the bot's professions use | 检查是否为机器人专业配方所需的制作材料
     if (!m_allReagentItemIdsForCraftingSkills.count(proto->ItemId))
         return false;
 
-    // Check bot has a profession that uses this reagent
+    // Check bot has a profession that uses this reagent | 检查机器人是否拥有使用该材料的专业技能
     for (auto& [skillId, reagentSet] : m_reagentItemIdsForCraftingSkills)
     {
         if (!reagentSet.count(proto->ItemId))

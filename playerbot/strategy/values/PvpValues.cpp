@@ -1,3 +1,4 @@
+// 策略值实现：PvpValues（战场军官搜索、战场排队筛选与扛旗手识别）
 
 #include "playerbot/playerbot.h"
 #include "PvpValues.h"
@@ -11,6 +12,7 @@
 
 using namespace ai;
 
+// 从全局缓存中提取当前阵营与指定战场类型的全部战场军官实例数据
 std::list<CreatureDataPair const*> BgMastersValue::Calculate()
 {
     BattleGroundTypeId bgTypeId = (BattleGroundTypeId)stoi(qualifier);
@@ -34,6 +36,7 @@ std::list<CreatureDataPair const*> BgMastersValue::Calculate()
     return bmGuids;
 }
 
+// 优先查找存活且最近的战场军官，若无则放宽允许已死亡记录
 CreatureDataPair const* BgMasterValue::Calculate()
 {
     CreatureDataPair const* bmPair = NearestBm(false);
@@ -44,6 +47,7 @@ CreatureDataPair const* BgMasterValue::Calculate()
     return bmPair;
 }
 
+// 遍历同地图非敌对区域的战场军官，返回直线距离最近的目标
 CreatureDataPair const* BgMasterValue::NearestBm(bool allowDead)
 {
     WorldPosition botPos(bot);
@@ -62,13 +66,13 @@ CreatureDataPair const* BgMasterValue::NearestBm(bool allowDead)
 
         WorldPosition bmPos(bmPair);
 
-        float dist = botPos.distance(bmPos); //This is the aproximate travel distance.
+        float dist = botPos.distance(bmPos); //This is the aproximate travel distance. | 此处为近似估算的直线行进距离
 
-        // Skip battlemasters that are not on the same map
+        // Skip battlemasters that are not on the same map | 跳过不在同一地图上的战场军官
         if (bot->GetMapId() != bmPos.getMapId())
             continue;
 
-        //Did we already find a closer unit that is not dead?
+        //Did we already find a closer unit that is not dead? | 已有更近的存活军官时跳过较远目标
         if (rbmPair && rDist <= dist)
             continue;
 
@@ -79,7 +83,7 @@ CreatureDataPair const* BgMasterValue::NearestBm(bool allowDead)
 
         FactionTemplateEntry const* bmFactionEntry = sFactionTemplateStore.LookupEntry(bmTemplate->Faction);
 
-        //Is the unit hostile?
+        //Is the unit hostile? | 忽略对当前机器人敌对的军官
         if (ai->getReaction(bmFactionEntry) < REP_NEUTRAL)
             continue;
 
@@ -88,7 +92,7 @@ CreatureDataPair const* BgMasterValue::NearestBm(bool allowDead)
         if (!area)
             continue;
 
-        //Is the area hostile?
+        //Is the area hostile? | 忽略位于敌对阵营领地内的军官
         if (area->team == 4 && bot->GetTeam() == ALLIANCE)
             continue;
         if (area->team == 2 && bot->GetTeam() == HORDE)
@@ -101,7 +105,7 @@ CreatureDataPair const* BgMasterValue::NearestBm(bool allowDead)
             if (!unit)
                 continue;
 
-            //Is the unit dead?
+            //Is the unit dead? | 不允许死亡时跳过当前已死亡的军官
             if (unit->GetDeathState() == DEAD)
                 continue;
         }
@@ -114,15 +118,16 @@ CreatureDataPair const* BgMasterValue::NearestBm(bool allowDead)
 }
 
 
+// 检查逃兵减益与排队槽位，随机返回本等级段尚未排队的战场类型
 BattleGroundTypeId RpgBgTypeValue::Calculate()
 {
     GuidPosition guidPosition = AI_VALUE(GuidPosition, "rpg target");
 
-    // check Deserter debuff
+    // check Deserter debuff | 检查是否带有逃亡者减益（26013）
     if (!bot->CanJoinToBattleground())
         return BATTLEGROUND_TYPE_NONE;
 
-    // check if has free queue slots
+    // check if has free queue slots | 检查是否还有空闲的战场排队栏位
     if (!bot->HasFreeBattleGroundQueueId())
         return BATTLEGROUND_TYPE_NONE;
 
@@ -140,7 +145,7 @@ BattleGroundTypeId RpgBgTypeValue::Calculate()
             if (bot->GetLevel() < bg->GetMinLevel())
                 continue;
 
-            // check if already in queue
+            // check if already in queue | 检查是否已在该战场的队列中
             if (bot->InBattleGroundQueueForBattleGroundQueueType(queueTypeId))
                 continue;
 
@@ -158,6 +163,7 @@ BattleGroundTypeId RpgBgTypeValue::Calculate()
     return BATTLEGROUND_TYPE_NONE;
 }
 
+// 查询战歌峡谷己方旗帜或风暴之眼中央旗帜的当前携带者 GUID
 ObjectGuid FlagCarrierValue::Calculate()
 {
     Unit* carrier = nullptr;

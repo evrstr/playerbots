@@ -1,22 +1,27 @@
+// 潜行者 - 触发器头文件 (RogueTriggers.h)：定义潜行者增益、减益、冷却及状态检查触发条件
 #pragma once
 #include "playerbot/strategy/triggers/GenericTriggers.h"
 
 namespace ai
 {
+    // 触发器：脚踢
     class KickInterruptSpellTrigger : public InterruptSpellTrigger
     {
     public:
         KickInterruptSpellTrigger(PlayerbotAI* ai) : InterruptSpellTrigger(ai, "kick") {}
     };
 
+    // 可施法检查触发器(带条件)：还击 (RiposteCastTrigger)
     CAN_CAST_TRIGGER_A(RiposteCastTrigger, "riposte");
 
+    // 触发器：切割
     class SliceAndDiceTrigger : public NoBuffAndComboPointsAvailableTrigger
     {
     public:
         SliceAndDiceTrigger(PlayerbotAI* ai, uint8 comboPoints = 3) : NoBuffAndComboPointsAvailableTrigger(ai, "slice and dice", comboPoints) {}
     };
 
+    // 触发器：潜行者爆发增益状态
     class RogueBoostBuffTrigger : public BoostTrigger
     {
     public:
@@ -24,18 +29,21 @@ namespace ai
         virtual bool IsActive() override { if (ai->HasAura("stealth", bot)) return false; return BoostTrigger::IsActive(); }
     };
 
+    // 触发器：割裂
     class RuptureTrigger : public NoDebuffAndComboPointsAvailableTrigger
     {
     public:
         RuptureTrigger(PlayerbotAI* ai, uint8 comboPoints = 4) : NoDebuffAndComboPointsAvailableTrigger(ai, "rupture", comboPoints) {}
     };
 
+    // 触发器：刺骨
     class EviscerateTrigger : public ComboPointsAvailableTrigger
     {
     public:
         EviscerateTrigger(PlayerbotAI* ai, uint8 comboPoints = 4) : ComboPointsAvailableTrigger(ai, comboPoints) {}
     };
 
+    // 触发器：暗影斗篷
     class CloakOfShadowsTrigger : public NeedCureTrigger
     {
     public:
@@ -64,24 +72,28 @@ namespace ai
     };
     */
 
+    // 触发器：破甲
     class ExposeArmorTrigger : public NoDebuffAndComboPointsAvailableTrigger
     {
     public:
         ExposeArmorTrigger(PlayerbotAI* ai, uint8 comboPoints = 3) : NoDebuffAndComboPointsAvailableTrigger(ai, "expose armor", comboPoints) {}
     };
 
+    // 触发器：脚踢
     class KickInterruptEnemyHealerSpellTrigger : public InterruptEnemyHealerTrigger
     {
     public:
         KickInterruptEnemyHealerSpellTrigger(PlayerbotAI* ai) : InterruptEnemyHealerTrigger(ai, "kick") {}
     };
 
+    // 触发器：潜行
     class InStealthTrigger : public HasAuraTrigger
     {
     public:
         InStealthTrigger(PlayerbotAI* ai) : HasAuraTrigger(ai, "stealth") {}
     };
 
+    // 触发器：潜行
     class NoStealthTrigger : public HasNoAuraTrigger
     {
     public:
@@ -91,6 +103,7 @@ namespace ai
         }
     };
 
+    // 触发器：潜行
     class RogueUnstealthTrigger : public BuffTrigger
     {
     public:
@@ -120,6 +133,7 @@ namespace ai
         }
     };
 
+    // 触发器：潜行
     class StealthTrigger : public Trigger 
     {
     public:
@@ -173,6 +187,7 @@ namespace ai
         }
     };
 
+    // 触发器：闷棍
     class SapTrigger : public HasCcTargetTrigger
     {
     public:
@@ -184,6 +199,7 @@ namespace ai
         }
     };
 
+    // 触发器：疾跑
     class SprintTrigger : public BuffTrigger
     {
     public:
@@ -241,6 +257,7 @@ namespace ai
         }
     };
 
+    // 触发器：武器缺少毒药增益
     class ApplyPoisonTrigger : public Trigger
     {
     public:
@@ -272,36 +289,42 @@ namespace ai
         std::vector<uint32> poisonEnchantIds;
     };
 
+    // 触发器：需要涂抹致命毒药
     class ApplyDeadlyPoisonTrigger : public ApplyPoisonTrigger
     {
     public:
         ApplyDeadlyPoisonTrigger(PlayerbotAI* ai, bool inMainHand) : ApplyPoisonTrigger(ai, inMainHand, { 7, 8, 626, 627, 2630, 2642, 2643, 3770, 3771 }, "apply deadly poison main hand") {}
     };
 
+    // 触发器：需要涂抹减速毒药
     class ApplyCripplingPoisonTrigger : public ApplyPoisonTrigger
     {
     public:
         ApplyCripplingPoisonTrigger(PlayerbotAI* ai, bool inMainHand) : ApplyPoisonTrigger(ai, inMainHand, { 22, 603 }, "apply crippling poison main hand") {}
     };
 
+    // 触发器：需要涂抹麻痹毒药
     class ApplyMindPoisonTrigger : public ApplyPoisonTrigger
     {
     public:
         ApplyMindPoisonTrigger(PlayerbotAI* ai, bool inMainHand) : ApplyPoisonTrigger(ai, inMainHand, { 35, 23, 643 }, "apply mind poison main hand") {}
     };
 
+    // 触发器：需要涂抹速效毒药
     class ApplyInstantPoisonTrigger : public ApplyPoisonTrigger
     {
     public:
         ApplyInstantPoisonTrigger(PlayerbotAI* ai, bool inMainHand) : ApplyPoisonTrigger(ai, inMainHand, { 323, 324, 325, 623, 624, 625, 2641, 3768, 3769 }, "apply instant poison main hand") {}
     };
 
+    // 触发器：需要涂抹致伤毒药
     class ApplyWoundPoisonTrigger : public ApplyPoisonTrigger
     {
     public:
         ApplyWoundPoisonTrigger(PlayerbotAI* ai, bool inMainHand) : ApplyPoisonTrigger(ai, inMainHand, { 703, 704, 705, 706, 2644, 3772, 3773 }, "apply wound poison main hand") {}
     };
 
+    // 触发器：需要涂抹麻醉毒药
     class ApplyAnestheticPoisonTrigger : public ApplyPoisonTrigger
     {
     public:

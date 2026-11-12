@@ -4,6 +4,7 @@
 
 namespace ai
 {
+    /// 单次反应动作状态结构体，记录触发事件、动作指针及剩余持续时间
     struct Reaction
     {
         bool IsValid() const { return action != nullptr; }
@@ -29,6 +30,7 @@ namespace ai
         uint32 duration = 0U;
     };
 
+    /// 高频反应引擎子类，负责在主动作间隙快速响应突发事件（如打断、保命或即时反应）
     class ReactionEngine : public Engine
     {
     public:

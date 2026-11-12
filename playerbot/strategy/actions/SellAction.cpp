@@ -6,6 +6,7 @@
 
 using namespace ai;
 
+/// 出售物品遍历器：遍历背包筛选符合出售条件的物品并执行售卖
 class SellItemsVisitor : public IterateItemsVisitor
 {
 public:
@@ -24,6 +25,7 @@ private:
     SellAction* action;
 };
 
+/// 传统模式批量出售背包中所有灰色或低价值物品
 static bool SellAllLegacy(SellAction* action, PlayerbotAI* ai, Player* bot, Player* requester)
 {
     AiObjectContext* context = ai->GetAiObjectContext();
@@ -85,6 +87,7 @@ static bool SellAllLegacy(SellAction* action, PlayerbotAI* ai, Player* bot, Play
     return true;
 }
 
+/// 执行动作主逻辑（出售物品指令动作）
 bool SellAction::Execute(Event& event)
 {
     static uint32 minAutoSellItems = 5;
@@ -106,7 +109,7 @@ bool SellAction::Execute(Event& event)
 
     if (event.getSource() == "rpg action")
     {
-        items.sort([](Item* i, Item* j) {return i->GetProto()->SellPrice * i->GetCount() < j->GetProto()->SellPrice * j->GetCount(); }); //Sell cheapest items first.
+        items.sort([](Item* i, Item* j) {return i->GetProto()->SellPrice * i->GetCount() < j->GetProto()->SellPrice * j->GetCount(); }); // Sell cheapest items first. (优先出售价格最低的物品。)
     }
 
     uint32 soldItems = 0;
@@ -123,6 +126,7 @@ bool SellAction::Execute(Event& event)
     return soldItems;
 }
 
+/// 向商人出售指定物品或背包内满足条件的物品
 bool SellAction::Sell(Player* requester, FindItemVisitor* visitor)
 {
     bool didSell = false;
@@ -136,6 +140,7 @@ bool SellAction::Sell(Player* requester, FindItemVisitor* visitor)
     return didSell;
 }
 
+/// 向商人出售指定物品或背包内满足条件的物品
 bool SellAction::Sell(Player* requester, Item* item)
 {
     bool didSell = false;

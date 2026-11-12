@@ -1,8 +1,10 @@
+/// 机器人状态切换触发器头文件
 #pragma once
 #include "playerbot/strategy/Trigger.h"
 
 namespace ai
 {
+    /// 触发器：战斗开始
     class CombatStartTrigger : public Trigger
     {
     public:
@@ -10,6 +12,7 @@ namespace ai
         virtual bool IsActive() override;
     };
 
+    /// 触发器：战斗结束
     class CombatEndTrigger : public Trigger
     {
     public:
@@ -17,6 +20,7 @@ namespace ai
         virtual bool IsActive() override;
     };
 
+    /// 触发器：角色死亡
     class DeathTrigger : public Trigger
     {
     public:
@@ -24,6 +28,7 @@ namespace ai
         virtual bool IsActive() override;
     };
 
+    /// 触发器：角色复活
     class ResurrectTrigger : public Trigger
     {
     public:

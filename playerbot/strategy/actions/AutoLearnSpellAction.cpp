@@ -7,6 +7,7 @@
 
 using namespace ai;
 
+/// 执行动作主逻辑（自动学习技能动作）
 bool AutoLearnSpellAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -32,6 +33,7 @@ bool AutoLearnSpellAction::Execute(Event& event)
     return true;
 }
 
+/// 遍历并批量学习所有符合当前等级的可用法术
 void AutoLearnSpellAction::LearnSpells(std::ostringstream* out)
 {
     BroadcastHelper::BroadcastLevelup(ai, bot);
@@ -47,21 +49,22 @@ void AutoLearnSpellAction::LearnSpells(std::ostringstream* out)
         LearnDroppedSpells(out);
 #endif
 
-    if (!ai->HasActivePlayerMaster()) //Hunter spells for pets.
+    if (!ai->HasActivePlayerMaster()) // Hunter spells for pets. (猎人宠物技能。)
     {
         if (bot->getClass() == CLASS_HUNTER && bot->GetLevel() >= 10)
         {
-#if !defined(MANGOSBOT_TWO) // Beast training not available in WotLK 
-            bot->learnSpell(5149, false); //Beast training
+#if !defined(MANGOSBOT_TWO) // Beast training not available in WotLK (WLK 版本不再提供野兽训练技能)
+            bot->learnSpell(5149, false); // Beast training (野兽训练)
 #endif
-            bot->learnSpell(883, false); //Call pet
-            bot->learnSpell(982, false); //Revive pet
-            bot->learnSpell(6991, false); //Feed pet
-            bot->learnSpell(1515, false); //Tame beast
+            bot->learnSpell(883, false); // Call pet (召唤宠物)
+            bot->learnSpell(982, false); // Revive pet (复活宠物)
+            bot->learnSpell(6991, false); // Feed pet (喂养宠物)
+            bot->learnSpell(1515, false); // Tame beast (驯服野兽)
         }
     }
 }
 
+/// 向职业训练师学习当前等级及前置条件满足的法术
 void AutoLearnSpellAction::LearnTrainerSpells(std::ostringstream* out)
 {
     bot->learnDefaultSpells();
@@ -116,7 +119,7 @@ void AutoLearnSpellAction::LearnTrainerSpells(std::ostringstream* out)
                     std::string SpellName = spell->SpellName[0];
 #ifdef MANGOSBOT_ZERO
                     if (spell->Effect[EFFECT_INDEX_1] == SPELL_EFFECT_SKILL_STEP)
-#elif defined(MANGOSBOT_ONE) || defined(MANGOSBOT_TWO) // TBC OR WOTLK
+#elif defined(MANGOSBOT_ONE) || defined(MANGOSBOT_TWO) // TBC OR WOTLK (TBC 或 WLK 版本)
                         if (spell->Effect[EFFECT_INDEX_1] == SPELL_EFFECT_SKILL || spell->Effect[EFFECT_INDEX_1] == SPELL_EFFECT_SKILL_STEP)
 #endif
                         {
@@ -132,7 +135,7 @@ void AutoLearnSpellAction::LearnTrainerSpells(std::ostringstream* out)
 #ifdef MANGOSBOT_ZERO
                                         if (SpellName.find("Apprentice") != std::string::npos && pSkill->categoryId == SKILL_CATEGORY_PROFESSION || pSkill->categoryId == SKILL_CATEGORY_SECONDARY)
                                             continue;
-#elif defined(MANGOSBOT_ONE) || defined(MANGOSBOT_TWO) // TBC OR WOTLK
+#elif defined(MANGOSBOT_ONE) || defined(MANGOSBOT_TWO) // TBC OR WOTLK (TBC 或 WLK 版本)
                                         std::string SpellRank = spell->Rank[0];
                                         if (SpellName.find("Apprentice") != std::string::npos && (pSkill->categoryId == SKILL_CATEGORY_PROFESSION || pSkill->categoryId == SKILL_CATEGORY_SECONDARY))
                                             continue;
@@ -150,7 +153,7 @@ void AutoLearnSpellAction::LearnTrainerSpells(std::ostringstream* out)
 
             }
             
-#ifdef MANGOSBOT_ZERO // Vanilla
+#ifdef MANGOSBOT_ZERO // Vanilla (经典旧世（Vanilla）)
             LearnSpellFromSpell(tSpell->spell, out);
 #elif defined(MANGOSBOT_ONE) || defined(MANGOSBOT_TWO)
             if (IsTeachingSpellListedAsSpell(tSpell->spell))
@@ -166,6 +169,7 @@ void AutoLearnSpellAction::LearnTrainerSpells(std::ostringstream* out)
     }
 }
 
+/// 补学机器人当前等级已完成任务应获得的职业法术
 void AutoLearnSpellAction::LearnQuestSpells(std::ostringstream* out)
 {
     ObjectMgr::QuestMap const& questTemplates = sObjectMgr.GetQuestTemplates();
@@ -183,13 +187,13 @@ void AutoLearnSpellAction::LearnQuestSpells(std::ostringstream* out)
             continue;
 
         if (quest->GetRewSpellCast() > 0 &&
-            quest->GetRewSpellCast() != 12510) // Prevents mages from learning the Teleport to Azushara Tower spell.
+            quest->GetRewSpellCast() != 12510) // Prevents mages from learning the Teleport to Azushara Tower spell. (防止法师错误学习传送至艾萨拉之塔的法术。)
         {
             if (LearnSpellFromSpell(quest->GetRewSpellCast(), out))
             {
                 GetClassQuestItem(quest, out);
             }
-            // Shaman Call of Air Quest casts Swift Wind on player and rewards Air Totem, Swift Wind is not to be learned however it is a one time cast.
+            // Shaman Call of Air Quest casts Swift Wind on player and rewards Air Totem, Swift Wind is not to be learned however it is a one time cast. (萨满风之召唤任务会施放一次性法术 Swift Wind 并奖励风之图腾，该法术不应永久学习。)
             else if (quest->GetRewSpellCast() == 8385)
             {
                 bool hasAirTotem = false;
@@ -220,8 +224,9 @@ void AutoLearnSpellAction::LearnQuestSpells(std::ostringstream* out)
     }
 }
 
+/// 学习由物品或掉落物触发解锁的法术
 void AutoLearnSpellAction::LearnDroppedSpells(std::ostringstream* out)
-{   //       Class       Level      // Spells
+{   //       Class       Level      // Spells (职业 / 等级 / 法术列表)
     std::map<uint8, std::map<uint8, std::vector<uint32>>> spellList;
     spellList[CLASS_WARRIOR][60] = { 25289, 25288, 25286 };
     spellList[CLASS_PALADIN][60] = { 25291, 25290, 25292 };
@@ -229,12 +234,12 @@ void AutoLearnSpellAction::LearnDroppedSpells(std::ostringstream* out)
     spellList[CLASS_ROGUE][60] = { 25300, 25347, 25302, 31016 };
     spellList[CLASS_PRIEST][48] = { 21562 };
     // Spell 27683 Prayer of Shadow Protection https://www.wowhead.com/classic/spell=27683/prayer-of-shadow-protection book requires level 60, spell requires 56. 
-    // Went with the book requirement.
+    // Went with the book requirement. (已按技能书/配方要求处理。)
     spellList[CLASS_PRIEST][60] = { 25314, 25315, 25316,21564,27683 };
     spellList[CLASS_SHAMAN][60] = { 29228, 25359, 25357, 25361 };
     spellList[CLASS_MAGE][56] = { 23028 };
     // Spell 25345 Arcane Missiles https://www.wowhead.com/classic/spell=25345/arcane-missiles book requires level 60, spell requires 56.
-    // Went with the book requirement.
+    // Went with the book requirement. (已按技能书/配方要求处理。)
     spellList[CLASS_MAGE][60] = { 28612, 28609, 25345, 25306, 25304, 28271 };
     spellList[CLASS_WARLOCK][50] = { 1122 };
     spellList[CLASS_WARLOCK][60] = { 18540, 25311, 25309, 25307, 28610 };
@@ -271,8 +276,8 @@ void AutoLearnSpellAction::GetClassQuestItem(Quest const* quest, std::ostringstr
             InventoryResult result = bot->CanStoreNewItem(NULL_BAG, NULL_SLOT, itemVec, itemP->ItemId, quest->RewItemCount[i]);
             if (result == EQUIP_ERR_OK)
             {
-                if (quest->RewItemId[i] != 8432 && // Stops Rogues from getting a quest reward item that is a quest item itself.
-                    quest->RewItemId[i] != 8095)   // Stops Rogues from getting a quest reward item that is a quest item itself.
+                if (quest->RewItemId[i] != 8432 && // Stops Rogues from getting a quest reward item that is a quest item itself. (防止盗贼重复获取本身即为任务道具的任务奖励物品。)
+                    quest->RewItemId[i] != 8095)   // Stops Rogues from getting a quest reward item that is a quest item itself. (防止盗贼重复获取本身即为任务道具的任务奖励物品。)
                 {
                     ItemPosCountVec itemVec;
                     ItemPrototype const* itemP = sObjectMgr.GetItemPrototype(quest->RewItemId[i]);
@@ -296,6 +301,7 @@ void AutoLearnSpellAction::GetClassQuestItem(Quest const* quest, std::ostringstr
     }
 }
 
+/// 将法术条目格式化为可点击的魔兽世界聊天法术链接
 std::string formatSpell(SpellEntry const* sInfo)
 {
     std::ostringstream out;
@@ -308,6 +314,7 @@ std::string formatSpell(SpellEntry const* sInfo)
     return out.str();
 }
 
+/// 直接使机器人学会指定 ID 的法术
 bool AutoLearnSpellAction::LearnSpell(uint32 spellId, std::ostringstream* out)
 {
     bool learned = false;
@@ -327,6 +334,7 @@ bool AutoLearnSpellAction::LearnSpell(uint32 spellId, std::ostringstream* out)
     return learned;
 }
 
+/// 通过教学法术学习其关联的目标法术
 bool AutoLearnSpellAction::LearnSpellFromSpell(uint32 spellId, std::ostringstream* out)
 {
     SpellEntry const* proto = sServerFacade.LookupSpellInfo(spellId);
@@ -363,100 +371,101 @@ bool AutoLearnSpellAction::IsValidSpell(uint32 spellId)
     bool isSpellValid = true;
 #ifdef MANGOSBOT_ZERO
     isSpellValid =
-        // All Classes (Classic)
-        spellId != 6463 && // Incorrect lock pick skill that was taught to all classes (Rogues still learn correct lock pick skill) (DB Error)
-        spellId != 6461 &&  // Incorrect lock pick skill that was taught to all classes (Rogues still learn correct lock pick skill) (DB Error)
-        // Warrior (Classic)
-        spellId != 877 && // Prevent Warriors from learning Elemental Fury (DB Error)
-        // Shaman (Classic)
-        spellId != 8385 && // Prevents Shaman from learning Swift Wind spell which is cast onto player as a reward, the spell is not supposed to be learned.
-        // Hunter
-        spellId != 542  && // Prevents hunter from learning pet skill zzOLDLearn Nature Resistance.
-        spellId != 6284 && // Prevents hunter from learning pet skill Pet Hardiness Rank 1
-        spellId != 6287 && // Prevents hunter from learning pet skill Pet Hardiness Rank 2
-        spellId != 6288 && // Prevents hunter from learning pet skill Pet Hardiness Rank 3
-        spellId != 6289 && // Prevents hunter from learning pet skill Pet Hardiness Rank 4
-        spellId != 6290 && // Prevents hunter from learning pet skill Pet Hardiness Rank 5
-        spellId != 6312 && // Prevents hunter from learning pet skill Pet Aggression Rank 1
-        spellId != 6318 && // Prevents hunter from learning pet skill Pet Aggression Rank 2
-        spellId != 6319 && // Prevents hunter from learning pet skill Pet Aggression Rank 3
-        spellId != 6320 && // Prevents hunter from learning pet skill Pet Aggression Rank 4
-        spellId != 6321 && // Prevents hunter from learning pet skill Pet Aggression Rank 5
-        spellId != 6329 && // Prevents hunter from learning pet skill Pet Recovery Rank 1
-        spellId != 6335 && // Prevents hunter from learning pet skill Pet Recovery Rank 2
-        spellId != 6336 && // Prevents hunter from learning pet skill Pet Recovery Rank 3
-        spellId != 6337 && // Prevents hunter from learning pet skill Pet Recovery Rank 4
-        spellId != 6338 && // Prevents hunter from learning pet skill Pet Recovery Rank 5
-        spellId != 6448 && // Prevents hunter from learning pet skill Pet Resistance Rank 1
-        spellId != 6450 && // Prevents hunter from learning pet skill Pet Resistance Rank 2
-        spellId != 6451 && // Prevents hunter from learning pet skill Pet Resistance Rank 3
-        spellId != 6452 && // Prevents hunter from learning pet skill Pet Resistance Rank 4
-        spellId != 6453 && // Prevents hunter from learning pet skill Pet Resistance Rank 5
-        // Paladin
-        spellId != 1973; // Prevents Paladins from learning zzOldHip Shot III.
+        // All Classes (Classic) (全职业（经典旧世）)
+        spellId != 6463 && // Incorrect lock pick skill that was taught to all classes (Rogues still learn correct lock pick skill) (DB Error) (数据库中错配给全职业的开锁技能（盗贼仍会学习正确的开锁技能）)
+        spellId != 6461 &&  // Incorrect lock pick skill that was taught to all classes (Rogues still learn correct lock pick skill) (DB Error) (数据库中错配给全职业的开锁技能（盗贼仍会学习正确的开锁技能）)
+        // Warrior (Classic) (战士（经典旧世）)
+        spellId != 877 && // Prevent Warriors from learning Elemental Fury (DB Error) (防止战士错误学习元素之怒（数据库错误）)
+        // Shaman (Classic) (萨满祭司（经典旧世）)
+        spellId != 8385 && // Prevents Shaman from learning Swift Wind spell which is cast onto player as a reward, the spell is not supposed to be learned. (防止萨满错误学习任务奖励触发的一次性法术 Swift Wind。)
+        // Hunter (猎人)
+        spellId != 542  && // Prevents hunter from learning pet skill zzOLDLearn Nature Resistance. (防止猎人错误学习废弃宠物技能 zzOLDLearn Nature Resistance。)
+        spellId != 6284 && // Prevents hunter from learning pet skill Pet Hardiness Rank 1 (防止猎人错误学习宠物技能 Pet Hardiness Rank 1)
+        spellId != 6287 && // Prevents hunter from learning pet skill Pet Hardiness Rank 2 (防止猎人错误学习宠物技能 Pet Hardiness Rank 2)
+        spellId != 6288 && // Prevents hunter from learning pet skill Pet Hardiness Rank 3 (防止猎人错误学习宠物技能 Pet Hardiness Rank 3)
+        spellId != 6289 && // Prevents hunter from learning pet skill Pet Hardiness Rank 4 (防止猎人错误学习宠物技能 Pet Hardiness Rank 4)
+        spellId != 6290 && // Prevents hunter from learning pet skill Pet Hardiness Rank 5 (防止猎人错误学习宠物技能 Pet Hardiness Rank 5)
+        spellId != 6312 && // Prevents hunter from learning pet skill Pet Aggression Rank 1 (防止猎人错误学习宠物技能 Pet Aggression Rank 1)
+        spellId != 6318 && // Prevents hunter from learning pet skill Pet Aggression Rank 2 (防止猎人错误学习宠物技能 Pet Aggression Rank 2)
+        spellId != 6319 && // Prevents hunter from learning pet skill Pet Aggression Rank 3 (防止猎人错误学习宠物技能 Pet Aggression Rank 3)
+        spellId != 6320 && // Prevents hunter from learning pet skill Pet Aggression Rank 4 (防止猎人错误学习宠物技能 Pet Aggression Rank 4)
+        spellId != 6321 && // Prevents hunter from learning pet skill Pet Aggression Rank 5 (防止猎人错误学习宠物技能 Pet Aggression Rank 5)
+        spellId != 6329 && // Prevents hunter from learning pet skill Pet Recovery Rank 1 (防止猎人错误学习宠物技能 Pet Recovery Rank 1)
+        spellId != 6335 && // Prevents hunter from learning pet skill Pet Recovery Rank 2 (防止猎人错误学习宠物技能 Pet Recovery Rank 2)
+        spellId != 6336 && // Prevents hunter from learning pet skill Pet Recovery Rank 3 (防止猎人错误学习宠物技能 Pet Recovery Rank 3)
+        spellId != 6337 && // Prevents hunter from learning pet skill Pet Recovery Rank 4 (防止猎人错误学习宠物技能 Pet Recovery Rank 4)
+        spellId != 6338 && // Prevents hunter from learning pet skill Pet Recovery Rank 5 (防止猎人错误学习宠物技能 Pet Recovery Rank 5)
+        spellId != 6448 && // Prevents hunter from learning pet skill Pet Resistance Rank 1 (防止猎人错误学习宠物技能 Pet Resistance Rank 1)
+        spellId != 6450 && // Prevents hunter from learning pet skill Pet Resistance Rank 2 (防止猎人错误学习宠物技能 Pet Resistance Rank 2)
+        spellId != 6451 && // Prevents hunter from learning pet skill Pet Resistance Rank 3 (防止猎人错误学习宠物技能 Pet Resistance Rank 3)
+        spellId != 6452 && // Prevents hunter from learning pet skill Pet Resistance Rank 4 (防止猎人错误学习宠物技能 Pet Resistance Rank 4)
+        spellId != 6453 && // Prevents hunter from learning pet skill Pet Resistance Rank 5 (防止猎人错误学习宠物技能 Pet Resistance Rank 5)
+        // Paladin (圣骑士)
+        spellId != 1973; // Prevents Paladins from learning zzOldHip Shot III. (防止圣骑士错误学习废弃法术 zzOldHip Shot III。)
 #elif MANGOSBOT_ONE
     isSpellValid =
-        // Paladin
-        spellId != 10321 &&       // Prevents Paladin from learning judgment training spell.   
-        // Hunter
-        spellId != 530;     // Prevents hunter from learning Charm (Possess) (Spell is attached to a pet trainer)
+        // Paladin (圣骑士)
+        spellId != 10321 &&       // Prevents Paladin from learning judgment training spell. (防止圣骑士错误学习审判教学法术。)
+        // Hunter (猎人)
+        spellId != 530;     // Prevents hunter from learning Charm (Possess) (Spell is attached to a pet trainer) (防止猎人错误学习宠物训练师附带的 Charm (Possess) 法术。)
 #elif MANGOSBOT_TWO
     isSpellValid =
-        // Rogue
-        spellId != 1785 && // Rogue Stealth no longer has ranks so remove learning ranks 2-4
-        spellId != 1786 && // Rogue Stealth no longer has ranks so remove learning ranks 2-4
-        spellId != 1787 && // Rogue Stealth no longer has ranks so remove learning ranks 2-4
-        // Druid
-        spellId != 6783 && // Druid Prowl no longer has ranks so remove learning ranks 2-3
-        spellId != 9913 && // Druid Prowl no longer has ranks so remove learning ranks 2-3
-        // DK
-        spellId != 51426 && // DK Pestilence doesn't have ranks
-        spellId != 51427 && // DK Pestilence doesn't have ranks
-        spellId != 51428 && // DK Pestilence doesn't have ranks
-        spellId != 51429 && // DK Pestilence doesn't have ranks
-        spellId != 49913 && // DK Strangulate doesn't have ranks
-        spellId != 49914 && // DK Strangulate doesn't have ranks
-        spellId != 49915 && // DK Strangulate doesn't have ranks
-        spellId != 49916 && // DK Strangulate doesn't have ranks
-        // Mage
-        spellId != 526 &&   // Prevents mage from learning shaman Cure Toxins
-        spellId != 52127 && // Prevents mage from learning shaman Water Shield Rank 1
-        spellId != 52129 && // Prevents mage from learning shaman Water Shield Rank 2
-        spellId != 52131 && // Prevents mage from learning shaman Water Shield Rank 3
-        spellId != 52134 && // Prevents mage from learning shaman Water Shield Rank 4
-        spellId != 52136 && // Prevents mage from learning shaman Water Shield Rank 5
-        spellId != 52138 && // Prevents mage from learning shaman Water Shield Rank 6
-        spellId != 51730 && // Prevents mage from learning shaman Earthliving Weapon 1
-        spellId != 51988 && // Prevents mage from learning shaman Earthliving Weapon 2
-        spellId != 51991 && // Prevents mage from learning shaman Earthliving Weapon 3
-        spellId != 51992 && // Prevents mage from learning shaman Earthliving Weapon 4
-        spellId != 51993 && // Prevents mage from learning shaman Earthliving Weapon 5
-        spellId != 51994 && // Prevents mage from learning shaman Earthliving Weapon 6
-        spellId != 66842 && // Prevents mage from learning shaman Call of the Elements
-        spellId != 66843 && // Prevents mage from learning shaman Call of the Ancestors
-        spellId != 66844 && // Prevents mage from learning shaman Call of the Spirits
-        spellId != 42748 && // Prevents mage from learning shaman Shadow Axe
-        spellId != 2894 &&  // Prevents mage from learning shaman Fire Elemental Totem
-        spellId != 51505 && // Prevents mage from learning shaman Lave Burst Rank 1
-        spellId != 51514;   // Prevents mage from learning shaman Hex
+        // Rogue (潜行者)
+        spellId != 1785 && // Rogue Stealth no longer has ranks so remove learning ranks 2-4 (潜行者潜行技能不再分等级，移除 2-4 级学习)
+        spellId != 1786 && // Rogue Stealth no longer has ranks so remove learning ranks 2-4 (潜行者潜行技能不再分等级，移除 2-4 级学习)
+        spellId != 1787 && // Rogue Stealth no longer has ranks so remove learning ranks 2-4 (潜行者潜行技能不再分等级，移除 2-4 级学习)
+        // Druid (德鲁伊)
+        spellId != 6783 && // Druid Prowl no longer has ranks so remove learning ranks 2-3 (德鲁伊潜行不再分等级，移除 2-3 级技能学习)
+        spellId != 9913 && // Druid Prowl no longer has ranks so remove learning ranks 2-3 (德鲁伊潜行不再分等级，移除 2-3 级技能学习)
+        // DK (死亡骑士)
+        spellId != 51426 && // DK Pestilence doesn't have ranks (死亡骑士传染技能没有等级划分)
+        spellId != 51427 && // DK Pestilence doesn't have ranks (死亡骑士传染技能没有等级划分)
+        spellId != 51428 && // DK Pestilence doesn't have ranks (死亡骑士传染技能没有等级划分)
+        spellId != 51429 && // DK Pestilence doesn't have ranks (死亡骑士传染技能没有等级划分)
+        spellId != 49913 && // DK Strangulate doesn't have ranks (死亡骑士绞袭技能没有等级划分)
+        spellId != 49914 && // DK Strangulate doesn't have ranks (死亡骑士绞袭技能没有等级划分)
+        spellId != 49915 && // DK Strangulate doesn't have ranks (死亡骑士绞袭技能没有等级划分)
+        spellId != 49916 && // DK Strangulate doesn't have ranks (死亡骑士绞袭技能没有等级划分)
+        // Mage (法师)
+        spellId != 526 &&   // Prevents mage from learning shaman Cure Toxins (防止法师错误学习萨满技能 Cure Toxins)
+        spellId != 52127 && // Prevents mage from learning shaman Water Shield Rank 1 (防止法师错误学习萨满技能 Water Shield Rank 1)
+        spellId != 52129 && // Prevents mage from learning shaman Water Shield Rank 2 (防止法师错误学习萨满技能 Water Shield Rank 2)
+        spellId != 52131 && // Prevents mage from learning shaman Water Shield Rank 3 (防止法师错误学习萨满技能 Water Shield Rank 3)
+        spellId != 52134 && // Prevents mage from learning shaman Water Shield Rank 4 (防止法师错误学习萨满技能 Water Shield Rank 4)
+        spellId != 52136 && // Prevents mage from learning shaman Water Shield Rank 5 (防止法师错误学习萨满技能 Water Shield Rank 5)
+        spellId != 52138 && // Prevents mage from learning shaman Water Shield Rank 6 (防止法师错误学习萨满技能 Water Shield Rank 6)
+        spellId != 51730 && // Prevents mage from learning shaman Earthliving Weapon 1 (防止法师错误学习萨满技能 Earthliving Weapon 1)
+        spellId != 51988 && // Prevents mage from learning shaman Earthliving Weapon 2 (防止法师错误学习萨满技能 Earthliving Weapon 2)
+        spellId != 51991 && // Prevents mage from learning shaman Earthliving Weapon 3 (防止法师错误学习萨满技能 Earthliving Weapon 3)
+        spellId != 51992 && // Prevents mage from learning shaman Earthliving Weapon 4 (防止法师错误学习萨满技能 Earthliving Weapon 4)
+        spellId != 51993 && // Prevents mage from learning shaman Earthliving Weapon 5 (防止法师错误学习萨满技能 Earthliving Weapon 5)
+        spellId != 51994 && // Prevents mage from learning shaman Earthliving Weapon 6 (防止法师错误学习萨满技能 Earthliving Weapon 6)
+        spellId != 66842 && // Prevents mage from learning shaman Call of the Elements (防止法师错误学习萨满技能 Call of the Elements)
+        spellId != 66843 && // Prevents mage from learning shaman Call of the Ancestors (防止法师错误学习萨满技能 Call of the Ancestors)
+        spellId != 66844 && // Prevents mage from learning shaman Call of the Spirits (防止法师错误学习萨满技能 Call of the Spirits)
+        spellId != 42748 && // Prevents mage from learning shaman Shadow Axe (防止法师错误学习萨满技能 Shadow Axe)
+        spellId != 2894 &&  // Prevents mage from learning shaman Fire Elemental Totem (防止法师错误学习萨满技能 Fire Elemental Totem)
+        spellId != 51505 && // Prevents mage from learning shaman Lave Burst Rank 1 (防止法师错误学习萨满技能 Lave Burst Rank 1)
+        spellId != 51514;   // Prevents mage from learning shaman Hex (防止法师错误学习萨满技能 Hex)
 #endif
     return isSpellValid;
 }
 
+/// 检查法术是否为本身仅作教学触发的占位法术
 bool AutoLearnSpellAction::IsTeachingSpellListedAsSpell(uint32 spellId)
 {
     bool isTeachingSpellListedAsSpell = false;
 #ifdef MANGOSBOT_ZERO
     isTeachingSpellListedAsSpell =
-        spellId == 19318 ||    // Touch of weakness Teaching Spell listed as actual spell
-        spellId == 2946  ||    // Devouring Plague Teaching Spell listed as actual spell
-        spellId == 19325 ||    // Hex Of Weakness Teaching Spell listed as actual spell
-        spellId == 19331 ||    // Shadowguard Teaching Spell listed as actual spell
-        spellId == 19338 ||    // Desperate Prayer Teaching Spell listed as actual spell
-        spellId == 19345 ||    // Feed Back Teaching Spell listed as actual spell
-        spellId == 19337 ||    // Fear Ward Teaching Spell listed as actual spell
-        spellId == 19357 ||    // Elune's Grace Teaching Spell listed as actual spell
-        spellId == 19350;      // Starshards Teaching Spell listed as actual spell
+        spellId == 19318 ||    // Touch of weakness Teaching Spell listed as actual spell (虚弱之触教学法术被直接列为实际法术)
+        spellId == 2946  ||    // Devouring Plague Teaching Spell listed as actual spell (噬灵疫病教学法术被直接列为实际法术)
+        spellId == 19325 ||    // Hex Of Weakness Teaching Spell listed as actual spell (虚弱妖术教学法术被直接列为实际法术)
+        spellId == 19331 ||    // Shadowguard Teaching Spell listed as actual spell (暗影守卫教学法术被直接列为实际法术)
+        spellId == 19338 ||    // Desperate Prayer Teaching Spell listed as actual spell (绝望祷言教学法术被直接列为实际法术)
+        spellId == 19345 ||    // Feed Back Teaching Spell listed as actual spell (回馈教学法术被直接列为实际法术)
+        spellId == 19337 ||    // Fear Ward Teaching Spell listed as actual spell (防护恐惧结界教学法术被直接列为实际法术)
+        spellId == 19357 ||    // Elune's Grace Teaching Spell listed as actual spell (艾露恩的赐福教学法术被直接列为实际法术)
+        spellId == 19350;      // Starshards Teaching Spell listed as actual spell (星辰碎片教学法术被直接列为实际法术)
 #endif
         return isTeachingSpellListedAsSpell;
 }

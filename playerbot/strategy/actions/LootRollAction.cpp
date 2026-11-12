@@ -6,8 +6,10 @@
 
 using namespace ai;
 
+/// 执行动作主逻辑（发起掷骰动作）
 bool LootStartRollAction::Execute(Event& event)
 {
+    // 解析事件携带的网络封包数据
     WorldPacket p(event.getPacket()); //WorldPacket packet for CMSG_LOOT_ROLL, (8+4+1)
     ObjectGuid creatureGuid;
     uint32 itemSlot;
@@ -20,19 +22,19 @@ bool LootStartRollAction::Execute(Event& event)
 #endif 
     uint32 timeout;
 
-    p.rpos(0); //reset packet pointer
-    p >> creatureGuid; //creature guid what we're looting
+    p.rpos(0); // reset packet pointer (重置封包读取指针)
+    p >> creatureGuid; // creature guid what we're looting (正在拾取的生物 GUID)
 #ifdef MANGOSBOT_TWO
     p >> mapId; /// 3.3.3 mapid
 #endif 
-    p >> itemSlot; // the itemEntryId for the item that shall be rolled for
-    p >> itemId; // the itemEntryId for the item that shall be rolled for
+    p >> itemSlot; // the itemEntryId for the item that shall be rolled for (参与掷骰物品的模板 Entry ID)
+    p >> itemId; // the itemEntryId for the item that shall be rolled for (参与掷骰物品的模板 Entry ID)
     p >> randomSuffix; // randomSuffix
-    p >> randomPropertyId; // item random property ID
+    p >> randomPropertyId; // item random property ID (物品随机属性 ID)
 #ifdef MANGOSBOT_TWO
-    p >> count; // items in stack
+    p >> count; // items in stack (堆叠物品数量)
 #endif 
-    p >> timeout;  // the countdown time to choose "need" or "greed"
+    p >> timeout;  // the countdown time to choose "need" or "greed" (选择“需求”或“贪婪”的倒计时时间)
 
     LootRollMap lootRolls = AI_VALUE(LootRollMap, "active rolls");
 
@@ -59,6 +61,7 @@ bool LootStartRollAction::Execute(Event& event)
     return false;
 }
 
+/// 执行动作主逻辑（掷骰基类动作）
 bool RollAction::Execute(Event& event)
 {      
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -87,11 +90,11 @@ bool RollAction::Execute(Event& event)
         if (args.size() == 1)
             args = { args[0], "1", "100" };
 
-        for (char& d : args[1]) //Check if itemId contains only numbers
+        for (char& d : args[1]) // Check if itemId contains only numbers (检查 itemId 字符串是否只包含数字)
             if (!isdigit(d))
                 return false;
 
-        for (char& d : args[2]) //Check if itemId contains only numbers
+        for (char& d : args[2]) // Check if itemId contains only numbers (检查 itemId 字符串是否只包含数字)
             if (!isdigit(d))
                 return false;
 
@@ -158,7 +161,7 @@ bool RollAction::Execute(Event& event)
             continue;
 
         RollVote doVote = vote;
-        if (doVote == ROLL_NOT_VALID) //Auto
+        if (doVote == ROLL_NOT_VALID) // Auto (自动)
             doVote = CalculateRollVote(itemQualifier);
 
         rolledItems += RollOnItemInSlot(doVote, roll.first, roll.second);     
@@ -167,6 +170,7 @@ bool RollAction::Execute(Event& event)
     return rolledItems;
 }
 
+/// 根据掷骰物品 GUID 获取对应的物品实例或原型
 ItemQualifier RollAction::GetRollItem(ObjectGuid lootGuid, uint32 slot)
 {
     Loot* loot = sLootMgr.GetLoot(bot, lootGuid);
@@ -181,6 +185,7 @@ ItemQualifier RollAction::GetRollItem(ObjectGuid lootGuid, uint32 slot)
     return ItemQualifier(item);
 }
 
+/// 根据物品对自身的提升与用途计算掷骰方式（需求/贪婪/放弃）
 RollVote RollAction::CalculateRollVote(ItemQualifier& itemQualifier)
 {
     ItemUsage usage = AI_VALUE2(ItemUsage, "item usage", itemQualifier.GetQualifier());
@@ -210,7 +215,7 @@ RollVote RollAction::CalculateRollVote(ItemQualifier& itemQualifier)
         break;
     }
 
-    // special case for bad equip
+    // special case for bad equip (异常装备的特殊兼容处理)
     if (usage == ItemUsage::ITEM_USAGE_BAD_EQUIP)
     {
         bool shouldEquipBadItems = sPlayerbotAIConfig.rollBadItemsWithPlayer || !ai->HasRealPlayerMaster();
@@ -242,6 +247,7 @@ RollVote RollAction::CalculateRollVote(ItemQualifier& itemQualifier)
     return canLoot ? needVote : ROLL_PASS;
 }
 
+/// 向服务端发送指定战利品槽位的掷骰选择封包
 bool RollAction::RollOnItemInSlot(RollVote vote, ObjectGuid lootGuid, uint32 slot)
 {
     Loot* loot = sLootMgr.GetLoot(bot, lootGuid);
@@ -271,18 +277,20 @@ bool RollAction::RollOnItemInSlot(RollVote vote, ObjectGuid lootGuid, uint32 slo
     return didRoll;
 }
 
+/// 执行动作主逻辑（战利品掷骰动作）
 bool LootRollAction::Execute(Event& event)
 {
     Player* bot = QueryItemUsageAction::ai->GetBot();
 
+    // 解析事件携带的网络封包数据
     WorldPacket p(event.getPacket()); //WorldPacket packet for CMSG_LOOT_ROLL, (8+4+1)
     ObjectGuid guid;
     uint32 slot;
     uint8 rollType;
-    p.rpos(0); //reset packet pointer
-    p >> guid; //guid of the item rolled
-    p >> slot; //number of players invited to roll
-    p >> rollType; //need,greed or pass on roll
+    p.rpos(0); // reset packet pointer (重置封包读取指针)
+    p >> guid; // guid of the item rolled (参与掷骰物品的 GUID)
+    p >> slot; // number of players invited to roll (受邀参与掷骰的玩家数量)
+    p >> rollType; // need,greed or pass on roll (选择需求、贪婪或放弃掷骰)
 
     ItemQualifier itemQualifier = GetRollItem(guid, slot);
 
@@ -294,6 +302,7 @@ bool LootRollAction::Execute(Event& event)
     return RollOnItemInSlot(vote, guid, slot);
 }
 
+/// 执行动作主逻辑（自动战利品掷骰动作）
 bool AutoLootRollAction::Execute(Event& event)
 {
     LootRollMap lootRolls = AI_VALUE(LootRollMap, "active rolls");
@@ -312,6 +321,7 @@ bool AutoLootRollAction::Execute(Event& event)
     return RollOnItemInSlot(vote, currentRoll->first, currentRoll->second);
 }
 
+/// 判断执行该动作的前置条件是否满足（自动战利品掷骰动作）
 bool AutoLootRollAction::isPossible()
 {
     return bot->GetGroup() && !AI_VALUE(LootRollMap, "active rolls").empty() && AI_VALUE(uint8, "bag space") < 100;

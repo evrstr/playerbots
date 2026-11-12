@@ -1,3 +1,4 @@
+// 策略值实现：TravelValues（全服旅行目的映射构建、需求调度、定时活动及任务阶段判断）
 #include "playerbot/playerbot.h"
 #include "TravelValues.h"
 #include "QuestValues.h"
@@ -8,6 +9,7 @@
 
 using namespace ai;
 
+// 遍历全服生物和游戏对象生成点，收集每个 Entry 对应的有效出生坐标
 EntryGuidps EntryGuidpsValue::Calculate()
 {
     EntryGuidps guidps;
@@ -35,6 +37,7 @@ EntryGuidps EntryGuidpsValue::Calculate()
     return guidps;
 }
 
+// 结合任务关联、NPC 标志、掉落、首领头衔、采矿/草药/剥皮需求计算每个 Entry 的旅行目的掩码
 EntryTravelPurposeMap EntryTravelPurposeMapValue::Calculate()
 {
     EntryQuestRelationMap relationMap = GAI_VALUE(EntryQuestRelationMap, "entry quest relation");
@@ -105,7 +108,7 @@ EntryTravelPurposeMap EntryTravelPurposeMapValue::Calculate()
         {
             purpose |= (uint32)TravelDestinationPurpose::Grind;
         }
-        else  //Added these specifically because dk start mobs drop no money but have sellable loot.
+        else  //Added these specifically because dk start mobs drop no money but have sellable loot. | 特例补充：死亡骑士新手村怪不掉钱但掉落可售卖物品，纳入刷怪列表
         {
             switch (entry)
             {
@@ -206,6 +209,7 @@ EntryTravelPurposeMap EntryTravelPurposeMapValue::Calculate()
     return entryPurposeMap;
 }
 
+// 判断采集物（剥皮生物或矿点/草药游戏对象）对应的采集专业技能 ID
 uint32 EntryTravelPurposeMapValue::SkillIdToGatherEntry(int32 entry)
 {
     if (entry > 0)
@@ -245,6 +249,7 @@ uint32 EntryTravelPurposeMapValue::SkillIdToGatherEntry(int32 entry)
     return 0;
 }
 
+// 根据背包空间、修理/卖店/拍卖需求、专业技能满级度与时段相位判断当前是否需要某类旅行
 bool NeedTravelPurposeValue::Calculate()
 {
     TravelDestinationPurpose purpose = TravelDestinationPurpose(stoi(getQualifier()));
@@ -301,7 +306,7 @@ bool NeedTravelPurposeValue::Calculate()
     {
         uint32 rpgPhase = ai->GetFixedBotNumber(BotTypeNumber::RPG_PHASE_NUMBER, 60, 1);
 
-        if (rpgPhase < 15) //Only last 45 minutes of the hour allow generic rpg.
+        if (rpgPhase < 15) //Only last 45 minutes of the hour allow generic rpg. | 仅在每小时后 45 分钟允许常规 RPG 闲逛旅行
             return false;
 
         return !AI_VALUE2(bool, "manual bool", "is travel refresh");
@@ -310,7 +315,7 @@ bool NeedTravelPurposeValue::Calculate()
     {
         uint32 rpgPhase = ai->GetFixedBotNumber(BotTypeNumber::RPG_PHASE_NUMBER, 60, 1);
 
-        if (rpgPhase > 45) //Only first 45 minutes of the hour allow generic grind.
+        if (rpgPhase > 45) //Only first 45 minutes of the hour allow generic grind. | 仅在每小时前 45 分钟允许常规野外刷怪旅行
             return false;
 
         return !AI_VALUE2(bool, "manual bool", "is travel refresh");
@@ -322,6 +327,7 @@ bool NeedTravelPurposeValue::Calculate()
     return false;
 }
 
+// 根据主城 PvP、野外 PvP 与公会 MOTD 集会时间配置判断是否应前往对应命名目的地
 bool ShouldTravelNamedValue::Calculate()
 {
     std::string name = getQualifier();
@@ -338,7 +344,7 @@ bool ShouldTravelNamedValue::Calculate()
 
         uint32 rpgPhase = ai->GetFixedBotNumber(BotTypeNumber::RPG_PHASE_NUMBER, 60, 1);
 
-        if (rpgPhase > 20) //Only first 20 minutes of the hour allow generic city pvp without reason.
+        if (rpgPhase > 20) //Only first 20 minutes of the hour allow generic city pvp without reason. | 仅在每小时前 20 分钟允许无特定目的前往主城 PvP
             return false;
 
         if (AI_VALUE2(bool, "manual bool", "is travel refresh"))
@@ -356,12 +362,12 @@ bool ShouldTravelNamedValue::Calculate()
         if (rpgStyle < 0)
             rpgStyle = ai->GetFixedBotNumber(BotTypeNumber::RPG_STYLE_NUMBER, 100);
 
-        if (rpgStyle > 10) //Only 10% of the bots like to go to world-pvp.
+        if (rpgStyle > 10) //Only 10% of the bots like to go to world-pvp. | 仅 10% 机器人偏好主动参与野外 PvP
             return false;
 
         uint32 rpgPhase = ai->GetFixedBotNumber(BotTypeNumber::RPG_PHASE_NUMBER, 60, 1);
 
-        if (rpgPhase > 15) //Only first 15 minutes of the hour allow world pvp.
+        if (rpgPhase > 15) //Only first 15 minutes of the hour allow world pvp. | 仅在每小时前 15 分钟允许野外 PvP 旅行
             return false;
 
         if (!botPos.isOverworld())
@@ -382,8 +388,8 @@ bool ShouldTravelNamedValue::Calculate()
         if (motd.empty()) 
             return false;
 
-        // Parse guild MOTD for the meeting time.
-        // Meeting: <location> <start time> <end time>
+        // Parse guild MOTD for the meeting time. | 解析公会公告（MOTD）中的集会地点与时间段
+        // Meeting: <location> <start time> <end time> | 格式：Meeting: <地点> <开始时间> <结束时间>
         auto pos = motd.find("Meeting:");
         if (pos == std::string::npos)
             return false;
@@ -445,7 +451,7 @@ bool ShouldTravelNamedValue::Calculate()
         if (name == "trainer mount")
         {
             trainerType = TRAINER_TYPE_MOUNTS;
-            budgetType = NeedMoneyFor::mount; //Only train mounts when you can actually buy mount
+            budgetType = NeedMoneyFor::mount; //Only train mounts when you can actually buy mount | 仅在有足够预算同时买得起坐骑时才前往训练骑术
         }
         if (name == "trainer trade")
         {
@@ -458,7 +464,7 @@ bool ShouldTravelNamedValue::Calculate()
             budgetType = NeedMoneyFor::anything;
         }
 
-        if (AI_VALUE2(uint32, "train cost", trainerType) == 0) //Has nothing to train
+        if (AI_VALUE2(uint32, "train cost", trainerType) == 0) //Has nothing to train | 当前无任何可训练法术时无需前往
             return false;
 
         if (!AI_VALUE2(bool, "has all money for", (uint32)budgetType))
@@ -470,26 +476,31 @@ bool ShouldTravelNamedValue::Calculate()
     return false;
 }
 
+// 检查队长旅行目标是否处于激活状态
 bool TravelTargetActiveValue::Calculate() 
 {
     return AI_VALUE(TravelTarget*, "travel target")->IsActive();
 };
 
+// 检查队长旅行目标是否处于 READY 状态
 bool TravelTargetReadyValue::Calculate()
 {
     return AI_VALUE(TravelTarget*, "leader travel target")->GetStatus() == TravelStatus::TRAVEL_STATUS_READY;
 };
 
+// 检查队长旅行目标是否处于 TRAVEL 状态
 bool TravelTargetTravelingValue::Calculate()
 {
     return AI_VALUE(TravelTarget*, "leader travel target")->GetStatus() == TravelStatus::TRAVEL_STATUS_TRAVEL;
 };
 
+// 检查队长旅行目标是否处于 WORK 状态
 bool TravelTargetWorkingValue::Calculate()
 {
     return AI_VALUE(TravelTarget*, "leader travel target")->GetStatus() == TravelStatus::TRAVEL_STATUS_WORK;
 };
 
+// 检查特定任务及其接取/交付/子目标阶段在当前状态下是否仍需继续推进
 bool QuestStageActiveValue::Calculate()
 {
     uint32 questId = getMultiQualifierInt(getQualifier(), 0, ",");

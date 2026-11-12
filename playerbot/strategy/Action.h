@@ -15,6 +15,7 @@ namespace ai
 
 namespace ai
 {
+    /// 描述后续待执行动作的名称与相关性权重
     class NextAction
     {
     public:
@@ -49,6 +50,7 @@ namespace ai
 
     class ActionBasket;
 
+    /// 动作产生仇恨的类型枚举（无仇恨/单体/群体/低仇恨）
     enum class ActionThreatType : uint8
     {
         ACTION_THREAT_NONE = 0,
@@ -57,9 +59,10 @@ namespace ai
         ACTION_THREAT_LOW = 3
     };
 
+    /// AI 行为动作基类，封装可执行性检查、有效性判断、前置/替代/后续动作及执行逻辑
     class Action : public AiNamedObject
-	{
-	public:
+    {
+    public:
         Action(PlayerbotAI* ai, std::string name = "action", uint32 duration = sPlayerbotAIConfig.reactDelay) : AiNamedObject(ai, name), verbose(false), duration(duration) {}
         virtual ~Action(void) {}
 
@@ -73,7 +76,7 @@ namespace ai
         virtual NextAction** getAlternatives() { return NULL; }
         virtual NextAction** getContinuers() { return NULL; }
         virtual ActionThreatType getThreatType() { return ActionThreatType::ACTION_THREAT_NONE; }
-        void Update() {}  //Nonfunctional see AiObjectContext::Update() to enable.
+        void Update() {}  //Nonfunctional see AiObjectContext::Update() to enable. (未启用，见 AiObjectContext::Update())
         virtual void Reset() {}
         virtual Unit* GetTarget();
         virtual Value<ObjectGuid>* GetTargetValue();
@@ -86,12 +89,12 @@ namespace ai
         bool IsReaction() const { return reaction; }
         void SetReaction(bool inReaction) { reaction = inReaction; }
 
-        // Used when this action is executed as a reaction
+        // Used when this action is executed as a reaction (作为反应动作执行时控制是否打断施法或移动)
         virtual bool ShouldReactionInterruptCast() const { return false; }
         virtual bool ShouldReactionInterruptMovement() const { return false; }
 
 #ifdef GenerateBotHelp
-        virtual std::string GetHelpName() { return "dummy"; } //Must equal internal name
+        virtual std::string GetHelpName() { return "dummy"; } //Must equal internal name (必须与内部注册名一致)
         virtual std::string GetHelpDescription() { return "This is an action."; }
         virtual std::vector<std::string> GetUsedActions() { return {}; }
         virtual std::vector<std::string> GetUsedValues() { return {}; }
@@ -109,10 +112,11 @@ namespace ai
 
     private:
         uint32 duration;
-	};
+    };
 
     //---------------------------------------------------------------------------------------------------------------------
 
+    /// 动作节点包装器，关联具体 Action 实例与其前置(P)/替代(A)/后续(C)动作链表
     class ActionNode
     {
     public:
@@ -152,28 +156,29 @@ namespace ai
 
     //---------------------------------------------------------------------------------------------------------------------
 
-	class ActionBasket
-	{
-	public:
+    /// 动作队列条目，记录动作节点、当前权重、触发事件、是否跳过前置以及过期时间
+        class ActionBasket
+    {
+    public:
         ActionBasket(ActionNode* action, float relevance, bool skipPrerequisites, const Event& event) :
           action(action), relevance(relevance), skipPrerequisites(skipPrerequisites), event(event) {
             created = time(0);
         }
         virtual ~ActionBasket(void) {}
-	public:
-		float getRelevance() {return relevance;}
-		ActionNode* getAction() {return action;}
+    public:
+        float getRelevance() {return relevance;}
+        ActionNode* getAction() {return action;}
         Event getEvent() { return event; }
         bool isSkipPrerequisites() { return skipPrerequisites; }
         void AmendRelevance(float k) {relevance *= k; }
         void setRelevance(float relevance) { this->relevance = relevance; }
         void setEvent(Event event) { this->event = event; }
         bool isExpired(time_t secs) { return time(0) - created >= secs; }
-	private:
-		ActionNode* action;
-		float relevance;
+    private:
+        ActionNode* action;
+        float relevance;
         bool skipPrerequisites;
         Event event;
         time_t created;
-	};
+    };
 }

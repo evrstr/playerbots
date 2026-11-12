@@ -7,6 +7,7 @@
 
 using namespace ai;
 
+/// 执行动作主逻辑（汇报目标指令动作）
 bool TellTargetAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -15,7 +16,7 @@ bool TellTargetAction::Execute(Event& event)
     if (target)
     {
         std::ostringstream out;
-		out << "Attacking " << target->GetName();
+        out << "Attacking " << target->GetName();
         ai->TellPlayer(requester, out);
 
         context->GetValue<ObjectGuid>("old target")->Set(target->GetObjectGuid());
@@ -23,6 +24,7 @@ bool TellTargetAction::Execute(Event& event)
     return true;
 }
 
+/// 执行动作主逻辑（汇报攻击者指令动作）
 bool TellAttackersAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -58,6 +60,7 @@ bool TellAttackersAction::Execute(Event& event)
     return true;
 }
 
+/// 执行动作主逻辑（汇报潜在攻击目标动作）
 bool TellPossibleAttackTargetsAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();

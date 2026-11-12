@@ -8,6 +8,7 @@ using namespace ai;
 
 std::vector<std::string> split(const std::string &s, char delim);
 
+/// 执行动作主逻辑（赠送物品动作）
 bool GiveItemAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -59,16 +60,19 @@ bool GiveItemAction::Execute(Event& event)
     return true;
 }
 
+/// 获取当前动作的目标单位（赠送物品动作）
 Unit* GiveItemAction::GetTarget()
 {
     return ai->GetUnit(AI_VALUE2(ObjectGuid, "party member without item", item));
 }
 
+/// 获取当前动作的目标单位（赠送食物动作）
 Unit* GiveFoodAction::GetTarget()
 {
     return ai->GetUnit(AI_VALUE(ObjectGuid, "party member without food"));
 }
 
+/// 获取当前动作的目标单位（赠送饮水动作）
 Unit* GiveWaterAction::GetTarget()
 {
     return ai->GetUnit(AI_VALUE(ObjectGuid, "party member without water"));

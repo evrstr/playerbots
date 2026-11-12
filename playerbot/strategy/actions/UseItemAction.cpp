@@ -17,6 +17,7 @@ using namespace ai;
 
 constexpr std::string_view LOS_GOS_PARAM = "los gos";
 
+/// 强制立即触发指定法术的施法流程
 SpellCastResult BotUseItemSpell::ForceSpellStart(SpellCastTargets const* targets, Aura* triggeredByAura)
 {
     WorldObject* truecaster = GetTrueCaster();
@@ -33,7 +34,7 @@ SpellCastResult BotUseItemSpell::ForceSpellStart(SpellCastTargets const* targets
         m_triggeredByAuraSpell = triggeredByAura->GetSpellProto();
     }
 
-    // create and add update event for this spell
+    // create and add update event for this spell (为该法术创建并添加更新事件)
     SpellEvent* Event = new SpellEvent(this);
     truecaster->m_events.AddEvent(Event, truecaster->m_events.CalculateTime(1));
 
@@ -64,6 +65,7 @@ SpellCastResult BotUseItemSpell::ForceSpellStart(SpellCastTargets const* targets
     }
 }
 
+/// 检查机器人是否具备开启目标锁具的技能或钥匙条件
 bool BotUseItemSpell::OpenLockCheck()
 {
     for (uint32 i = 0; i < MAX_EFFECT_INDEX; ++i)
@@ -76,21 +78,21 @@ bool BotUseItemSpell::OpenLockCheck()
 #endif
             case SPELL_EFFECT_OPEN_LOCK:
             {
-                if (m_caster->GetTypeId() != TYPEID_PLAYER) // only players can open locks, gather etc.
+                if (m_caster->GetTypeId() != TYPEID_PLAYER) // only players can open locks, gather etc. (只有玩家控制的角色才能开锁与采集)
                     return false;
 
-                // we need a go target in case of TARGET_GAMEOBJECT (for other targets acceptable GO and items)
+                // we need a go target in case of TARGET_GAMEOBJECT (for other targets acceptable GO and items) (当目标类型为 TARGET_GAMEOBJECT 时必须指定游戏对象（其他类型可接受物品或物体）)
                 if (m_spellInfo->EffectImplicitTargetA[i] == TARGET_GAMEOBJECT)
                 {
                     if (!m_targets.getGOTarget())
                         return false;
                 }
 
-                // get the lock entry
+                // get the lock entry (获取锁具 ID)
                 uint32 lockId;
                 if (GameObject* go = m_targets.getGOTarget())
                 {
-                    // In BattleGround players can use only flags and banners
+                    // In BattleGround players can use only flags and banners (在战场中玩家只能使用旗帜和战旗道具)
                     if (((Player*)m_caster)->InBattleGround() &&
                         !((Player*)m_caster)->CanUseBattleGroundObject())
                         return false;
@@ -99,20 +101,20 @@ bool BotUseItemSpell::OpenLockCheck()
                     if (!lockId)
                         return false;
 
-                    // check if its in use only when cast is finished (called from spell::cast() with strict = false)
+                    // check if its in use only when cast is finished (called from spell::cast() with strict = false) (仅在施法完成时检查物品是否处于使用中)
                     if (go->IsInUse())
                         return false;
 
                     if (go->HasFlag(GAMEOBJECT_FLAGS, GO_FLAG_IN_USE))
                         return false;
 
-                    // done in client but we need to recheck anyway
+                    // done in client but we need to recheck anyway (客户端虽已校验但服务端侧仍需复查)
                     if (go->GetGOInfo()->CannotBeUsedUnderImmunity() && m_caster->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE))
                         return false;
                 }
                 else if (Item* item = m_targets.getItemTarget())
                 {
-                    // not own (trade?)
+                    // not own (trade?) (非自身持有（交易栏物品？）)
                     if (item->GetOwner() != m_caster)
                         return false;
 
@@ -125,16 +127,16 @@ bool BotUseItemSpell::OpenLockCheck()
                 else
                     return false;
 
-                if (!lockId)                                            // possible case for GO and maybe for items.
+                if (!lockId)                                            // possible case for GO and maybe for items. (适用于游戏对象及部分物品的可能情形。)
                     return false;
 
-                // Get LockInfo
+                // Get LockInfo (获取锁具信息)
                 LockEntry const* lockInfo = sLockStore.LookupEntry(lockId);
 
                 if (!lockInfo)
                     return false;
 
-                // check lock compatibility
+                // check lock compatibility (检查开锁技能/钥匙匹配度)
                 SpellEffectIndex effIdx = SpellEffectIndex(i);
                 SpellCastResult res = CanOpenLock(effIdx, lockId, m_effectSkillInfo[effIdx].skillId, m_effectSkillInfo[effIdx].reqSkillValue, m_effectSkillInfo[effIdx].skillValue);
                 if (res == SPELL_FAILED_BAD_TARGETS)
@@ -146,6 +148,7 @@ bool BotUseItemSpell::OpenLockCheck()
     return false;
 }
 
+/// 判断物品原型是否为指定法术类别的食物或饮水
 bool IsFoodOrDrink(const ItemPrototype* proto, uint32 spellCategory)
 {
     return proto->Class == ITEM_CLASS_CONSUMABLE &&
@@ -153,16 +156,19 @@ bool IsFoodOrDrink(const ItemPrototype* proto, uint32 spellCategory)
            proto->Spells[0].SpellCategory == spellCategory;
 }
 
+/// 判断物品原型是否为恢复生命值的食物
 bool IsFood(const ItemPrototype* proto)
 {
     return IsFoodOrDrink(proto, 11);
 }
 
+/// 判断物品原型是否为恢复法力值的饮水
 bool IsDrink(const ItemPrototype* proto)
 {
     return IsFoodOrDrink(proto, 59);
 }
 
+/// 校验目标单位是否满足使用指定物品的合法性条件
 bool IsTargetValidForItemUse(uint32 itemID, Unit* target)
 {
     ItemRequiredTargetMapBounds bounds = sObjectMgr.GetItemRequiredTargetMapBounds(itemID);
@@ -185,36 +191,37 @@ bool IsTargetValidForItemUse(uint32 itemID, Unit* target)
     return false;
 }
 
+/// 判断指定物品在使用前是否要求自身已装备或存在特定前置道具
 bool RequiresItemToUse(const ItemPrototype* itemProto, PlayerbotAI* ai, Player* bot)
 {
-    // If no item cheat
+    // If no item cheat (若未开启物品作弊)
     if (!ai->HasCheat(BotCheatMask::item))
         return true;
 
-    // Exception items                                  Jujus                                            Holy water    
+    // Exception items                                  Jujus                                            Holy water (例外物品：魂精、圣水)
     const std::unordered_set<uint32> itemExceptions = { 12450, 12451, 12455, 12457, 12458, 12459, 12460, 13180, 7189 };
     if (itemExceptions.find(itemProto->ItemId) != itemExceptions.end())
         return false;
 
-    // Required items                                  Hearthstone, Scourgestone
+    // Required items                                  Hearthstone, Scourgestone (必需物品：炉石、天灾石)
     const std::unordered_set<uint32> itemsRequired = { 6948, 40582 };
     if (itemsRequired.find(itemProto->ItemId) != itemsRequired.end())
         return true;
 
-    // If item must be equipped
+    // If item must be equipped (若物品必须穿戴后才能使用)
     if (itemProto->InventoryType != INVTYPE_NON_EQUIP)
         return true;
 
-    // If item starts quest
+    // If item starts quest (若该物品可触发起始任务)
     if (itemProto->StartQuest > 0)
         return true;
 
-    // Quest related items
+    // Quest related items (任务相关物品)
     if (itemProto->Class == ITEM_CLASS_QUEST)
         return true;
 
 #ifndef MANGOSBOT_ZERO
-    // If item is a gem
+    // If item is a gem (若物品为宝石)
     if (itemProto->Class == ITEM_CLASS_GEM)
         return true;
 #endif
@@ -222,6 +229,7 @@ bool RequiresItemToUse(const ItemPrototype* itemProto, PlayerbotAI* ai, Player* 
     return false;
 }
 
+/// 执行动作主逻辑（使用物品指令基类动作）
 bool UseAction::Execute(Event& event)
 {
     Player* requester = event.getOwner();
@@ -362,24 +370,28 @@ bool UseAction::Execute(Event& event)
     return false;
 }
 
+/// 使用指定的背包物品或对其目标施放效果
 bool UseAction::UseItem(Player* requester, uint32 itemId, Unit* target)
 {
     return UseItemInternal(requester, itemId, target, nullptr, nullptr);
 }
 
+/// 使用指定的背包物品或对其目标施放效果
 bool UseAction::UseItem(Player* requester, uint32 itemId, GameObject* target)
 {
     return UseItemInternal(requester, itemId, nullptr, target, nullptr);
 }
 
+/// 使用指定的背包物品或对其目标施放效果
 bool UseAction::UseItem(Player* requester, uint32 itemId, Item* target)
 {
     return UseItemInternal(requester, itemId, nullptr, nullptr, target);
 }
 
+/// 执行使用物品的底层施法、目标校验与冷却处理
 bool UseAction::UseItemInternal(Player* requester, uint32 itemId, Unit* unit, GameObject* gameObject, Item* item)
 {
-    // Check for valid item ID
+    // Check for valid item ID (校验物品 ID 是否有效)
     const ItemPrototype* proto = sObjectMgr.GetItemPrototype(itemId);
     if (!proto)
     {
@@ -395,6 +407,7 @@ bool UseAction::UseItemInternal(Player* requester, uint32 itemId, Unit* unit, Ga
 
     if (proto->Flags & ITEM_FLAG_HAS_LOOT)
     {
+        // 查找背包中匹配的物品
         std::list<Item*> items = AI_VALUE2(std::list<Item*>, "inventory items", ChatHelper::formatQItem(itemId));
         if (!items.empty())
         {
@@ -402,10 +415,11 @@ bool UseAction::UseItemInternal(Player* requester, uint32 itemId, Unit* unit, Ga
         }
     }
 
-    // If bot has no item cheat (or other conditions) it needs to own the item to cast
+    // If bot has no item cheat (or other conditions) it needs to own the item to cast (若机器人未启用物品作弊等条件，则需要背包实际持有该物品才能施放)
     Item* itemUsed = nullptr;
     if (RequiresItemToUse(proto, ai, bot))
     {
+        // 查找背包中匹配的物品
         std::list<Item*> items = AI_VALUE2(std::list<Item*>, "inventory items", ChatHelper::formatQItem(itemId));
         if (!items.empty())
         {
@@ -424,21 +438,21 @@ bool UseAction::UseItemInternal(Player* requester, uint32 itemId, Unit* unit, Ga
         }
     }
 
-    // Check for items that give quests on use (must have item in inventory)
+    // Check for items that give quests on use (must have item in inventory) (检查使用后可接取任务的物品（必须在背包中持有）)
     if (proto->StartQuest > 0)
     {
         return UseQuestGiverItem(requester, itemUsed);
     }
 
 #ifndef MANGOSBOT_ZERO
-    // Check for gem items
+    // Check for gem items (检查背包中的宝石物品)
     if (proto->Class == ITEM_CLASS_GEM)
     {
         return UseGemItem(requester, item, itemUsed, true);
     }
 #endif
 
-    // Check for item equipped, skip exceptions listed in RequiresItemToUse
+    // Check for item equipped, skip exceptions listed in RequiresItemToUse (检查物品是否已装备，跳过 RequiresItemToUse 中的例外项)
     if (proto->InventoryType != INVTYPE_NON_EQUIP && itemUsed && !itemUsed->IsEquipped())
     {
         if (verbose)
@@ -451,7 +465,7 @@ bool UseAction::UseItemInternal(Player* requester, uint32 itemId, Unit* unit, Ga
         return false;
     }
 
-    // Check for item usable
+    // Check for item usable (检查物品当前是否可用)
     InventoryResult invResult = bot->CanUseItem(proto);
     if (invResult != EQUIP_ERR_OK)
     {
@@ -465,7 +479,7 @@ bool UseAction::UseItemInternal(Player* requester, uint32 itemId, Unit* unit, Ga
         return false;
     }
 
-    // Check for trade
+    // Check for trade (检查交易窗口物品)
     if (itemUsed && itemUsed->IsInTrade())
     {
         if (verbose)
@@ -478,7 +492,7 @@ bool UseAction::UseItemInternal(Player* requester, uint32 itemId, Unit* unit, Ga
         return false;
     }
 
-    // Check for item cooldown
+    // Check for item cooldown (检查物品冷却时间)
     if (HasItemCooldown(itemId))
     {
         if (verbose)
@@ -498,14 +512,14 @@ bool UseAction::UseItemInternal(Player* requester, uint32 itemId, Unit* unit, Ga
     uint8 successCasts = 0;
     for (uint8 i = 0; i < MAX_ITEM_PROTO_SPELLS; ++i)
     {
-        // No spell
+        // No spell (无可用法术)
         const auto& spellData = proto->Spells[i];
         if (!spellData.SpellId)
         {
             continue;
         }
 
-        // Wrong triggering type
+        // Wrong triggering type (错误的触发器类型)
 #ifdef MANGOSBOT_ZERO
         if (spellData.SpellTrigger != ITEM_SPELLTRIGGER_ON_USE && spellData.SpellTrigger != ITEM_SPELLTRIGGER_ON_NO_DELAY_USE)
 #else
@@ -526,35 +540,35 @@ bool UseAction::UseItemInternal(Player* requester, uint32 itemId, Unit* unit, Ga
             continue;
         }
 
-        // Check if valid targets
+        // Check if valid targets (检查是否存在有效目标)
         bool validTarget = false;
         SpellCastTargets targets;
         
-        // Try to figure out which targets are allowed if the spell doesn't provide it
+        // Try to figure out which targets are allowed if the spell doesn't provide it (若法术本身未明确目标限制，尝试推断允许的目标单位)
         uint32 spellTargets = spellInfo->Targets;
         if (spellTargets == 0)
         {
-            // Unit target
-            if ((spellInfo->EffectImplicitTargetA[0] == TARGET_UNIT || spellInfo->EffectImplicitTargetA[0] == TARGET_UNIT_ENEMY) || // Unit Target
-                (proto->Class == ITEM_CLASS_CONSUMABLE && proto->SubClass == ITEM_SUBCLASS_SCROLL) || // Scrolls
-                (proto->Class == ITEM_CLASS_TRADE_GOODS && proto->SubClass == ITEM_SUBCLASS_EXPLOSIVES) || // Explosives
-                (spellData.SpellCategory == 150) || // First aid
-                (spellData.SpellCategory == 831)) // Soulstone 
+            // Unit target (单位目标)
+            if ((spellInfo->EffectImplicitTargetA[0] == TARGET_UNIT || spellInfo->EffectImplicitTargetA[0] == TARGET_UNIT_ENEMY) || // Unit Target (单位目标)
+                (proto->Class == ITEM_CLASS_CONSUMABLE && proto->SubClass == ITEM_SUBCLASS_SCROLL) || // Scrolls (卷轴)
+                (proto->Class == ITEM_CLASS_TRADE_GOODS && proto->SubClass == ITEM_SUBCLASS_EXPLOSIVES) || // Explosives (爆炸物/手雷)
+                (spellData.SpellCategory == 150) || // First aid (急救)
+                (spellData.SpellCategory == 831)) // Soulstone (灵魂石)
             {
                 spellTargets |= TARGET_FLAG_UNIT;
             }
 
-            // Location target
-            if ((spellInfo->EffectImplicitTargetA[0] == TARGET_ENUM_UNITS_ENEMY_AOE_AT_DEST_LOC) || // Hostile Aoe Spell
-                (proto->Class == ITEM_CLASS_TRADE_GOODS && proto->SubClass == ITEM_SUBCLASS_EXPLOSIVES)) // Explosives
+            // Location target (坐标位置目标)
+            if ((spellInfo->EffectImplicitTargetA[0] == TARGET_ENUM_UNITS_ENEMY_AOE_AT_DEST_LOC) || // Hostile Aoe Spell (敌对范围伤害（AOE）法术)
+                (proto->Class == ITEM_CLASS_TRADE_GOODS && proto->SubClass == ITEM_SUBCLASS_EXPLOSIVES)) // Explosives (爆炸物/手雷)
             {
                 spellTargets |= TARGET_FLAG_DEST_LOCATION;
             }
 
-            // No target
+            // No target (无目标)
             if (spellTargets == 0 && 
-                (spellInfo->EffectImplicitTargetA[0] == TARGET_NONE || // No target
-                 spellInfo->EffectImplicitTargetA[0] == TARGET_UNIT_CASTER)) // Self Target
+                (spellInfo->EffectImplicitTargetA[0] == TARGET_NONE || // No target (无目标)
+                 spellInfo->EffectImplicitTargetA[0] == TARGET_UNIT_CASTER)) // Self Target (自身目标)
             {
                 validTarget = true;
             }
@@ -607,7 +621,7 @@ bool UseAction::UseItemInternal(Player* requester, uint32 itemId, Unit* unit, Ga
             }
             else
             {
-                // Try to figure out the item target
+                // Try to figure out the item target (尝试解析确定物品的目标对象)
                 Item* itemForSpell = AI_VALUE2(Item*, "item for spell", spellInfo->Id);
                 if (itemForSpell)
                 {
@@ -638,36 +652,36 @@ bool UseAction::UseItemInternal(Player* requester, uint32 itemId, Unit* unit, Ga
 
         if (validTarget)
         {
-            // Validate spellInfo is a proper sSpellTemplate entry before constructing (mirrors MANGOS_ASSERT in Spell::Spell)
+            // Validate spellInfo is a proper sSpellTemplate entry before constructing (mirrors MANGOS_ASSERT in Spell::Spell) (构造 Spell 前校验 spellInfo 是否存在于法术模板表（防止触发核心断言崩溃）)
             if (!spellInfo || spellInfo != sSpellTemplate.LookupEntry<SpellEntry>(spellInfo->Id))
             {
                 continue;
             }
 
-            // Use triggered flag only for items with many spell casts and for not first cast
+            // Use triggered flag only for items with many spell casts and for not first cast (仅对多次施法物品的后续施法使用 triggered 标志)
             BotUseItemSpell* spell = new BotUseItemSpell(bot, spellInfo, (successCasts > 0) ? TRIGGERED_OLD_TRIGGERED : TRIGGERED_NONE);
             spell->m_clientCast = true;
             
 #ifdef MANGOSBOT_ONE
-            // used in item_template.spell_2 with spell_id with SPELL_GENERIC_LEARN in spell_1
+            // used in item_template.spell_2 with spell_id with SPELL_GENERIC_LEARN in spell_1 (用于 spell_1 为 SPELL_GENERIC_LEARN、spell_2 为目标法术 ID 的物品模板)
             if (spellInfo->Id == SPELL_ID_GENERIC_LEARN && proto->Spells[1].SpellTrigger == ITEM_SPELLTRIGGER_LEARN_SPELL_ID)
                 spell->m_currentBasePoints[EFFECT_INDEX_0] = proto->Spells[1].SpellId; 
 #endif
 #ifdef MANGOSBOT_TWO
-            // used in item_template.spell_2 with spell_id with SPELL_GENERIC_LEARN in spell_1
+            // used in item_template.spell_2 with spell_id with SPELL_GENERIC_LEARN in spell_1 (用于 spell_1 为 SPELL_GENERIC_LEARN、spell_2 为目标法术 ID 的物品模板)
             if ((spellInfo->Id == SPELL_ID_GENERIC_LEARN
                 || spellInfo->Id == SPELL_ID_GENERIC_LEARN_PET) && proto->Spells[1].SpellTrigger == ITEM_SPELLTRIGGER_LEARN_SPELL_ID)
                 spell->m_currentBasePoints[EFFECT_INDEX_0] = proto->Spells[1].SpellId;
 #endif
 
-            // Spend the item if used in the spell
+            // Spend the item if used in the spell (若施法消耗了该物品则扣除)
             if (itemUsed)
             {
                 spell->SetCastItem(itemUsed);
                 itemUsed->SetUsedInSpell(true);
             }
 
-            // Stop the movement for casted items
+            // Stop the movement for casted items (使用需要读条的物品前停止移动)
             const bool isCastedSpell = spell->GetCastedTime() > 0 || IsChanneledSpell(spellInfo);
             if (isCastedSpell)
             {
@@ -676,7 +690,7 @@ bool UseAction::UseItemInternal(Player* requester, uint32 itemId, Unit* unit, Ga
 
             const SpellCastResult result = spell->ForceSpellStart(&targets);
 
-            // Check for using item on trade item
+            // Check for using item on trade item (检查是否正在对交易栏中的物品使用道具)
             bool successCast = result == SPELL_CAST_OK;
             if (result == SPELL_FAILED_DONT_REPORT && (targets.m_targetMask & TARGET_FLAG_TRADE_ITEM))
             {
@@ -720,7 +734,7 @@ bool UseAction::UseItemInternal(Player* requester, uint32 itemId, Unit* unit, Ga
             replyArgs["%target"] = chat->formatItem(proto);
             std::ostringstream replyStr; replyStr << BOT_TEXT("use_command");
 
-            // Target
+            // Target (目标)
             if (itemTarget)
             {
                 replyArgs["%item"] = chat->formatItem(itemTarget);
@@ -775,6 +789,7 @@ bool UseAction::UseItemInternal(Player* requester, uint32 itemId, Unit* unit, Ga
     return false;
 }
 
+/// 与指定的游戏对象交互（如打开宝箱、点击矿点或机关）
 bool UseAction::UseGameObject(Player* requester, Event& event, GameObject* gameObject)
 {
     if (gameObject == nullptr)
@@ -864,7 +879,7 @@ bool UseAction::UseGameObject(Player* requester, Event& event, GameObject* gameO
                 return false;
             };
 
-            // Find a spell that can open the door
+            // Find a spell that can open the door (查找能够打开该门/锁的技能)
             uint32 spellId = 0;
             for (PlayerSpellMap::iterator itr = bot->GetSpellMap().begin(); itr != bot->GetSpellMap().end(); ++itr)
             {
@@ -892,6 +907,7 @@ bool UseAction::UseGameObject(Player* requester, Event& event, GameObject* gameO
             }
             else if (keyRequired > 0)
             {
+                // 查找背包中匹配的物品
                 std::list<Item*> items = AI_VALUE2(std::list<Item*>, "inventory items", chat->formatQItem(keyRequired));
                 if (!items.empty())
                 {
@@ -925,6 +941,7 @@ bool UseAction::UseGameObject(Player* requester, Event& event, GameObject* gameO
     return true;
 }
 
+/// 使用可触发新任务的背包起始任务物品
 bool UseAction::UseQuestGiverItem(Player* requester, Item* item)
 {
     if (!item)
@@ -971,6 +988,7 @@ bool UseAction::UseQuestGiverItem(Player* requester, Item* item)
     return true;
 }
 
+/// 打开或使用背包中的容器类物品
 bool UseAction::OpenItem(Player* requester, Item* item)
 {
     if (!item)
@@ -992,15 +1010,16 @@ bool UseAction::OpenItem(Player* requester, Item* item)
     if (!(item->GetProto()->Flags & ITEM_FLAG_HAS_LOOT))
         return false;
 
-        // Open quest item in inventory, containing related items (e.g Gnarlpine necklace, containing Tallonkai's Jewel)
+        // Open quest item in inventory, containing related items (e.g Gnarlpine necklace, containing Tallonkai's Jewel) (打开背包中包含关联任务道具的容器物品（例如包含塔隆凯宝石的项链）)
         std::unique_ptr<WorldPacket> packet(new WorldPacket(CMSG_OPEN_ITEM, 2));
         *packet << item->GetBagSlot();
         *packet << item->GetSlot();
-        bot->GetSession()->QueuePacket(std::move(packet)); // queue the packet to get around race condition
+        bot->GetSession()->QueuePacket(std::move(packet)); // queue the packet to get around race condition (将封包入队处理以避免竞态条件)
         return true;
 }
 
 
+/// 检查指定物品是否正处于冷却时间中
 bool UseAction::HasItemCooldown(uint32 itemId) const
 {
     const ItemPrototype* proto = sObjectMgr.GetItemPrototype(itemId);
@@ -1029,6 +1048,7 @@ bool UseAction::HasItemCooldown(uint32 itemId) const
 }
 
 #ifndef MANGOSBOT_ZERO
+/// 对带插槽的装备镶嵌指定的宝石物品
 bool UseAction::UseGemItem(Player* requester, Item* item, Item* gem, bool replace)
 {
     if (!item || !gem)
@@ -1105,6 +1125,7 @@ bool UseAction::UseGemItem(Player* requester, Item* item, Item* gem, bool replac
 }
 #endif
 
+/// 执行动作主逻辑（按物品 ID 列表使用动作）
 bool UseItemIdAction::Execute(Event& event)
 {
     Player* requester = event.getOwner();
@@ -1157,6 +1178,7 @@ bool UseItemIdAction::Execute(Event& event)
     }
 }
 
+/// 判断执行该动作的前置条件是否满足（按物品 ID 列表使用动作）
 bool UseItemIdAction::isPossible()
 {
     uint32 itemId = GetItemId();
@@ -1164,8 +1186,8 @@ bool UseItemIdAction::isPossible()
         return false;
 
     ItemPrototype const* proto = sObjectMgr.GetItemPrototype(itemId);
-    // Match the eligibility check UseItemInternal does, so an item the bot
-    // cannot use is not reported as possible.
+    // Match the eligibility check UseItemInternal does, so an item the bot (与 UseItemInternal 的可用性校验保持一致，确保机器人选中的物品)
+    // cannot use is not reported as possible. (不可使用的物品不会标记为可执行。)
     if (!proto || bot->CanUseItem(proto) != EQUIP_ERR_OK)
         return false;
 
@@ -1182,11 +1204,11 @@ bool UseItemIdAction::isPossible()
     {
         _Spell const& spellData = proto->Spells[i];
 
-        // no spell
+        // no spell (无法术)
         if (!spellData.SpellId)
             continue;
 
-        // wrong triggering type
+        // wrong triggering type (触发器类型不匹配)
 #ifdef MANGOSBOT_ZERO
         if (spellData.SpellTrigger != ITEM_SPELLTRIGGER_ON_USE && spellData.SpellTrigger != ITEM_SPELLTRIGGER_ON_NO_DELAY_USE)
 #else
@@ -1206,6 +1228,7 @@ bool UseItemIdAction::isPossible()
     return spellCount;
 }
 
+/// 判断当前状态下该动作是否可用/有效（按物品 ID 列表使用动作）
 bool UseItemIdAction::isUseful()
 {
     if (!getQualifier().empty() && (getMultiQualifierStr(getQualifier(), 0, ",").find_first_not_of("0123456789") != std::string::npos))
@@ -1239,11 +1262,13 @@ bool UseItemIdAction::isUseful()
     return false;
 }
 
+/// 判断当前状态下该动作是否可用/有效（使用法术类物品动作）
 bool UseSpellItemAction::isUseful()
 {
    return AI_VALUE2(bool, "spell cast useful", getName());
 }
 
+/// 执行动作主逻辑（使用炉石动作）
 bool UseHearthStoneAction::Execute(Event& event)
 {
     if (bot->IsMoving())
@@ -1261,9 +1286,9 @@ bool UseHearthStoneAction::Execute(Event& event)
 
     ai->RemoveShapeshift();
 
-    if (!bot->HasItemCount(6948, 1)) //Hearthstone
+    if (!bot->HasItemCount(6948, 1)) // Hearthstone (炉石)
     {
-        if (!bot->HasItemCount(40582, 1)) //Scourgestone
+        if (!bot->HasItemCount(40582, 1)) // Scourgestone (天灾石)
             return false;
 
         event = Event(event.getSource(), "scourgestone");
@@ -1280,18 +1305,19 @@ bool UseHearthStoneAction::Execute(Event& event)
     return used;
 }
 
+/// 判断当前状态下该动作是否可用/有效（使用炉石动作）
 bool UseHearthStoneAction::isUseful() 
 {
     uint32 spellId = 8690;
-    if (!bot->HasItemCount(6948, 1)) //Hearthstone
+    if (!bot->HasItemCount(6948, 1)) // Hearthstone (炉石)
     {
-        if (!bot->HasItemCount(40582, 1)) //Scourgestone
+        if (!bot->HasItemCount(40582, 1)) // Scourgestone (天灾石)
             return false;
 
         spellId = 54403;
     }
 
-    if (!ai->HasActivePlayerMaster() && ai->IsGroupLeader()) //Only hearthstone if entire group can use it.
+    if (!ai->HasActivePlayerMaster() && ai->IsGroupLeader()) // Only hearthstone if entire group can use it. (仅当全队成员均可使用炉石时才使用。)
     {
         if (AI_VALUE2(bool, "group or", "not::spell ready::" + std::to_string(spellId)))
             return false;
@@ -1304,7 +1330,7 @@ bool UseHearthStoneAction::isUseful()
 
     Player* master = ai->GetMaster();
 
-    //Do not HS in dungeons when master is inside the dungeon or dead.
+    // Do not HS in dungeons when master is inside the dungeon or dead. (当主人在副本内或已死亡时，机器人不在副本中使用炉石。)
     if (master && master != bot && !WorldPosition(bot).isOverworld() && (bot->GetMapId() == master->GetMapId() || !master->IsAlive()))
         return false;
 
@@ -1314,11 +1340,13 @@ bool UseHearthStoneAction::isUseful()
     return true;
 }
 
+/// 判断当前状态下该动作是否可用/有效（学习随机配方动作）
 bool UseRandomRecipeAction::isUseful()
 {
    return !bot->IsInCombat() && !bot->InBattleGround();
 }
 
+/// 执行动作主逻辑（学习随机配方动作）
 bool UseRandomRecipeAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -1354,15 +1382,18 @@ bool UseRandomRecipeAction::Execute(Event& event)
     return didUse;
 }
 
+/// 判断当前状态下该动作是否可用/有效（打开随机容器物品动作）
 bool OpenRandomItemAction::isUseful()
 {
     return !bot->IsInCombat() && !ai->HasActivePlayerMaster() && !bot->InBattleGround();
 }
 
+/// 执行动作主逻辑（打开随机容器物品动作）
 bool OpenRandomItemAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
 
+    // 查找背包中匹配的物品
     std::list<Item*> items = AI_VALUE2(std::list<Item*>, "inventory items", "open");
 
     std::string itemName = "";
@@ -1393,11 +1424,13 @@ bool OpenRandomItemAction::Execute(Event& event)
 }
 
 
+/// 判断当前状态下该动作是否可用/有效（使用随机任务物品动作）
 bool UseRandomQuestItemAction::isUseful()
 {
     return !ai->HasActivePlayerMaster() && !bot->InBattleGround() && !bot->IsTaxiFlying();
 }
 
+/// 执行动作主逻辑（使用随机任务物品动作）
 bool UseRandomQuestItemAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();

@@ -1,3 +1,4 @@
+/// 旅行系统诊断探针（TravelProbe）实现
 #include "TravelProbe.h"
 #ifdef GenerateBotTests
 
@@ -15,6 +16,7 @@
 
 using namespace ai;
 
+/// 判断旅行目标是否为空目标（NullDestination）
 static bool IsNullDestination(TravelDestination* destination)
 {
     return destination && typeid(*destination) == typeid(NullTravelDestination);
@@ -22,6 +24,7 @@ static bool IsNullDestination(TravelDestination* destination)
 
 static std::atomic<bool> TravelProbeTraceEnabled{ false };
 
+/// 规范化旅行目的名称为小写字符串
 static std::string TravelProbePurposeName(const std::string& purpose)
 {
     if (Qualified::isValidNumberString(purpose) && TravelDestinationPurposeName.find(TravelDestinationPurpose(stoi(purpose))) != TravelDestinationPurposeName.end())
@@ -30,6 +33,7 @@ static std::string TravelProbePurposeName(const std::string& purpose)
     return "unknown";
 }
 
+/// 按距离区间分桶返回可读标签
 static std::string TravelProbeBucket(float distance)
 {
     uint32 prev = 0;
@@ -44,12 +48,14 @@ static std::string TravelProbeBucket(float distance)
     return "> " + std::to_string(prev);
 }
 
+/// 清洗 CSV 字段中的逗号以防破坏列格式
 static std::string TravelProbeSanitize(std::string text)
 {
     std::replace(text.begin(), text.end(), ',', ';');
     return text;
 }
 
+/// 在启用追踪时记录机器人旅行目标切换（Flip）事件至 travel_flip.csv
 void TravelProbe::ReportFlip(Player* bot, TravelTarget* newTarget, TravelTarget* oldTarget)
 {
     if (!TravelProbeTraceEnabled)
@@ -102,6 +108,7 @@ void TravelProbe::ReportFlip(Player* bot, TravelTarget* newTarget, TravelTarget*
     sPlayerbotAIConfig.log("travel_flip.csv", out.str().c_str());
 }
 
+/// 解析逗号分隔的等级采样列表（默认 10,20,30,45,60,70）
 static std::vector<uint32> TravelProbeParseLevels(const std::string& spec)
 {
     std::vector<uint32> levels;
@@ -119,6 +126,7 @@ static std::vector<uint32> TravelProbeParseLevels(const std::string& spec)
     return levels;
 }
 
+/// 解析逗号分隔的旅行目的类型过滤列表
 static std::vector<TravelDestinationPurpose> TravelProbeParsePurposes(const std::string& spec)
 {
     std::vector<TravelDestinationPurpose> purposes;
@@ -167,6 +175,7 @@ static std::vector<TravelDestinationPurpose> TravelProbeParsePurposes(const std:
     return purposes;
 }
 
+/// 执行 travelsample 指令：按等级与目的组合抽样评估目标选择分布及超远跳转率
 std::list<std::string> TravelProbe::HandleTravelSample(Player* bot, const std::string& param)
 {
     std::list<std::string> messages;
@@ -297,6 +306,7 @@ std::list<std::string> TravelProbe::HandleTravelSample(Player* bot, const std::s
     return messages;
 }
 
+/// 执行 traveltrace 指令：开关旅行目标切换日志追踪并汇总分析翻牌（Flip）统计
 std::list<std::string> TravelProbe::HandleTravelTrace(const std::string& param)
 {
     std::list<std::string> messages;

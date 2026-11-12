@@ -1,3 +1,4 @@
+/// PvP、战场与载具相关触发器实现
 
 #include "playerbot/playerbot.h"
 #include "PvpTriggers.h"
@@ -10,15 +11,16 @@
 
 using namespace ai;
 
+/// 检测附近是否存在更优的敌对玩家攻击目标
 bool EnemyPlayerNear::IsActive()
 {
-    // Check if we have any enemy players to attack
+    // Check if we have any enemy players to attack | 检查是否有可攻击的敌对玩家目标
     if(AI_VALUE(bool, "has enemy player targets"))
     {
         Unit* currentTarget = ai->GetUnit(AI_VALUE(ObjectGuid, "current target"));
         if (currentTarget)
         {
-            // Check if we have a better enemy player to attack
+            // Check if we have a better enemy player to attack | 检查是否有更适合攻击的敌对玩家目标
             Player* currentPlayerTarget = dynamic_cast<Player*>(currentTarget);
             if(currentPlayerTarget)
             {
@@ -32,6 +34,7 @@ bool EnemyPlayerNear::IsActive()
     return false;
 }
 
+/// 检测在战歌峡谷中机器人是否未持有旗帜
 bool PlayerHasNoFlag::IsActive()
 {
 #ifdef MANGOS
@@ -54,11 +57,13 @@ bool PlayerHasNoFlag::IsActive()
     return false;
 }
 
+/// 检测机器人当前是否在战场内
 bool PlayerIsInBattleground::IsActive()
 {
     return ai->GetBot()->InBattleGround();
 }
 
+/// 检测战场状态是否为等待玩家加入（STATUS_WAIT_JOIN）
 bool BgWaitingTrigger::IsActive()
 {
     if (bot->InBattleGround())
@@ -69,6 +74,7 @@ bool BgWaitingTrigger::IsActive()
     return false;
 }
 
+/// 检测战场状态是否为进行中（STATUS_IN_PROGRESS）
 bool BgActiveTrigger::IsActive()
 {
     if (bot->InBattleGround())
@@ -79,6 +85,7 @@ bool BgActiveTrigger::IsActive()
     return false;
 }
 
+/// 检测机器人是否已收到战场队列邀请
 bool BgInviteActiveTrigger::IsActive()
 {
     if (bot->InBattleGround() || !bot->InBattleGroundQueue())
@@ -111,6 +118,7 @@ bool BgInviteActiveTrigger::IsActive()
     return false;
 }
 
+/// 检测战场状态是否为已结束（STATUS_WAIT_LEAVE）
 bool BgEndedTrigger::IsActive()
 {
     if (bot->InBattleGround())
@@ -121,6 +129,7 @@ bool BgEndedTrigger::IsActive()
     return false;
 }
 
+/// 检测机器人处于战场但未扛旗
 bool PlayerIsInBattlegroundWithoutFlag::IsActive()
 {
 #ifdef MANGOS
@@ -142,6 +151,7 @@ bool PlayerIsInBattlegroundWithoutFlag::IsActive()
     return false;
 }
 
+/// 检测在战歌峡谷或风暴之眼中机器人自身是否正在扛旗
 bool PlayerHasFlag::IsActive()
 {
     ai::PositionEntry pos = context->GetValue<ai::PositionMap&>("position")->Get()["bg objective"];
@@ -174,6 +184,7 @@ bool PlayerHasFlag::IsActive()
     return false;
 }
 
+/// 检测我方其他队友是否正在扛着敌方旗帜
 bool TeamHasFlag::IsActive()
 {
 #ifdef MANGOS
@@ -197,6 +208,7 @@ bool TeamHasFlag::IsActive()
     return false;
 }
 
+/// 检测敌方是否正在扛着我方旗帜
 bool EnemyTeamHasFlag::IsActive()
 {
     if (ai->GetBot()->InBattleGround())
@@ -224,18 +236,21 @@ bool EnemyTeamHasFlag::IsActive()
     return false;
 }
 
+/// 检测敌方扛旗手是否处于小范围视野内
 bool EnemyFlagCarrierNear::IsActive()
 {
     Unit* carrier = ai->GetUnit(AI_VALUE(ObjectGuid, "enemy flag carrier"));
     return carrier && sServerFacade.IsDistanceLessOrEqualThan(sServerFacade.GetDistance2d(bot, carrier), VISIBILITY_DISTANCE_SMALL);
 }
 
+/// 检测友方扛旗手是否处于小范围视野内
 bool TeamFlagCarrierNear::IsActive()
 {
     Unit* carrier = ai->GetUnit(AI_VALUE(ObjectGuid, "team flag carrier"));
     return carrier && sServerFacade.IsDistanceLessOrEqualThan(sServerFacade.GetDistance2d(bot, carrier), VISIBILITY_DISTANCE_SMALL);
 }
 
+/// 检测机器人是否不在战场且可以加入新的战场队列
 bool PlayerWantsInBattlegroundTrigger::IsActive()
 {
     if (bot->InBattleGround())
@@ -253,12 +268,14 @@ bool PlayerWantsInBattlegroundTrigger::IsActive()
     return true;
 };
 
+/// 检测附近是否存在载具 NPC
 bool VehicleNearTrigger::IsActive()
 {
     std::list<ObjectGuid> npcs = AI_VALUE(std::list<ObjectGuid>, "nearest vehicles");
     return npcs.size();
 }
 
+/// 检测机器人是否处于符合限定条件（Qualifier）的载具中
 bool InVehicleTrigger::IsActive()
 {
     return ai->IsInVehicle(false,false,false,false,false, getQualifier());

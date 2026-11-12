@@ -6,6 +6,7 @@
 
 #define BOT_HELP(name) sPlayerbotHelpMgr.GetBotText(name)
 
+/// 机器人帮助文本多语言条目结构
 struct BotHelpEntry
 {
     BotHelpEntry() { m_new = true; }
@@ -17,6 +18,7 @@ struct BotHelpEntry
     std::map<int32, std::string> m_text_locales;
 };
 
+/// 机器人指令与策略帮助文档管理器（支持从数据库加载及生成文档模板）
 class PlayerbotHelpMgr
 {
     public:
@@ -28,7 +30,7 @@ class PlayerbotHelpMgr
             return instance;
         }
 
-	public:
+    public:
         static void replace(std::string& text, const std::string what, const std::string with);
         static std::string makeList(std::vector<std::string>const parts, std::string partFormat = "<part>", uint32 maxLength = 254);
 #ifdef GenerateBotHelp

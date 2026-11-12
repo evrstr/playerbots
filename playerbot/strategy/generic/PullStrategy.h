@@ -1,9 +1,11 @@
+/// 拉怪（Pull）、防 Add 与拉怪归位策略头文件
 #pragma once
 #include "playerbot/strategy/Strategy.h"
 #include "playerbot/strategy/Multiplier.h"
 
 namespace ai
 {
+    /// 策略：由坦克或指定拉怪手使用远程技能安全引怪
     class PullStrategy : public Strategy
     {
     public:
@@ -44,13 +46,14 @@ namespace ai
         void InitNonCombatMultipliers(std::list<Multiplier*>& multipliers) override;
 
     private:
-        std::string pullActionName; //shoot
+        std::string pullActionName; //shoot | 默认拉怪动作（如 shoot）
         std::string preActionName;
         bool pendingToStart;
         time_t pullStartTime;
         ReactStates petReactState;
     };
 
+    /// 乘数：在拉怪执行阶段屏蔽非拉怪相关动作
     class PullMultiplier : public Multiplier
     {
     public:
@@ -60,6 +63,7 @@ namespace ai
         float GetValue(Action* action) override;
     };
 
+    /// 策略：警戒周围潜在巡逻怪物并适时躲避（ads）
     class PossibleAddsStrategy : public Strategy
     {
     public:
@@ -70,6 +74,7 @@ namespace ai
         void InitCombatTriggers(std::list<TriggerNode*> &triggers) override;
     };
 
+    /// 策略：引怪后自动跑回预设拉怪锚点位置（pull back）
     class PullBackStrategy : public Strategy
     {
     public:

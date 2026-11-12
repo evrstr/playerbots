@@ -7,6 +7,7 @@
 
 using namespace ai;
 
+/// 执行动作主逻辑（保留物品设置动作）
 bool KeepItemAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -14,18 +15,19 @@ bool KeepItemAction::Execute(Event& event)
 
     std::string type = text.substr(0, text.find(" "));
 
-    if (text.empty()) //No param = help feedback
+    if (text.empty()) // No param = help feedback (无参数时输出帮助提示)
     {
         std::ostringstream out;
         out << "Please specify the items that should be kept. See " << ChatHelper::formatValue("help", "action:keep", "keep help") << " for more information.";
         ai->TellPlayer(requester, out.str());
         return false;
     }
-    else if (std::string("none,keep,equip,bag,greed,need,?,").find(type + ",") == std::string::npos) //Non type = using keep.
+    else if (std::string("none,keep,equip,bag,greed,need,?,").find(type + ",") == std::string::npos) // Non type = using keep. (未指定类型时默认使用保留（keep）规则。)
         type = "keep";
-    else if(text.find(" ") != std::string::npos) //Remove type from param.
+    else if(text.find(" ") != std::string::npos) // Remove type from param. (从参数字符串中移除类型前缀。)
         text = text.substr(text.find(" ") + 1);
 
+    // 解析命令参数中的物品链接或 ID 列表
     ItemIds ids = chat->parseItems(text);
 
     if (ids.empty())

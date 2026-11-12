@@ -6,9 +6,11 @@
 
 using namespace ai;
 
+/// 执行动作主逻辑（接受公会邀请动作）
 bool GuildAcceptAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
+    // 解析事件携带的网络封包数据
     WorldPacket p(event.getPacket());
     p.rpos(0);
     Player* inviter = nullptr;

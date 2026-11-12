@@ -14,6 +14,7 @@ PlayerbotSecurity::PlayerbotSecurity(Player* const bot) : bot(bot), account(0)
     }
 }
 
+// 综合评估请求者 GM 权限、同账号归属、阵营、等级差、装等、排队及组队状态并返回安全等级
 PlayerbotSecurityLevel PlayerbotSecurity::LevelFor(Player* from, DenyReason* reason, bool ignoreGroup)
 {
 
@@ -41,7 +42,7 @@ PlayerbotSecurityLevel PlayerbotSecurity::LevelFor(Player* from, DenyReason* rea
             }
         }
 
-        // Cross-faction grouping only lifts the faction check; the checks below still apply
+        // Cross-faction grouping only lifts the faction check; the checks below still apply | 开启跨阵营组队仅放行阵营限制，其余校验仍生效
         if (bot->GetPlayerbotAI()->IsOpposing(from) && !sWorld.getConfig(CONFIG_BOOL_ALLOW_TWO_SIDE_INTERACTION_GROUP))
         {
             if (reason) *reason = DenyReason::PLAYERBOT_DENY_OPPOSING;
@@ -147,6 +148,7 @@ PlayerbotSecurityLevel PlayerbotSecurity::LevelFor(Player* from, DenyReason* rea
     return PlayerbotSecurityLevel::PLAYERBOT_SECURITY_DENY_ALL;
 }
 
+// 校验安全等级是否达标，未达标时在非静默模式下向请求者私聊反馈原因（带防刷屏冷却）
 bool PlayerbotSecurity::CheckLevelFor(PlayerbotSecurityLevel level, bool silent, Player* from, bool ignoreGroup)
 {
     DenyReason reason = DenyReason::PLAYERBOT_DENY_NONE;
@@ -208,7 +210,7 @@ bool PlayerbotSecurity::CheckLevelFor(PlayerbotSecurityLevel level, bool silent,
                 uint32 area = sServerFacade.GetAreaId(bot);
                 if (area)
                 {
-					const AreaTableEntry* entry = GetAreaEntryByAreaID(area);
+                    const AreaTableEntry* entry = GetAreaEntryByAreaID(area);
                     if (entry)
                     {
                         out << " |cffffffff(|cffff0000" << entry->area_name[0] << "|cffffffff)";

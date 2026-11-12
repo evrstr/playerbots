@@ -1,8 +1,10 @@
+/// 野外刷怪（Grinding）策略头文件
 #pragma once
 #include "NonCombatStrategy.h"
 
 namespace ai
 {
+    /// 策略：闲暇无目标时主动寻找附近可击杀怪物练级/刷怪
     class GrindingStrategy : public NonCombatStrategy
     {
     public:

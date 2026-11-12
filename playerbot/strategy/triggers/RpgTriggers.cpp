@@ -1,3 +1,4 @@
+/// RPG 城镇与NPC交互触发器实现
 
 #include "playerbot/playerbot.h"
 #include "RpgTriggers.h"
@@ -12,6 +13,7 @@
 
 using namespace ai;
 
+/// 检测 RPG 交互基类是否满足激活条件（自由机器人或当前目标匹配旅行目标）
 bool RpgTrigger::IsActive() 
 { 
     if (!ai->HasRealPlayerMaster())
@@ -27,6 +29,7 @@ bool RpgTrigger::IsActive()
     return false;
 };
 
+/// 检测当前 RPG 目标是否为飞行管理员且存在已解锁可达航线
 bool RpgTaxiTrigger::IsActive()
 {
     GuidPosition guidP(getGuidP());
@@ -55,6 +58,7 @@ bool RpgTaxiTrigger::IsActive()
     return false;
 }
 
+/// 检测当前 RPG 目标是否为尚未解锁飞行点的飞行管理员
 bool RpgDiscoverTrigger::IsActive()
 {
     GuidPosition guidP(getGuidP());
@@ -73,6 +77,7 @@ bool RpgDiscoverTrigger::IsActive()
     return true;
 }
 
+/// 检测当前 RPG 目标是否可接取任务（检查任务栏空位、阵营与等级）
 bool RpgStartQuestTrigger::IsActive()
 {
     GuidPosition guidP(getGuidP());
@@ -115,6 +120,7 @@ bool RpgStartQuestTrigger::IsActive()
     return false;
 }
 
+/// 检测当前 RPG 目标是否可交付已完成任务
 bool RpgEndQuestTrigger::IsActive()
 {
     GuidPosition guidP(getGuidP());
@@ -133,6 +139,7 @@ bool RpgEndQuestTrigger::IsActive()
     return false;
 }
 
+/// 检测当前 RPG 目标是否可接取可重复任务
 bool RpgRepeatQuestTrigger::IsActive()
 {
     GuidPosition guidP(getGuidP());
@@ -152,6 +159,7 @@ bool RpgRepeatQuestTrigger::IsActive()
     return false;
 }
 
+/// 检测当前 RPG 商人是否售卖机器人所需的有用物品
 bool RpgBuyTrigger::IsActive()
 {
     GuidPosition guidP(getGuidP());
@@ -171,6 +179,7 @@ bool RpgBuyTrigger::IsActive()
     return true;
 }
 
+/// 检测当前 RPG 商人是否可以出售背包物品
 bool RpgSellTrigger::IsActive()
 {
     GuidPosition guidP(getGuidP());
@@ -187,6 +196,7 @@ bool RpgSellTrigger::IsActive()
     return true;
 }
 
+/// 检测当前 RPG 拍卖师是否可以进行拍卖出售
 bool RpgAHSellTrigger::IsActive()
 {
     GuidPosition guidP(getGuidP());
@@ -206,6 +216,7 @@ bool RpgAHSellTrigger::IsActive()
     return true;
 }
 
+/// 检测当前 RPG 拍卖师是否可以进行拍卖购买
 bool RpgAHBuyTrigger::IsActive()
 {
     GuidPosition guidP(getGuidP());
@@ -225,6 +236,7 @@ bool RpgAHBuyTrigger::IsActive()
     return true;
 }
 
+/// 检测当前 RPG 目标是否为邮箱且有待收取邮件
 bool RpgGetMailTrigger::IsActive()
 {
     GuidPosition guidP(getGuidP());
@@ -238,6 +250,7 @@ bool RpgGetMailTrigger::IsActive()
     return true;
 }
 
+/// 检测当前 RPG 目标是否为修理NPC且自身或队友需要修理
 bool RpgRepairTrigger::IsActive()
 {
     GuidPosition guidP(getGuidP());
@@ -257,6 +270,7 @@ bool RpgRepairTrigger::IsActive()
     return false;
 }
 
+/// 判定指定生物信息是否为该玩家可用的训练师类型（职业/宠物/骑术/商业技能）
 bool RpgTrainTrigger::IsTrainerOf(CreatureInfo const* cInfo, Player* pPlayer)
 {
 
@@ -277,7 +291,7 @@ bool RpgTrainTrigger::IsTrainerOf(CreatureInfo const* cInfo, Player* pPlayer)
     case TRAINER_TYPE_MOUNTS:
         if (cInfo->TrainerRace && pPlayer->getRace() != cInfo->TrainerRace)
         {
-            // Allowed to train if exalted
+            // Allowed to train if exalted | 若声望达到崇拜则允许学习跨种族骑术
             if (FactionTemplateEntry const* faction_template = sFactionTemplateStore.LookupEntry(cInfo->Faction))
             {
                 if (pPlayer->GetReputationRank(faction_template->faction) == REP_EXALTED)
@@ -293,11 +307,12 @@ bool RpgTrainTrigger::IsTrainerOf(CreatureInfo const* cInfo, Player* pPlayer)
         }
         break;
     default:
-        return false;                                   // checked and error output at creature_template loading
+        return false;                                   // checked and error output at creature_template loading | 已在生物模板加载时验证并记录错误
     }
     return true;
 }
 
+/// 检测当前训练师是否有机器人可学习且金币充足的法术/技能
 bool RpgTrainTrigger::IsActive()
 {
     GuidPosition guidP(getGuidP());
@@ -313,7 +328,7 @@ bool RpgTrainTrigger::IsActive()
     if (!IsTrainerOf(cInfo, bot))
         return false;
 
-    // check present spell in trainer spell list
+    // check present spell in trainer spell list | 检查训练师法术列表中的当前法术
     TrainerSpellData const* cSpells = sObjectMgr.GetNpcTrainerSpells(guidP.GetEntry());
 
     uint32 trainerId = cInfo->TrainerTemplateId;
@@ -446,6 +461,7 @@ bool RpgTrainTrigger::IsActive()
     return false;
 }
 
+/// 检测当前 RPG 友方生物是否受伤且需要治疗
 bool RpgHealTrigger::IsActive()
 {
     if (!ai->IsHeal(bot))
@@ -470,6 +486,7 @@ bool RpgHealTrigger::IsActive()
     return true;
 }
 
+/// 检测是否应与当前旅店老板重新绑定炉石位置
 bool RpgHomeBindTrigger::IsActive()
 {
     GuidPosition guidP(getGuidP());
@@ -480,18 +497,18 @@ bool RpgHomeBindTrigger::IsActive()
     if (guidP.IsHostileTo(bot))
         return false;
 
-    //Do not update for realplayers/always online when at max level.
+    //Do not update for realplayers/always online when at max level. | 真人玩家或满级常驻在线小号不自动更改炉石绑定
     if ((ai->IsRealPlayer() || sPlayerbotAIConfig.IsFreeAltBot(bot)) && bot->GetLevel() == DEFAULT_MAX_LEVEL)
         return false;
 
     WorldPosition currentBind = AI_VALUE(WorldPosition, "home bind");
     WorldPosition newBind = (guidP.sqDistance2d(bot) > INTERACTION_DISTANCE * INTERACTION_DISTANCE) ? guidP : bot;
 
-    //Do not update if there's almost not change.
+    //Do not update if there's almost not change. | 若新旧绑定点距离过近则不更新
     if (newBind.fDist(currentBind) < INTERACTION_DISTANCE * 2) 
         return false;
 
-    //Update if the new bind is closer to the group leaders bind than the old one.
+    //Update if the new bind is closer to the group leaders bind than the old one. | 若新绑定点比旧绑定点更接近队长炉石位置，则更新
     if (bot->GetGroup() && !ai->IsGroupLeader() && ai->GetGroupMaster() && ai->GetGroupMaster()->GetPlayerbotAI())
     {
         Player* player = ai->GetGroupMaster();
@@ -507,17 +524,18 @@ bool RpgHomeBindTrigger::IsActive()
         return newBindDistanceToMasterBind < oldBindDistanceToMasterBind;
     }
 
-    //Do not update if the new bind is pretty close already.
+    //Do not update if the new bind is pretty close already. | 若当前炉石绑定点距离已经很近则不更新
     if (currentBind.fDist(bot) < 500.0f)
         return false;
 
     return true;
 }
 
+/// 检测主城军官是否满足加入战场队列条件
 bool RpgQueueBGTrigger::IsActive()
 {
-    // skip bots not in continents
-    if (!WorldPosition(bot).isOverworld()) // bg, raid, dungeon
+    // skip bots not in continents | 跳过不在大世界大陆上的机器人
+    if (!WorldPosition(bot).isOverworld()) // bg, raid, dungeon | 如战场、团队副本、地下城
         return false;
 
     GuidPosition guidP(getGuidP());
@@ -542,6 +560,7 @@ bool RpgQueueBGTrigger::IsActive()
     return true;
 }
 
+/// 检测公会注册员处是否可购买公会签名表
 bool RpgBuyPetitionTrigger::IsActive()
 {
     GuidPosition guidP(getGuidP());
@@ -558,6 +577,7 @@ bool RpgBuyPetitionTrigger::IsActive()
     return true;
 }
 
+/// 检测游戏对象类型是否属于可交互类别（门、按钮、箱子、钓鱼点等）
 bool RpgUseTrigger::IsActive()
 {
     if (ai->HasActivePlayerMaster())
@@ -598,6 +618,7 @@ bool RpgUseTrigger::IsActive()
     }   
 }
 
+/// 检测是否需要针对当前目标执行任务物品或任务对象交互
 bool RpgQuestUseTrigger::IsActive()
 {
     GuidPosition guidP(getGuidP());
@@ -609,7 +630,7 @@ bool RpgQuestUseTrigger::IsActive()
     {
         switch (guidP.GetEntry())
         {
-        case 190767: return AI_VALUE2(bool, "need quest objective", "12701"); //Only when we need "Inconspicuous mine car"
+        case 190767: return AI_VALUE2(bool, "need quest objective", "12701"); //Only when we need "Inconspicuous mine car" | 仅当需要任务“不起眼的矿车”（12701）目标时触发
         }
     }
 
@@ -619,6 +640,7 @@ bool RpgQuestUseTrigger::IsActive()
     return false;
 }
 
+/// 检测是否启用 LLM 且满足概率及周围玩家条件以触发 AI 闲聊
 bool RpgAIChatTrigger::IsActive()
 {
     if (sPlayerbotAIConfig.llmEnabled == 0)
@@ -649,13 +671,15 @@ bool RpgAIChatTrigger::IsActive()
     return true;
 };
 
+/// 以随机概率触发闲暇 RPG 施法
 bool RpgSpellTrigger::IsActive()
 {
-    //GuidPosition guidP(getGuidP());
+    //GuidPosition guidP(getGuidP()); | 获取 RPG 目标位置信息
 
     return (!urand(0, 10));
 }
 
+/// 检测背包空间及制作法术/施法焦点（如铁砧、熔炉）条件，判断是否可执行制造
 bool RpgCraftTrigger::IsActive()
 {
     GuidPosition guidP(getGuidP());
@@ -699,6 +723,7 @@ bool RpgCraftTrigger::IsActive()
     return false;
 }
 
+/// 判断玩家是否为可交易/附魔的友好目标（小号、同公会、同队或随机概率）
 bool RpgTradeUsefulTrigger::isFriend(Player* player)
 {
     if (ai->IsAlt() && GetMaster() == player)
@@ -719,6 +744,7 @@ bool RpgTradeUsefulTrigger::isFriend(Player* player)
     return false;
 }
 
+/// 检测是否满足条件与目标玩家交易有用物品
 bool RpgTradeUsefulTrigger::IsActive()
 {
     GuidPosition guidP(getGuidP());
@@ -732,7 +758,7 @@ bool RpgTradeUsefulTrigger::IsActive()
     if (!player)
         return false;
 
-    if (player->GetTrader() == bot && bot->GetTrader() == player) //Continue trading please.
+    if (player->GetTrader() == bot && bot->GetTrader() == player) //Continue trading please. | 若已在交易中则继续交易
         return true;
 
     if (!isFriend(player))
@@ -741,7 +767,7 @@ bool RpgTradeUsefulTrigger::IsActive()
     if (!player->IsWithinLOSInMap(bot))
         return false;
 
-    //Trading with someone else
+    //Trading with someone else | 对方或自身正在与其他玩家交易
     if (player->GetTrader() && player->GetTrader() != bot)
         return false;
 
@@ -754,6 +780,7 @@ bool RpgTradeUsefulTrigger::IsActive()
     return true;
 }
 
+/// 检测是否满足条件为目标玩家装备进行附魔
 bool RpgEnchantTrigger::IsActive()
 {
     GuidPosition guidP(getGuidP());
@@ -789,23 +816,24 @@ bool RpgEnchantTrigger::IsActive()
     return true;
 }
 
+/// 检测当前区域、等级差及血量是否允许向目标玩家发起决斗
 bool RpgDuelTrigger::IsActive()
 {
     if(!ai->HasStrategy("start duel", BotState::BOT_STATE_NON_COMBAT))
         return false;
 
-    // Less spammy duels
+    // Less spammy duels | 避免低等级频繁发起无意义决斗
     if (bot->GetLevel() < 3)
         return false;
 
     if (ai->HasRealPlayerMaster())
     {
-        // do not auto duel if master is not afk
+        // do not auto duel if master is not afk | 若真人主人未暂离（AFK），则不主动发起决斗
         if (ai->GetMaster() && !ai->GetMaster()->isAFK())
             return false;
     }
 
-    // do not auto duel with low hp
+    // do not auto duel with low hp | 生命值过低时不自动发起决斗
     if (AI_VALUE2(uint8, "health", "self target") < 90)
         return false;
 
@@ -825,14 +853,14 @@ bool RpgDuelTrigger::IsActive()
     if (bot->GetLevel() > player->GetLevel() + 10)
         return false;
 
-    // caster or target already have requested duel
+    // caster or target already have requested duel | 自身或目标已在决斗中，或被对方屏蔽
     if (bot->duel || player->duel || !player->GetSocial() || player->GetSocial()->HasIgnore(bot->GetObjectGuid()))
         return false;
 
     AreaTableEntry const* targetAreaEntry = GetAreaEntryByAreaID(sServerFacade.GetAreaId(player));
     if (targetAreaEntry && !(targetAreaEntry->flags & AREA_FLAG_DUEL))
     {
-        // Dueling isn't allowed here
+        // Dueling isn't allowed here | 当前区域禁止决斗
         return false;
     }
 
@@ -842,6 +870,7 @@ bool RpgDuelTrigger::IsActive()
     return true;
 }
 
+/// 检测背包中是否有可对当前 RPG 目标使用的任务物品
 bool RpgItemTrigger::IsActive()
 {
     GuidPosition guidP(getGuidP());
@@ -860,11 +889,13 @@ bool RpgItemTrigger::IsActive()
     return false;
 }
 
+/// 检测附近有玩家时是否触发随机跳跃
 bool RandomJumpTrigger::IsActive()
 {
     return bot->IsInWorld() && ai->HasPlayerNearby() && !ai->IsJumping() && frand(0.0f, 1.0f) < sPlayerbotAIConfig.jumpRandomChance;
 }
 
+/// 检测目标是否支持 SpellClick 交互（排除天灾狮鹫及已乘载具状态）
 bool RpgSpellClickTrigger::IsActive()
 {
     GuidPosition guidP(getGuidP());
@@ -890,6 +921,7 @@ bool RpgSpellClickTrigger::IsActive()
     return ai->CanSpellClick(guidP);
 }
 
+/// 检测目标生物是否拥有有效 Gossip 对话菜单项
 bool RpgGossipTalkTrigger::IsActive()
 {
     GuidPosition guidP(getGuidP());
@@ -912,10 +944,10 @@ bool RpgGossipTalkTrigger::IsActive()
 #ifdef MANGOSBOT_TWO
     switch (guidP.GetEntry())
     {
-    case 28653: //Salanar the Horseman
-        return AI_VALUE2(bool, "need quest objective", "12687,0"); //Only when we need "Into the Realm of Shadows"
-    case 35365: //Behsten (xp gain disable) Maybe add back later for some bots?
-    case 35364: //Slahtz
+    case 28653: //Salanar the Horseman | 骑手萨拉纳尔
+        return AI_VALUE2(bool, "need quest objective", "12687,0"); //Only when we need "Into the Realm of Shadows" | 仅当需要任务“进入暗影界”（12687）目标时触发
+    case 35365: //Behsten (xp gain disable) Maybe add back later for some bots? | 贝斯腾（关闭经验Npc）
+    case 35364: //Slahtz | 斯拉兹
         return false;
     }
 #endif
@@ -936,6 +968,7 @@ bool RpgGossipTalkTrigger::IsActive()
     return true;
 }
 
+/// 检测目标银行职员处是否需要存物
 bool RpgBankDepositTrigger::IsActive()
 {
     GuidPosition guidP(getGuidP());
@@ -952,6 +985,7 @@ bool RpgBankDepositTrigger::IsActive()
     return true;
 }
 
+/// 检测目标银行职员处是否需要取物
 bool RpgBankWithdrawTrigger::IsActive()
 {
     GuidPosition guidP(getGuidP());
@@ -969,6 +1003,7 @@ bool RpgBankWithdrawTrigger::IsActive()
 }
 
 #ifndef MANGOSBOT_ZERO
+/// 检测目标公会银行处是否需要存物
 bool RpgGuildBankDepositTrigger::IsActive()
 {
     GuidPosition guidP(getGuidP());
@@ -985,6 +1020,7 @@ bool RpgGuildBankDepositTrigger::IsActive()
     return true;
 }
 
+/// 检测目标公会银行处是否需要取物
 bool RpgGuildBankWithdrawTrigger::IsActive()
 {
     GuidPosition guidP(getGuidP());

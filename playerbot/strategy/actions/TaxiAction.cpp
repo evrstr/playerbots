@@ -6,6 +6,7 @@
 
 using namespace ai;
 
+/// 执行动作主逻辑（飞行路线指令动作）
 bool TaxiAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -13,6 +14,7 @@ bool TaxiAction::Execute(Event& event)
 
     LastMovement& movement = context->GetValue<LastMovement&>("last taxi")->Get();
 
+    // 解析事件携带的网络封包数据
     WorldPacket& p = event.getPacket();
     std::string param = event.getParam();
     if ((!p.empty() && (p.GetOpcode() == CMSG_TAXICLEARALLNODES || p.GetOpcode() == CMSG_TAXICLEARNODE)) || param == "clear")

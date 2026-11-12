@@ -1,9 +1,11 @@
+/// 角色日常维护（Maintenance）策略实现
 
 #include "playerbot/playerbot.h"
 #include "MaintenanceStrategy.h"
 
 using namespace ai;
 
+/// 初始化非战斗触发器：清理任务日志、学习配方、开箱拆解附魔、清包及脱困
 void MaintenanceStrategy::InitNonCombatTriggers(std::list<TriggerNode*> &triggers)
 {
     triggers.push_back(new TriggerNode(

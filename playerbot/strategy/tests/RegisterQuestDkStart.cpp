@@ -1,19 +1,21 @@
+/// 测试生成器：死亡骑士（DK）新手村任务线全流程测试注册实现
 #include "playerbot/playerbot.h"
 #include "TestRegistry.h"
 
     static constexpr const char* disableNonQuestRpg = "nc -rpg,+rpg quest,-rpg vendor,-rpg bank,-rpg maintenance,-rpg player,-rpg bg,-rpg guild,-rpg explore,-rpg craft,-rpg jump";
 using namespace ai;
 
+/// 注册黑锋要塞及血色领地各章节任务与寻路测试脚本
 void TestRegistry::RegisterQuestDkStartTests()
 {
-    // Death Knight starter zone (map 609) locations
-    TestRegistry::RegisterNamedLocation("ebon_hold_upper", GuidPosition(ObjectGuid(), WorldPosition(609, 2383.65f, -5645.20f, 420.77f)));       // Upper level - quest givers
-    TestRegistry::RegisterNamedLocation("ebon_hold_lower", GuidPosition(ObjectGuid(), WorldPosition(609, 2390.02f, -5640.91f, 377.09f)));       // Lower level - runeforge area
-    TestRegistry::RegisterNamedLocation("ebon_hold_gryphon", GuidPosition(ObjectGuid(), WorldPosition(609, 2325.03f, -5659.60f, 382.24f)));     // Scourge gryphon (down)
-    TestRegistry::RegisterNamedLocation("scarlet_enclave", GuidPosition(ObjectGuid(), WorldPosition(609, 2409.09f, -5722.37f, 154.00f)));       // Ground level - Scarlet Enclave
-    TestRegistry::RegisterNamedLocation("scarlet_enclave_south", GuidPosition(ObjectGuid(), WorldPosition(609, 2402.86f, -5727.03f, 154.00f))); // Alt ground landing
-    TestRegistry::RegisterNamedLocation("noxious_pass_start", GuidPosition(ObjectGuid(), WorldPosition(609, 2528.22f, -5580.44f, 162.02f)));    // Noxious Pass tunnel entrance
-    TestRegistry::RegisterNamedLocation("noxious_pass_end", GuidPosition(ObjectGuid(), WorldPosition(609, 2563.52f, -5547.79f, 163.27f)));      // Noxious Pass tunnel exit 
+    // Death Knight starter zone (map 609) locations | 死亡骑士新手区域（地图 609）关键命名位置
+    TestRegistry::RegisterNamedLocation("ebon_hold_upper", GuidPosition(ObjectGuid(), WorldPosition(609, 2383.65f, -5645.20f, 420.77f)));       // Upper level - quest givers | 阿彻鲁斯上层 - 任务发布区
+    TestRegistry::RegisterNamedLocation("ebon_hold_lower", GuidPosition(ObjectGuid(), WorldPosition(609, 2390.02f, -5640.91f, 377.09f)));       // Lower level - runeforge area | 阿彻鲁斯下层 - 符文熔炉区
+    TestRegistry::RegisterNamedLocation("ebon_hold_gryphon", GuidPosition(ObjectGuid(), WorldPosition(609, 2325.03f, -5659.60f, 382.24f)));     // Scourge gryphon (down) | 天灾狮鹫（下层飞行点）
+    TestRegistry::RegisterNamedLocation("scarlet_enclave", GuidPosition(ObjectGuid(), WorldPosition(609, 2409.09f, -5722.37f, 154.00f)));       // Ground level - Scarlet Enclave | 地面层 - 血色领地
+    TestRegistry::RegisterNamedLocation("scarlet_enclave_south", GuidPosition(ObjectGuid(), WorldPosition(609, 2402.86f, -5727.03f, 154.00f))); // Alt ground landing | 备用地面降落点
+    TestRegistry::RegisterNamedLocation("noxious_pass_start", GuidPosition(ObjectGuid(), WorldPosition(609, 2528.22f, -5580.44f, 162.02f)));    // Noxious Pass tunnel entrance | 剧毒小径隧道入口
+    TestRegistry::RegisterNamedLocation("noxious_pass_end", GuidPosition(ObjectGuid(), WorldPosition(609, 2563.52f, -5547.79f, 163.27f)));      // Noxious Pass tunnel exit | 剧毒小径隧道出口
 
     static const std::string gmInvisible = "gm visible off";
     static const std::string needAlive = "monitor bot dead => abort \"Bot died test interupted\"";
@@ -22,7 +24,7 @@ void TestRegistry::RegisterQuestDkStartTests()
     static const std::string Timeout60Min = "monitor time > 3600 => fail \"Timeout: DK quest not completed (traveled <distance traveled>)\"";
     static const std::string Timeout90Min = "monitor time > 5400 => fail \"Timeout: DK quest not completed (traveled <distance traveled>)\"";
 
-    // ---- Chapter 1: The Emblazoned Runeblade (quest 12619) ----
+    // ---- Chapter 1: The Emblazoned Runeblade (quest 12619) ---- | 第 1 章：符文剑（任务 12619）
     RegisterTest("dk_quest_emblazoned_runeblade", {
         "# Ch1: Bot should loot a crafting item and use it to forge a runeblade",
         needDK,
@@ -34,7 +36,7 @@ void TestRegistry::RegisterQuestDkStartTests()
         "observe"
     });
 
-    // ---- Chapter 2: Runeforging (quest 12842) ----
+    // ---- Chapter 2: Runeforging (quest 12842) ---- | 第 2 章：符文锻造（任务 12842）
     RegisterTest("dk_quest_runeforging", {
         "# Ch2: Bot should use the runeforge to enchant weapon",
         needDK,
@@ -47,7 +49,7 @@ void TestRegistry::RegisterQuestDkStartTests()
         "observe"
     });
 
-    // ---- Chapter 3: The Endless Hunger (quest 12848) ----
+    // ---- Chapter 3: The Endless Hunger (quest 12848) ---- | 第 3 章：无尽的饥饿（任务 12848）
     RegisterTest("dk_quest_endless_hunger", {
         "# Ch3: Bot should use Acherus Shackle Key on Soul Prisons and defeat Unworthy Initiates",
         needDK,
@@ -61,8 +63,8 @@ void TestRegistry::RegisterQuestDkStartTests()
         "observe"
     });
 
-    // ---- Chapter 4: Death Comes From On High (quest 12641) ----
-    // AUTO-COMPLETE test - verifies the auto-complete system works
+    // ---- Chapter 4: Death Comes From On High (quest 12641) ---- | 第 4 章：死亡从天而降（任务 12641）
+    // AUTO-COMPLETE test - verifies the auto-complete system works | 自动完成测试 - 验证自动接交任务系统
     RegisterTest("dk_quest_death_from_on_high", {
         "# Ch4: This quest should auto-complete (requires vehicle control bots can't do)",
         needDK,
@@ -75,7 +77,7 @@ void TestRegistry::RegisterQuestDkStartTests()
         "observe"
     });
 
-    // ---- Chapter 5: The Scarlet Harvest (quest 12670) ----
+    // ---- Chapter 5: The Scarlet Harvest (quest 12670) ---- | 第 5 章：血色收割（任务 12670）
     RegisterTest("dk_quest_scarlet_harvest", {
         "# Ch5: Bot should use scourge gryphon to fly down to Scarlet Enclave",
         needDK,
@@ -90,7 +92,7 @@ void TestRegistry::RegisterQuestDkStartTests()
         "observe"
     });
 
-    // ---- Chapter 5.5: Navigation - Ebon Hold levels ----
+    // ---- Chapter 5.5: Navigation - Ebon Hold levels ---- | 第 5.5 章：黑锋要塞上下层寻路导航
     RegisterTest("dk_movement_ebon_hold_levels", {
         "# Ch5.5: Bot should navigate from ground level back up to Ebon Hold",
         needDK,
@@ -102,7 +104,7 @@ void TestRegistry::RegisterQuestDkStartTests()
         "observe"
     });
 
-    // ---- Chapter 6: Death's Challenge (quest 12733) ----
+    // ---- Chapter 6: Death's Challenge (quest 12733) ---- | 第 6 章：死亡的挑战（任务 12733）
     RegisterTest("dk_quest_deaths_challenge", {
         "# Ch6: Bot should duel Death Knight Initiates via gossip to complete quest",
         needDK,
@@ -116,7 +118,7 @@ void TestRegistry::RegisterQuestDkStartTests()
         "observe"
     });
 
-    // ---- Chapter 7: Grand Theft Palomino (quest 12680) ----
+    // ---- Chapter 7: Grand Theft Palomino (quest 12680) ---- | 第 7 章：大盗帕洛米诺（任务 12680）
     RegisterTest("dk_quest_grand_theft_palomino", {
         "# Ch7: Bot should mount a horse via spell-click, ride to Salanar, deliver via vehicle ability",
         needDK,
@@ -130,7 +132,7 @@ void TestRegistry::RegisterQuestDkStartTests()
         "observe"
     });
 
-    // ---- Chapter 8: Into the Realm of Shadows (quest 12687) ----
+    // ---- Chapter 8: Into the Realm of Shadows (quest 12687) ---- | 第 8 章：进入暗影界（任务 12687）
     RegisterTest("dk_quest_realm_of_shadows", {
         "# Ch8: Bot should enter shadow realm, kill Dark Rider, steal deathcharger, deliver via gryphon",
         needDK,
@@ -145,7 +147,7 @@ void TestRegistry::RegisterQuestDkStartTests()
         "observe"
     });
 
-    // ---- Chapter 9: The Gift That Keeps On Giving (quest 12698) ----
+    // ---- Chapter 9: The Gift That Keeps On Giving (quest 12698) ---- | 第 9 章：礼物（任务 12698）
     RegisterTest("dk_quest_gift_keeps_giving", {
         "# Ch9: Bot should use Gift of Harvester on miners, escort ghouls back to NPC",
         needDK,
@@ -159,7 +161,7 @@ void TestRegistry::RegisterQuestDkStartTests()
         "observe"
     });
 
-    // ---- Chapter 10+11: Massacre At Light's Point (quest 12701) ----
+    // ---- Chapter 10+11: Massacre At Light's Point (quest 12701) ---- | 第 10+11 章：光明哨站大屠杀（任务 12701）
     RegisterTest("dk_quest_massacre_lights_point", {
         "# Ch10-11: Bot should enter mine car, ride to boat, use cannon to kill 100 scarlet crusaders",
         needDK,
@@ -173,7 +175,7 @@ void TestRegistry::RegisterQuestDkStartTests()
         "observe"
     });
 
-    // ---- Chapter 12: How To Win Friends And Influence Enemies (quest 12720) ----
+    // ---- Chapter 12: How To Win Friends And Influence Enemies (quest 12720) ---- | 第 12 章：如何赢得朋友和影响敌人（任务 12720）
     RegisterTest("dk_quest_win_friends", {
         "# Ch12: Bot should open jeweled box, equip persuader weapons, interrogate crusaders",
         needDK,
@@ -187,7 +189,7 @@ void TestRegistry::RegisterQuestDkStartTests()
         "observe"
     });
 
-    // ---- Chapter 13: Bloody Breakout (quest 12727) ----
+    // ---- Chapter 13: Bloody Breakout (quest 12727) ---- | 第 13 章：血色突围（任务 12727）
     RegisterTest("dk_quest_bloody_breakout", {
         "# Ch13: Bot should stay in basement, kill spawned mobs, loot head container",
         needDK,
@@ -201,7 +203,7 @@ void TestRegistry::RegisterQuestDkStartTests()
         "observe"
     });
 
-    // ---- Chapter 15: An End To All Things (quest 12779) ----
+    // ---- Chapter 15: An End To All Things (quest 12779) ---- | 第 15 章：万物的终结（任务 12779）
     RegisterTest("dk_quest_end_to_all_things", {
         "# Ch15: Bot should summon frostbrood vanquisher, use breath attacks on crusaders and ballistas",
         needDK,
@@ -215,7 +217,7 @@ void TestRegistry::RegisterQuestDkStartTests()
         "observe"
     });
 
-    // ---- Chapter 16: Noxious Pass tunnel navigation ----
+    // ---- Chapter 16: Noxious Pass tunnel navigation ---- | 第 16 章：剧毒小径隧道导航
     RegisterTest("dk_movement_noxious_pass", {
         "# Ch16: Bot should navigate through the Noxious Pass tunnel",
         needDK,
@@ -227,7 +229,7 @@ void TestRegistry::RegisterQuestDkStartTests()
         "observe"
     });
 
-    // ---- Full DK Starter Zone Escape ----
+    // ---- Full DK Starter Zone Escape ---- | DK 新手村完整逃离通关测试
     RegisterTest("dk_full_starter_zone_escape", {
         "# Full DK starter zone: Bot should progress through all quests and escape Ebon Hold",
         needDK,

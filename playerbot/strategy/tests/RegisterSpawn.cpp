@@ -1,3 +1,4 @@
+/// 测试生成器：角色生成与随机化初始化测试注册实现
 #include "playerbot/playerbot.h"
 #include "TestRegistry.h"
 #include "playerbot/ChatHelper.h"
@@ -11,6 +12,7 @@ using namespace ai;
 
 namespace
 {
+/// 将职业或种族名称转换为小写下划线标识符
     std::string ToLowerToken(std::string value)
     {
         std::transform(value.begin(), value.end(), value.begin(), ::tolower);
@@ -19,6 +21,7 @@ namespace
         return value;
     }
 
+/// 判断职业 ID 是否为可创建测试机器人的玩家职业
     bool IsPlayableClass(uint8 cls)
     {
         if (!((1 << (cls - 1)) & CLASSMASK_ALL_PLAYABLE))
@@ -27,6 +30,7 @@ namespace
         return sChrClassesStore.LookupEntry(cls) != nullptr;
     }
 
+/// 判断种族 ID 是否为可创建测试机器人的玩家种族
     bool IsPlayableRace(uint8 race)
     {
         if (!((1 << (race - 1)) & RACEMASK_ALL_PLAYABLE))
@@ -37,7 +41,7 @@ namespace
 
     int32 DeterministicQualityFor(uint32 level, uint8 race, uint8 cls)
     {
-        // Only check gear quality at level 20+ where DB has sufficient items
+        // Only check gear quality at level 20+ where DB has sufficient items | 仅在 20 级及以上数据库有充足装备数据时检查装备品质
         if (level < 20)
             return -1;
 
@@ -53,6 +57,7 @@ namespace
         return choices[seed % choices.size()];
     }
 
+/// 将装备品质枚举转换为可读字符串名称
     std::string QualityName(int32 quality)
     {
         switch (quality)
@@ -66,6 +71,7 @@ namespace
     }
 }
 
+/// 注册按等级和职业生成的随机机器人（Spawn）与装备质量校验测试
 void TestRegistry::RegisterSpawnTests()
 {
     RandomPlayerbotFactory availabilityInit(0);
@@ -108,6 +114,7 @@ void TestRegistry::RegisterSpawnTests()
     }
 }
 
+/// 注册全职业/种族/等级组合随机初始化（Randomize）测试
 void TestRegistry::RegisterRandomizeTests()
 {
     RandomPlayerbotFactory availabilityInit(0);

@@ -6,6 +6,7 @@
 
 using namespace ai;
 
+// 内置基础动作节点工厂（提供近战、治疗石、跟随、吃喝、药水、逃跑等默认替代链）
 class ActionNodeFactoryInternal : public NamedObjectFactory<ActionNode>
 {
 public:
@@ -104,16 +105,19 @@ private:
     }
 };
 
+// 构造策略基类并注册内置基础动作节点工厂
 Strategy::Strategy(PlayerbotAI* ai) : PlayerbotAIAware(ai)
 {
     actionNodeFactories.Add(std::make_unique<ActionNodeFactoryInternal>());
 }
 
+// 按名称从动作节点工厂链查询或创建 ActionNode
 ActionNode* Strategy::GetAction(std::string name)
 {
     return actionNodeFactories.GetObject(name, ai);
 }
 
+// 根据 BotState 分发初始化对应状态的触发器列表
 void Strategy::InitTriggers(std::list<TriggerNode*>& triggers, BotState state)
 {
     switch (state)
@@ -144,6 +148,7 @@ void Strategy::InitTriggers(std::list<TriggerNode*>& triggers, BotState state)
     }
 }
 
+// 根据 BotState 分发初始化对应状态的权重乘数列表
 void Strategy::InitMultipliers(std::list<Multiplier*>& multipliers, BotState state)
 {
     switch (state)
@@ -174,6 +179,7 @@ void Strategy::InitMultipliers(std::list<Multiplier*>& multipliers, BotState sta
     }
 }
 
+// 根据 BotState 返回对应状态的默认兜底动作列表
 ai::NextAction** Strategy::getDefaultActions(BotState state)
 {
     switch (state)

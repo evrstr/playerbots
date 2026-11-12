@@ -1,8 +1,10 @@
+/// 公会社交与自动管理策略实现
 #include "playerbot/playerbot.h"
 #include "GuildStrategy.h"
 
 using namespace ai;
 
+/// 初始化非战斗触发器：递交签名表、购买战袍、退出超大公会、公会银行及制造/任务订单
 void GuildStrategy::InitNonCombatTriggers(std::list<TriggerNode*> &triggers)
 {
     triggers.push_back(new TriggerNode(

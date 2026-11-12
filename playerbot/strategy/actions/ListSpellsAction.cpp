@@ -9,6 +9,7 @@ using namespace ai;
 std::map<uint32, SkillLineAbilityEntry const*> ListSpellsAction::skillSpells;
 std::set<uint32> ListSpellsAction::vendorItems;
 
+/// 按法术学派、技能线与熟练度排序比较两个法术条目
 bool CompareSpells(std::pair<uint32, std::string>& s1, std::pair<uint32, std::string>& s2)
 {
     const SpellEntry* const si1 = sServerFacade.LookupSpellInfo(s1.first);
@@ -83,6 +84,7 @@ std::list<std::pair<uint32, std::string> > ListSpellsAction::GetSpellList(std::s
 
     uint32 skill = 0;
 
+    // 按空格拆分命令行参数
     std::vector<std::string> ss = split(filter, ' ');
     if (!ss.empty())
     {
@@ -258,6 +260,7 @@ std::list<std::pair<uint32, std::string> > ListSpellsAction::GetSpellList(std::s
     return spells;
 }
 
+/// 执行动作主逻辑（列出法术指令动作）
 bool ListSpellsAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();

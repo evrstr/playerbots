@@ -1,3 +1,4 @@
+/// 集成测试注册表与命名地点管理器头文件
 #pragma once
 
 #include <string>
@@ -8,6 +9,7 @@ class PlayerbotAI;
 
 namespace ai
 {
+    /// 测试注册中心：负责注册所有测试套件、命名地点及动态生成移动/首领测试脚本
     class TestRegistry
     {
     public:

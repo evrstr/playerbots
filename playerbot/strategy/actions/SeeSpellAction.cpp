@@ -16,6 +16,7 @@
 
 using namespace ai;
 
+/// 沿完整路径点序列批量生成可视化路标点
 Creature* SeeSpellAction::CreateWps(Player* wpOwner, float x, float y, float z, float o, uint32 entry, Creature* lastWp, bool important)
 {
     float dist = wpOwner->GetDistance(x, y, z);
@@ -31,6 +32,7 @@ Creature* SeeSpellAction::CreateWps(Player* wpOwner, float x, float y, float z, 
     return wpCreature;
 }
 
+/// 计算平面两点之间的方位角（弧度）
 float GetAngle(const float x1, const float y1, const float x2, const float y2)
 {
     float dx = x1 - x2;
@@ -41,14 +43,17 @@ float GetAngle(const float x1, const float y1, const float x2, const float y2)
     return ang;
 }
 
+/// 判断当前状态下该动作是否可用/有效（观察法术视觉辅助动作）
 bool SeeSpellAction::isUseful()
 {
     return ai->GetMaster() && ai->HasStrategy("rtsc", ai->GetState());
 }
 
+/// 执行动作主逻辑（观察法术视觉辅助动作）
 bool SeeSpellAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
+    // 解析事件携带的网络封包数据
     WorldPacket p(event.getPacket());
     uint32 spellId;
 
@@ -210,6 +215,7 @@ bool SeeSpellAction::Execute(Event& event)
     return false;        
 }
 
+/// 从候选法术列表中选择当前最适合施放的法术
 bool SeeSpellAction::SelectSpell(Player* requester, WorldPosition& spellPosition)
 {
     if (spellPosition.distance(bot) <= 5 || AI_VALUE(bool, "RTSC selected"))
@@ -220,6 +226,7 @@ bool SeeSpellAction::SelectSpell(Player* requester, WorldPosition& spellPosition
     return true;
 }
 
+/// 移动至满足指定法术施法距离与视野的位置
 bool SeeSpellAction::MoveToSpell(Player* requester, WorldPosition& spellPosition, bool inFormation)
 {
     if(inFormation)
@@ -264,6 +271,7 @@ bool SeeSpellAction::MoveToSpell(Player* requester, WorldPosition& spellPosition
     return MoveTo(spellPosition.getMapId(), spellPosition.getX(), spellPosition.getY(), spellPosition.getZ(), false, false);
 }
 
+/// 设置机器人相对队伍基准点的自定义阵型偏移位置
 void SeeSpellAction::SetFormationOffset(Player* requester, WorldPosition& spellPosition)
 {
     Formation* formation = AI_VALUE(Formation*, "formation");

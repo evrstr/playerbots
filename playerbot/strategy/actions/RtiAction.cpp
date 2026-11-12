@@ -7,6 +7,7 @@
 
 using namespace ai;
 
+/// 执行动作主逻辑（团队标记指令动作）
 bool RtiAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -36,6 +37,7 @@ bool RtiAction::Execute(Event& event)
     return true;
 }
 
+/// 将团队目标标记（RTI）名称或图标文本追加到输出流
 void RtiAction::AppendRti(std::ostringstream & out, std::string type)
 {
     out << AI_VALUE(std::string, type);
@@ -46,6 +48,7 @@ void RtiAction::AppendRti(std::ostringstream & out, std::string type)
         out << " (" << target->GetName() << ")";
 }
 
+/// 执行动作主逻辑（战斗指令目标设置动作）
 bool CombatOrderTargetAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -113,6 +116,7 @@ bool CombatOrderTargetAction::Execute(Event& event)
     return true;
 }
 
+/// 执行动作主逻辑（自动标记团队目标动作）
 bool MarkRtiAction::Execute(Event& event)
 {
     Group *group = bot->GetGroup();
@@ -129,7 +133,7 @@ bool MarkRtiAction::Execute(Event& event)
         if (!unit)
             continue;
 
-        // do not mark players
+        // do not mark players (不要对玩家打团队标记)
         if (unit->IsPlayer())
             continue;
 
@@ -153,7 +157,7 @@ bool MarkRtiAction::Execute(Event& event)
 
     std::string rti = AI_VALUE(std::string, "rti");
 
-    // Add the default rti if the bot is setup to ignore rti targets
+    // Add the default rti if the bot is setup to ignore rti targets (若机器人配置为忽略指定标记，则补充默认 RTI 标记)
     if (rti == "none")
     {
         rti = "skull";

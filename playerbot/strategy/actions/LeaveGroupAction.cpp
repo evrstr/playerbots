@@ -4,7 +4,8 @@
 
 namespace ai
 {
-	bool LeaveGroupAction::Leave(Player* player) 
+    /// 离开当前战场或 LFG 队列
+    bool LeaveGroupAction::Leave(Player* player) 
     {
         if (!player)
             return false;
@@ -45,8 +46,9 @@ namespace ai
         ai->Reset();
 
         return true;
-	}
+    }
 
+    /// 判断当前状态下该动作是否可用/有效（距离过远离队动作）
     bool LeaveFarAwayAction::isUseful()
     {
         if (bot->InBattleGround())

@@ -4,7 +4,7 @@
 #include "WorldPosition.h"
 #include "MotionGenerators/PathFinder.h"
 
-//THEORY
+//THEORY | 旅行路网理论说明：基于导航节点(Node)、单向连接(Link)与 A* 路由克服 296 码寻路限制
 // 
 // Pathfinding in (c)mangos is based on detour recast an opensource nashmesh creation and pathfinding codebase.
 // This system is used for mob and npc pathfinding and in this codebase also for bots.
@@ -28,6 +28,7 @@
 // 
 // Nodes, links and paths are stored in db tables but will be generated if they are empty. See TravelNodeMap for more information about the generation proces.
   
+/// 节点间路径通行方式枚举（步行/区域触发器/交通工具/飞行点/传送法术/静态传送门）
 enum class TravelNodePathType : uint8
 {
     none = 0,
@@ -45,7 +46,7 @@ namespace ai
 {
     class WorldPosition;
 
-    //A connection between two nodes. 
+    //A connection between two nodes. | 两个旅行节点之间的连接路径 
     class TravelNodePath
     {
     public:
@@ -130,7 +131,7 @@ namespace ai
         */
     };
 
-    //A waypoint to travel from or to.
+    //A waypoint to travel from or to. | 地图旅行路网节点
     //Each node knows which other nodes can be reached without help.
     class TravelNode
     {
@@ -230,6 +231,7 @@ namespace ai
         //uint32 transportId = 0;
     };
 
+    /// 传送法术专用临时节点类
     class PortalNode : public TravelNode
     {
     public:
@@ -246,7 +248,7 @@ namespace ai
         };
     };
 
-    //Route step type
+    //Route step type | 路径单步移动类型枚举
     enum class PathNodeType : uint8
     {
         NODE_PREPATH = 0,
@@ -270,7 +272,7 @@ namespace ai
         bool isWalkable() const { return (uint8)type <= (uint8)PathNodeType::NODE_NODE; }
     };
 
-    //A complete list of points the bots has to walk to or teleport to.
+    //A complete list of points the bots has to walk to or teleport to. | 机器人完整旅行路径序列
     class TravelPath
     {
     public:
@@ -306,7 +308,7 @@ namespace ai
         std::vector<PathNodePoint> fullPath;
     };
 
-    //An stored A* search that gives a complete route from one node to another.
+    //An stored A* search that gives a complete route from one node to another. | A* 搜索得到的节点序列路由
     class TravelNodeRoute
     {
     public:
@@ -333,7 +335,7 @@ namespace ai
         std::vector<TravelNode*> tempNodes;
     };
 
-    //A node container to aid A* calculations with nodes.
+    //A node container to aid A* calculations with nodes. | A* 寻路节点状态包装
     class TravelNodeStub
     {
     public:
@@ -346,7 +348,7 @@ namespace ai
         uint32 currentGold = 0.0;
     };
 
-    //The container of all nodes.
+    //The container of all nodes. | 全局旅行路网管理器，负责节点生成、寻路、持久化及裁剪
     class TravelNodeMap
     {
     public:

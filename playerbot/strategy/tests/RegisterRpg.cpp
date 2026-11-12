@@ -1,3 +1,4 @@
+/// 测试生成器：RPG 城镇交互（银行存取等）测试注册实现
 
 #include "playerbot/playerbot.h"
 #include "../values/ItemUsageValue.h"
@@ -6,6 +7,7 @@
 
 using namespace ai;
 
+/// 注册铁炉堡银行物品使用标记、存银行与取回银行测试脚本
 void TestRegistry::RegisterBankTests()
 {
     std::string bankUsage = std::to_string((uint8)ItemUsage::ITEM_USAGE_BANK);
@@ -18,7 +20,7 @@ void TestRegistry::RegisterBankTests()
       TestRegistry::RegisterNamedLocation("Ironforge bank", GuidPosition(ObjectGuid(), WorldPosition(*bankPos)));
   }
 
-    // Test 1: Item usage marking - items should be marked for bank deposit
+    // Test 1: Item usage marking - items should be marked for bank deposit | 测试 1：物品用途标记为需存入银行
     RegisterTest("bank_item_usage_marking", {"# Test items are marked for bank deposit (ITEM_USAGE_BANK)", 
        "require bot is level=22 class=warrior", 
        "give 3840", // Green Iron Pauldrons (req level 27 > 22 → BANK)
@@ -28,7 +30,7 @@ void TestRegistry::RegisterBankTests()
        "q 3840",
        "observe"});
 
-    // Test 2: Deposit items to bank via banker interaction
+    // Test 2: Deposit items to bank via banker interaction | 测试 2：通过与银行职员交互将物品存入银行
     RegisterTest("bank_deposit_flow", {
         "# Test bot deposits bank-worthy items to banker", 
         "require bot is level=22 class=warrior race=human", 
@@ -44,7 +46,7 @@ void TestRegistry::RegisterBankTests()
         "observe"
     });
 
-    // Test 3: Mirror test - withdraw item from bank when no longer bank-worthy
+    // Test 3: Mirror test - withdraw item from bank when no longer bank-worthy | 测试 3：镜像测试 - 当物品不再适合存银行时从银行取回
     RegisterTest("bank_withdraw_flow", 
        {"# Test bot withdraws item from bank when equippable",
         "require bot is level=27 class=warrior race=human", // Now can equip 3840 (req level 22)

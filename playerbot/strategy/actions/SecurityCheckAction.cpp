@@ -5,11 +5,13 @@
 
 using namespace ai;
 
+/// 判断当前状态下该动作是否可用/有效（安全权限校验动作）
 bool SecurityCheckAction::isUseful()
 {
     return sRandomPlayerbotMgr.IsRandomBot(bot) && ai->GetMaster() && ai->GetMaster()->GetSession()->GetSecurity() < SEC_GAMEMASTER && !ai->GetMaster()->GetPlayerbotAI();
 }
 
+/// 执行动作主逻辑（安全权限校验动作）
 bool SecurityCheckAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();

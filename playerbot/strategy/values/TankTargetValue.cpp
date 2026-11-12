@@ -1,3 +1,4 @@
+// 策略值实现：TankTargetValue（坦克低仇恨/未拉稳目标筛选）
 
 #include "playerbot/playerbot.h"
 #include "TankTargetValue.h"
@@ -6,6 +7,7 @@
 
 using namespace ai;
 
+// 坦克目标查找策略：筛选非控场且在攻击列表中的目标，优先拉取当前最高仇恨过低或尚未盯住坦克的敌人
 class FindTargetForTankStrategy : public FindNonCcTargetStrategy
 {
 public:
@@ -42,6 +44,7 @@ protected:
 };
 
 
+// 依次检查战斗指令、RTI 标记目标，否则通过 FindTargetForTankStrategy 选出最需要建立仇恨的怪
 ObjectGuid TankTargetValue::Calculate()
 {
     ObjectGuid ordered = CombatOrderTargetValue::FindTarget(ai, true);

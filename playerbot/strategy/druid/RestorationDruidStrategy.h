@@ -1,8 +1,10 @@
+// 德鲁伊 - 恢复德鲁伊策略头文件 (RestorationDruidStrategy.h)
 #pragma once
 #include "DruidStrategy.h"
 
 namespace ai
 {
+    // 恢复德鲁伊专精占位策略：用于专精识别与占位的策略类
     class RestorationDruidPlaceholderStrategy : public SpecPlaceholderStrategy
     {
     public:
@@ -11,6 +13,7 @@ namespace ai
         std::string getName() override { return "restoration"; }
     };
 
+    // 恢复德鲁伊策略：定义该专精/场景下的触发器与默认行为
     class RestorationDruidStrategy : public DruidStrategy
     {
     public:
@@ -23,6 +26,7 @@ namespace ai
         virtual void InitDeadTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 恢复德鲁伊PVE策略：定义该专精/场景下的触发器与默认行为
     class RestorationDruidPveStrategy : public RestorationDruidStrategy
     {
     public:
@@ -36,6 +40,7 @@ namespace ai
         void InitDeadTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 恢复德鲁伊PVP策略：定义该专精/场景下的触发器与默认行为
     class RestorationDruidPvpStrategy : public RestorationDruidStrategy
     {
     public:
@@ -49,6 +54,7 @@ namespace ai
         void InitDeadTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 恢复德鲁伊团队副本策略：定义该专精/场景下的触发器与默认行为
     class RestorationDruidRaidStrategy : public RestorationDruidStrategy
     {
     public:
@@ -62,6 +68,7 @@ namespace ai
         void InitDeadTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 恢复德鲁伊AOE群体策略：定义该专精/场景下的触发器与默认行为
     class RestorationDruidAoeStrategy : public DruidAoeStrategy
     {
     public:
@@ -72,6 +79,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 恢复德鲁伊AOE群体PVE策略：定义该专精/场景下的触发器与默认行为
     class RestorationDruidAoePveStrategy : public RestorationDruidAoeStrategy
     {
     public:
@@ -83,6 +91,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 恢复德鲁伊AOE群体PVP策略：定义该专精/场景下的触发器与默认行为
     class RestorationDruidAoePvpStrategy : public RestorationDruidAoeStrategy
     {
     public:
@@ -94,6 +103,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 恢复德鲁伊AOE群体团队副本策略：定义该专精/场景下的触发器与默认行为
     class RestorationDruidAoeRaidStrategy : public RestorationDruidAoeStrategy
     {
     public:
@@ -105,6 +115,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 恢复德鲁伊增益Buff策略：定义该专精/场景下的触发器与默认行为
     class RestorationDruidBuffStrategy : public DruidBuffStrategy
     {
     public:
@@ -115,6 +126,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 恢复德鲁伊增益BuffPVE策略：定义该专精/场景下的触发器与默认行为
     class RestorationDruidBuffPveStrategy : public RestorationDruidBuffStrategy
     {
     public:
@@ -126,6 +138,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 恢复德鲁伊增益BuffPVP策略：定义该专精/场景下的触发器与默认行为
     class RestorationDruidBuffPvpStrategy : public RestorationDruidBuffStrategy
     {
     public:
@@ -137,6 +150,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 恢复德鲁伊增益Buff团队副本策略：定义该专精/场景下的触发器与默认行为
     class RestorationDruidBuffRaidStrategy : public RestorationDruidBuffStrategy
     {
     public:
@@ -148,6 +162,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 恢复德鲁伊爆发增益策略：定义该专精/场景下的触发器与默认行为
     class RestorationDruidBoostStrategy : public DruidBoostStrategy
     {
     public:
@@ -158,6 +173,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 恢复德鲁伊爆发增益PVE策略：定义该专精/场景下的触发器与默认行为
     class RestorationDruidBoostPveStrategy : public RestorationDruidBoostStrategy
     {
     public:
@@ -169,6 +185,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 恢复德鲁伊爆发增益PVP策略：定义该专精/场景下的触发器与默认行为
     class RestorationDruidBoostPvpStrategy : public RestorationDruidBoostStrategy
     {
     public:
@@ -180,6 +197,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 恢复德鲁伊爆发增益团队副本策略：定义该专精/场景下的触发器与默认行为
     class RestorationDruidBoostRaidStrategy : public RestorationDruidBoostStrategy
     {
     public:
@@ -191,6 +209,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 恢复德鲁伊控制(CC)策略：定义该专精/场景下的触发器与默认行为
     class RestorationDruidCcStrategy : public DruidCcStrategy
     {
     public:
@@ -201,6 +220,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 恢复德鲁伊控制(CC)PVE策略：定义该专精/场景下的触发器与默认行为
     class RestorationDruidCcPveStrategy : public RestorationDruidCcStrategy
     {
     public:
@@ -212,6 +232,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 恢复德鲁伊控制(CC)PVP策略：定义该专精/场景下的触发器与默认行为
     class RestorationDruidCcPvpStrategy : public RestorationDruidCcStrategy
     {
     public:
@@ -223,6 +244,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 恢复德鲁伊控制(CC)团队副本策略：定义该专精/场景下的触发器与默认行为
     class RestorationDruidCcRaidStrategy : public RestorationDruidCcStrategy
     {
     public:
@@ -234,6 +256,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 恢复德鲁伊驱散净化策略：定义该专精/场景下的触发器与默认行为
     class RestorationDruidCureStrategy : public DruidCureStrategy
     {
     public:
@@ -244,6 +267,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 恢复德鲁伊驱散净化PVE策略：定义该专精/场景下的触发器与默认行为
     class RestorationDruidCurePveStrategy : public RestorationDruidCureStrategy
     {
     public:
@@ -255,6 +279,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 恢复德鲁伊驱散净化PVP策略：定义该专精/场景下的触发器与默认行为
     class RestorationDruidCurePvpStrategy : public RestorationDruidCureStrategy
     {
     public:
@@ -266,6 +291,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 恢复德鲁伊驱散净化团队副本策略：定义该专精/场景下的触发器与默认行为
     class RestorationDruidCureRaidStrategy : public RestorationDruidCureStrategy
     {
     public:

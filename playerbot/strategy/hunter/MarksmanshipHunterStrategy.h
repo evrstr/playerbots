@@ -1,8 +1,10 @@
+// 猎人 - 射击猎人策略头文件 (MarksmanshipHunterStrategy.h)
 #pragma once
 #include "HunterStrategy.h"
 
 namespace ai
 {
+    // 射击猎人专精占位策略：用于专精识别与占位的策略类
     class MarksmanshipHunterPlaceholderStrategy : public SpecPlaceholderStrategy
     {
     public:
@@ -11,6 +13,7 @@ namespace ai
         std::string getName() override { return "marksmanship"; }
     };
 
+    // 射击猎人策略：定义该专精/场景下的触发器与默认行为
     class MarksmanshipHunterStrategy : public HunterStrategy
     {
     public:
@@ -23,6 +26,7 @@ namespace ai
         virtual void InitDeadTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 射击猎人PVE策略：定义该专精/场景下的触发器与默认行为
     class MarksmanshipHunterPveStrategy : public MarksmanshipHunterStrategy
     {
     public:
@@ -36,6 +40,7 @@ namespace ai
         void InitDeadTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 射击猎人PVP策略：定义该专精/场景下的触发器与默认行为
     class MarksmanshipHunterPvpStrategy : public MarksmanshipHunterStrategy
     {
     public:
@@ -49,6 +54,7 @@ namespace ai
         void InitDeadTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 射击猎人团队副本策略：定义该专精/场景下的触发器与默认行为
     class MarksmanshipHunterRaidStrategy : public MarksmanshipHunterStrategy
     {
     public:
@@ -62,6 +68,7 @@ namespace ai
         void InitDeadTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 射击猎人AOE群体策略：定义该专精/场景下的触发器与默认行为
     class MarksmanshipHunterAoeStrategy : public HunterAoeStrategy
     {
     public:
@@ -72,6 +79,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 射击猎人AOE群体PVE策略：定义该专精/场景下的触发器与默认行为
     class MarksmanshipHunterAoePveStrategy : public MarksmanshipHunterAoeStrategy
     {
     public:
@@ -83,6 +91,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 射击猎人AOE群体PVP策略：定义该专精/场景下的触发器与默认行为
     class MarksmanshipHunterAoePvpStrategy : public MarksmanshipHunterAoeStrategy
     {
     public:
@@ -94,6 +103,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 射击猎人AOE群体团队副本策略：定义该专精/场景下的触发器与默认行为
     class MarksmanshipHunterAoeRaidStrategy : public MarksmanshipHunterAoeStrategy
     {
     public:
@@ -105,6 +115,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 射击猎人增益Buff策略：定义该专精/场景下的触发器与默认行为
     class MarksmanshipHunterBuffStrategy : public HunterBuffStrategy
     {
     public:
@@ -115,6 +126,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 射击猎人增益BuffPVE策略：定义该专精/场景下的触发器与默认行为
     class MarksmanshipHunterBuffPveStrategy : public MarksmanshipHunterBuffStrategy
     {
     public:
@@ -126,6 +138,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 射击猎人增益BuffPVP策略：定义该专精/场景下的触发器与默认行为
     class MarksmanshipHunterBuffPvpStrategy : public MarksmanshipHunterBuffStrategy
     {
     public:
@@ -137,6 +150,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 射击猎人增益Buff团队副本策略：定义该专精/场景下的触发器与默认行为
     class MarksmanshipHunterBuffRaidStrategy : public MarksmanshipHunterBuffStrategy
     {
     public:
@@ -148,6 +162,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 射击猎人爆发增益策略：定义该专精/场景下的触发器与默认行为
     class MarksmanshipHunterBoostStrategy : public HunterBoostStrategy
     {
     public:
@@ -158,6 +173,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 射击猎人爆发增益PVE策略：定义该专精/场景下的触发器与默认行为
     class MarksmanshipHunterBoostPveStrategy : public MarksmanshipHunterBoostStrategy
     {
     public:
@@ -169,6 +185,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 射击猎人爆发增益PVP策略：定义该专精/场景下的触发器与默认行为
     class MarksmanshipHunterBoostPvpStrategy : public MarksmanshipHunterBoostStrategy
     {
     public:
@@ -180,6 +197,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 射击猎人爆发增益团队副本策略：定义该专精/场景下的触发器与默认行为
     class MarksmanshipHunterBoostRaidStrategy : public MarksmanshipHunterBoostStrategy
     {
     public:
@@ -191,6 +209,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 射击猎人控制(CC)策略：定义该专精/场景下的触发器与默认行为
     class MarksmanshipHunterCcStrategy : public HunterCcStrategy
     {
     public:
@@ -201,6 +220,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 射击猎人控制(CC)PVE策略：定义该专精/场景下的触发器与默认行为
     class MarksmanshipHunterCcPveStrategy : public MarksmanshipHunterCcStrategy
     {
     public:
@@ -212,6 +232,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 射击猎人控制(CC)PVP策略：定义该专精/场景下的触发器与默认行为
     class MarksmanshipHunterCcPvpStrategy : public MarksmanshipHunterCcStrategy
     {
     public:
@@ -223,6 +244,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 射击猎人控制(CC)团队副本策略：定义该专精/场景下的触发器与默认行为
     class MarksmanshipHunterCcRaidStrategy : public MarksmanshipHunterCcStrategy
     {
     public:
@@ -234,6 +256,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 射击猎人钉刺策略：定义该专精/场景下的触发器与默认行为
     class MarksmanshipHunterStingStrategy : public HunterStingStrategy
     {
     public:
@@ -243,6 +266,7 @@ namespace ai
         virtual void InitCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 射击猎人钉刺PVE策略：定义该专精/场景下的触发器与默认行为
     class MarksmanshipHunterStingPveStrategy : public MarksmanshipHunterStingStrategy
     {
     public:
@@ -253,6 +277,7 @@ namespace ai
         void InitCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 射击猎人钉刺PVP策略：定义该专精/场景下的触发器与默认行为
     class MarksmanshipHunterStingPvpStrategy : public MarksmanshipHunterStingStrategy
     {
     public:
@@ -263,6 +288,7 @@ namespace ai
         void InitCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 射击猎人钉刺团队副本策略：定义该专精/场景下的触发器与默认行为
     class MarksmanshipHunterStingRaidStrategy : public MarksmanshipHunterStingStrategy
     {
     public:
@@ -273,6 +299,7 @@ namespace ai
         void InitCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 射击猎人守护策略：定义该专精/场景下的触发器与默认行为
     class MarksmanshipHunterAspectStrategy : public HunterAspectStrategy
     {
     public:
@@ -283,6 +310,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 射击猎人守护PVE策略：定义该专精/场景下的触发器与默认行为
     class MarksmanshipHunterAspectPveStrategy : public MarksmanshipHunterAspectStrategy
     {
     public:
@@ -294,6 +322,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 射击猎人守护PVP策略：定义该专精/场景下的触发器与默认行为
     class MarksmanshipHunterAspectPvpStrategy : public MarksmanshipHunterAspectStrategy
     {
     public:
@@ -305,6 +334,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 射击猎人守护团队副本策略：定义该专精/场景下的触发器与默认行为
     class MarksmanshipHunterAspectRaidStrategy : public MarksmanshipHunterAspectStrategy
     {
     public:

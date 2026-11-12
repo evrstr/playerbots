@@ -1,14 +1,17 @@
+/// 生命值区间与治疗状态触发器实现
 
 #include "playerbot/playerbot.h"
 #include "HealthTriggers.h"
 
 using namespace ai;
 
+/// 获取目标当前生命值百分比
 float HealthInRangeTrigger::GetValue()
 {
     return AI_VALUE2(uint8, "health", GetTargetName());
 }
 
+/// 检测目标生命值是否满足区间条件（若启用 preheal 策略则扣除即将到来的伤害）
 bool HealthInRangeTrigger::IsActive()
 {
     bool healthCheck = false;
@@ -47,27 +50,31 @@ bool HealthInRangeTrigger::IsActive()
         && (!isTankRequired || (GetTarget()->IsPlayer() && ai->IsTank((Player*)GetTarget(), false)));
 }
 
+/// 检测是否存在需要复活的死亡队友
 bool PartyMemberDeadTrigger::IsActive()
 {
-	return GetTarget();
+    return GetTarget();
 }
 
+/// 检测自身是否处于死亡状态
 bool DeadTrigger::IsActive()
 {
     return AI_VALUE2(bool, "dead", GetTargetName());
 }
 
+/// 检测受伤人数是否达到群体治疗触发数量
 bool AoeHealTrigger::IsActive()
 {
     return AI_VALUE2(uint8, "aoe heal", type) >= count;
 }
 
+/// 检测正在施放的治疗法术目标是否已接近满血（节省法力值并打断过量预读）
 bool HealTargetFullHealthTrigger::IsActive()
 {
     Spell* currentSpell = bot->GetCurrentSpell(CURRENT_GENERIC_SPELL);
     if (currentSpell && (currentSpell->getState() == SPELL_STATE_CASTING) && (currentSpell->GetCastedTime() > 0U))
     {
-        // Interrupt pre casted heals if target is not injured.
+        // Interrupt pre casted heals if target is not injured. | 若目标并未受伤，则打断预先读条的治疗法术
         if (PlayerbotAI::IsHealSpell(currentSpell->m_spellInfo))
         {
             std::string status = "fullhp";

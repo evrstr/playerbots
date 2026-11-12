@@ -24,6 +24,7 @@
 using namespace ai;
 using namespace MaNGOS;
 
+// 记录非有限浮点坐标(NaN/Inf)异常日志便于定位崩溃源
 void WorldPosition::logNonFinite(char const* site, WorldPosition const& a, WorldPosition const* b)
 {
     static uint32 logCount = 0;
@@ -40,6 +41,7 @@ void WorldPosition::logNonFinite(char const* site, WorldPosition const& a, World
             site, logCount, a.getMapId(), a.coord_x, a.coord_y, a.coord_z);
 }
 
+// 从 GuidPosition 解析生物/游戏物体或动态单位坐标
 WorldPosition::WorldPosition(const uint32 mapId, const GuidPosition& guidP, uint32 instanceId)
 {
     if (guidP.mapid !=0 || guidP.coord_x != 0 || guidP.coord_y != 0 || guidP.coord_z !=0) {
@@ -50,6 +52,7 @@ WorldPosition::WorldPosition(const uint32 mapId, const GuidPosition& guidP, uint
     set(ObjectGuid(guidP), guidP.mapid, instanceId);
  }
 
+// 根据 ObjectGuid 查询并设置当前世界坐标
 void WorldPosition::set(const ObjectGuid& guid, const uint32 mapId, const uint32 instanceId)
 {
     switch (guid.GetHigh())
@@ -148,6 +151,7 @@ WorldPosition::WorldPosition(const std::vector<WorldPosition>& list, const World
     }    
 }
 
+// 计算到目标位置的三维距离（跨地图时经由传送点估算）
 float WorldPosition::distance(const WorldPosition& to) const
 {
     if(mapid == to.getMapId())
@@ -157,6 +161,7 @@ float WorldPosition::distance(const WorldPosition& to) const
     return sTravelMgr.MapTransDistance(*this, to);
 };
 
+// 计算不检查跨图传送的快速三维直线距离
 float WorldPosition::fDist(const WorldPosition& to) const
 {
     if (mapid == to.getMapId())
@@ -342,6 +347,7 @@ std::vector<WorldPosition> WorldPosition::GetNextPoint(std::vector<WorldPosition
     return retVec;
 }
 
+// 不依赖已加载地图对象，直接使用静态 VMap 检测两点间视线通透性
 bool WorldPosition::IsInStaticLineOfSight(WorldPosition pos, float heightMod) const
 {
     if (mapid != pos.mapid)
@@ -365,6 +371,7 @@ bool WorldPosition::IsInStaticLineOfSight(WorldPosition pos, float heightMod) co
     return VMAP::VMapFactory::createOrGetVMapManager()->isInLineOfSight(mapid, srcX, srcY, srcZ, dstX, dstY, dstZ, true);
 }
 
+// 判断当前位置及资料片版本是否允许飞行
 bool WorldPosition::canFly() const
 {
 #ifdef MANGOSBOT_ZERO
@@ -477,6 +484,7 @@ AreaTableEntry const* WorldPosition::GetArea() const
     return GetAreaEntryByAreaFlagAndMap(areaFlag, getMapId());
 }
 
+// 获取当前位置所属区域或大区名称
 std::string WorldPosition::getAreaName(const bool fullName, const bool zoneName) const
 {    
     if (!isOverworld())
@@ -559,6 +567,7 @@ bool WorldPosition::HasFaction(const Team team) const
     return false;
 }
 
+// 查询当前地图上正在运行的载具/船只/飞艇交通工具集合
 std::set<GenericTransport*> WorldPosition::getTransports(uint32 entry)
 {
     std::set<GenericTransport*> transports;
@@ -639,6 +648,7 @@ float WorldPosition::GetTransporFloorOffset(uint32 entry)
     return 0.0f;
 }
 
+// 将坐标附着到交通工具局部坐标系并校验落脚高度
 bool WorldPosition::SetOnTransport(GenericTransport* transport, int32 startHeight, int32 endHeight)
 {
     if (!transport)
@@ -892,6 +902,7 @@ bool WorldPosition::isMmapLoaded(uint32 mapId, uint32 instanceId, int x, int y)
 #endif
 }
 
+// 按需异步/线程安全加载指定地图网格地形与 VMap 数据
 bool WorldPosition::loadMapAndVMap(uint32 mapId, uint32 instanceId, int x, int y)
 {
     std::string logName = "load_map_grid.csv";
@@ -1002,6 +1013,7 @@ std::vector<G3D::Vector3> WorldPosition::toPointsArray(const std::vector<WorldPo
 }
 
 //A single pathfinding attempt from one position to another. Returns pathfinding status and path.
+// 使用 PathFinder 计算单步寻路路径并处理水域/悬崖校验
 std::vector<WorldPosition> WorldPosition::getPathStepFrom(const WorldPosition& startPos, std::unique_ptr<PathFinder>& pathfinder, const Unit* bot, bool forceNormalPath) const
 {
     std::hash<std::thread::id> hasher;
@@ -1114,6 +1126,7 @@ bool WorldPosition::cropPathTo(std::vector<WorldPosition>& path, const float max
 }
 
 //A sequential series of pathfinding attempts. Returns the complete path and if the patfinder eventually found a way to the destination.
+// 基于给定路径点分段拼接完整 NavMesh 寻路轨迹
 std::vector<WorldPosition> WorldPosition::getPathFromPath(const std::vector<WorldPosition>& startPath, const Unit* bot, uint8 maxAttempt) const
 {
     //We start at the end of the last path.
@@ -1170,6 +1183,7 @@ std::vector<WorldPosition> WorldPosition::getPathFromPath(const std::vector<Worl
     return fullPath;
 }
 
+// 在指定范围内搜索合法可站立的地表修正坐标
 bool WorldPosition::ClosestCorrectPoint(float maxRange, float maxHeight, uint32 instanceId)
 {
     MANGOS_ASSERT(std::isfinite(coord_x) && std::isfinite(coord_y) && std::isfinite(coord_z));
@@ -1217,6 +1231,7 @@ bool WorldPosition::GetReachableRandomPointOnGround(const Player* bot, const flo
 #endif
 }
 
+// 判断当前坐标是否位于地面高度之下
 bool WorldPosition::isUnderground() const
 {
     float groundZ = getMap(getFirstInstanceId())->GetHeight(coord_x, coord_y, coord_z+0.5f, true), maxZ;
@@ -1308,6 +1323,7 @@ bool FindPointGameObjectData::operator()(GameObjectDataPair const& dataPair)
     return false;
 }
 
+// 检索周边指定半径内的静态刷怪表生物记录
 std::vector<CreatureDataPair const*> WorldPosition::getCreaturesNear(const float radius, const uint32 entry) const
 {
     FindPointCreatureData worker(*this, radius, entry);
@@ -1315,6 +1331,7 @@ std::vector<CreatureDataPair const*> WorldPosition::getCreaturesNear(const float
     return worker.GetResult();
 }
 
+// 检索周边指定半径内的静态游戏物体记录
 std::vector<GameObjectDataPair const*> WorldPosition::getGameObjectsNear(const float radius, const uint32 entry) const
 {
     FindPointGameObjectData worker(*this, radius, entry);

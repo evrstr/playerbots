@@ -1,8 +1,10 @@
+// 猎人 - 野兽控制猎人策略头文件 (BeastMasteryHunterStrategy.h)
 #pragma once
 #include "HunterStrategy.h"
 
 namespace ai
 {
+    // 野兽控制猎人专精占位策略：用于专精识别与占位的策略类
     class BeastMasteryHunterPlaceholderStrategy : public SpecPlaceholderStrategy
     {
     public:
@@ -11,6 +13,7 @@ namespace ai
         std::string getName() override { return "beast mastery"; }
     };
 
+    // 野兽控制猎人策略：定义该专精/场景下的触发器与默认行为
     class BeastMasteryHunterStrategy : public HunterStrategy
     {
     public:
@@ -23,6 +26,7 @@ namespace ai
         virtual void InitDeadTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 野兽控制猎人PVE策略：定义该专精/场景下的触发器与默认行为
     class BeastMasteryHunterPveStrategy : public BeastMasteryHunterStrategy
     {
     public:
@@ -36,6 +40,7 @@ namespace ai
         void InitDeadTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 野兽控制猎人PVP策略：定义该专精/场景下的触发器与默认行为
     class BeastMasteryHunterPvpStrategy : public BeastMasteryHunterStrategy
     {
     public:
@@ -49,6 +54,7 @@ namespace ai
         void InitDeadTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 野兽控制猎人团队副本策略：定义该专精/场景下的触发器与默认行为
     class BeastMasteryHunterRaidStrategy : public BeastMasteryHunterStrategy
     {
     public:
@@ -62,6 +68,7 @@ namespace ai
         void InitDeadTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 野兽控制猎人AOE群体策略：定义该专精/场景下的触发器与默认行为
     class BeastMasteryHunterAoeStrategy : public HunterAoeStrategy
     {
     public:
@@ -72,6 +79,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 野兽控制猎人AOE群体PVE策略：定义该专精/场景下的触发器与默认行为
     class BeastMasteryHunterAoePveStrategy : public BeastMasteryHunterAoeStrategy
     {
     public:
@@ -83,6 +91,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 野兽控制猎人AOE群体PVP策略：定义该专精/场景下的触发器与默认行为
     class BeastMasteryHunterAoePvpStrategy : public BeastMasteryHunterAoeStrategy
     {
     public:
@@ -94,6 +103,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 野兽控制猎人AOE群体团队副本策略：定义该专精/场景下的触发器与默认行为
     class BeastMasteryHunterAoeRaidStrategy : public BeastMasteryHunterAoeStrategy
     {
     public:
@@ -105,6 +115,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 野兽控制猎人增益Buff策略：定义该专精/场景下的触发器与默认行为
     class BeastMasteryHunterBuffStrategy : public HunterBuffStrategy
     {
     public:
@@ -115,6 +126,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 野兽控制猎人增益BuffPVE策略：定义该专精/场景下的触发器与默认行为
     class BeastMasteryHunterBuffPveStrategy : public BeastMasteryHunterBuffStrategy
     {
     public:
@@ -126,6 +138,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 野兽控制猎人增益BuffPVP策略：定义该专精/场景下的触发器与默认行为
     class BeastMasteryHunterBuffPvpStrategy : public BeastMasteryHunterBuffStrategy
     {
     public:
@@ -137,6 +150,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 野兽控制猎人增益Buff团队副本策略：定义该专精/场景下的触发器与默认行为
     class BeastMasteryHunterBuffRaidStrategy : public BeastMasteryHunterBuffStrategy
     {
     public:
@@ -148,6 +162,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 野兽控制猎人爆发增益策略：定义该专精/场景下的触发器与默认行为
     class BeastMasteryHunterBoostStrategy : public HunterBoostStrategy
     {
     public:
@@ -158,6 +173,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 野兽控制猎人爆发增益PVE策略：定义该专精/场景下的触发器与默认行为
     class BeastMasteryHunterBoostPveStrategy : public BeastMasteryHunterBoostStrategy
     {
     public:
@@ -169,6 +185,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 野兽控制猎人爆发增益PVP策略：定义该专精/场景下的触发器与默认行为
     class BeastMasteryHunterBoostPvpStrategy : public BeastMasteryHunterBoostStrategy
     {
     public:
@@ -180,6 +197,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 野兽控制猎人爆发增益团队副本策略：定义该专精/场景下的触发器与默认行为
     class BeastMasteryHunterBoostRaidStrategy : public BeastMasteryHunterBoostStrategy
     {
     public:
@@ -191,6 +209,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 野兽控制猎人控制(CC)策略：定义该专精/场景下的触发器与默认行为
     class BeastMasteryHunterCcStrategy : public HunterCcStrategy
     {
     public:
@@ -201,6 +220,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 野兽控制猎人控制(CC)PVE策略：定义该专精/场景下的触发器与默认行为
     class BeastMasteryHunterCcPveStrategy : public BeastMasteryHunterCcStrategy
     {
     public:
@@ -212,6 +232,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 野兽控制猎人控制(CC)PVP策略：定义该专精/场景下的触发器与默认行为
     class BeastMasteryHunterCcPvpStrategy : public BeastMasteryHunterCcStrategy
     {
     public:
@@ -223,6 +244,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 野兽控制猎人控制(CC)团队副本策略：定义该专精/场景下的触发器与默认行为
     class BeastMasteryHunterCcRaidStrategy : public BeastMasteryHunterCcStrategy
     {
     public:
@@ -234,6 +256,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 野兽控制猎人钉刺策略：定义该专精/场景下的触发器与默认行为
     class BeastMasteryHunterStingStrategy : public HunterStingStrategy
     {
     public:
@@ -243,6 +266,7 @@ namespace ai
         virtual void InitCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 野兽控制猎人钉刺PVE策略：定义该专精/场景下的触发器与默认行为
     class BeastMasteryHunterStingPveStrategy : public BeastMasteryHunterStingStrategy
     {
     public:
@@ -253,6 +277,7 @@ namespace ai
         void InitCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 野兽控制猎人钉刺PVP策略：定义该专精/场景下的触发器与默认行为
     class BeastMasteryHunterStingPvpStrategy : public BeastMasteryHunterStingStrategy
     {
     public:
@@ -263,6 +288,7 @@ namespace ai
         void InitCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 野兽控制猎人钉刺团队副本策略：定义该专精/场景下的触发器与默认行为
     class BeastMasteryHunterStingRaidStrategy : public BeastMasteryHunterStingStrategy
     {
     public:
@@ -273,6 +299,7 @@ namespace ai
         void InitCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 野兽控制猎人守护策略：定义该专精/场景下的触发器与默认行为
     class BeastMasteryHunterAspectStrategy : public HunterAspectStrategy
     {
     public:
@@ -283,6 +310,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 野兽控制猎人守护PVE策略：定义该专精/场景下的触发器与默认行为
     class BeastMasteryHunterAspectPveStrategy : public BeastMasteryHunterAspectStrategy
     {
     public:
@@ -294,6 +322,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 野兽控制猎人守护PVP策略：定义该专精/场景下的触发器与默认行为
     class BeastMasteryHunterAspectPvpStrategy : public BeastMasteryHunterAspectStrategy
     {
     public:
@@ -305,6 +334,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 野兽控制猎人守护团队副本策略：定义该专精/场景下的触发器与默认行为
     class BeastMasteryHunterAspectRaidStrategy : public BeastMasteryHunterAspectStrategy
     {
     public:

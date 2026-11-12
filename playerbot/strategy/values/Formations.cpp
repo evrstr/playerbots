@@ -1,3 +1,4 @@
+// 策略值实现：Formations（近战/队列/混沌/圆环/线型/盾牌/自定义等阵型具体实现）
 
 #include "playerbot/playerbot.h"
 #include "Formations.h"
@@ -12,19 +13,22 @@ WorldLocation Formation::NullLocation = WorldLocation();
 
 bool IsSameLocation(WorldLocation const &a, WorldLocation const &b)
 {
-	return a.coord_x == b.coord_x && a.coord_y == b.coord_y && a.coord_z == b.coord_z && a.mapid == b.mapid;
+    return a.coord_x == b.coord_x && a.coord_y == b.coord_y && a.coord_z == b.coord_z && a.mapid == b.mapid;
 }
 
+// 返回阵型的默认跟随距离阈值
 float Formation::GetMaxDistance()
 {
     return ai->GetRange("follow");
 }
 
+// 判断给定坐标是否等于空阵型坐标 NullLocation
 bool Formation::IsNullLocation(WorldLocation const& loc)
 {
-	return IsSameLocation(loc, Formation::NullLocation);
+    return IsSameLocation(loc, Formation::NullLocation);
 }
 
+// 计算机器人相对于阵型目标位置的方位角
 float Formation::GetAngle()
 {
     WorldLocation loc = GetLocation();
@@ -39,6 +43,7 @@ float Formation::GetAngle()
     return angle;
 }
 
+// 返回默认阵型偏移角（0.0f）
 float Formation::GetOffset()
 {
     WorldLocation loc = GetLocation();
@@ -52,6 +57,7 @@ float Formation::GetOffset()
     return distance;
 }
 
+// 基于目标坐标与跟随角计算跟随站位并修正地形高度
 WorldLocation FollowFormation::GetLocation()
 {
     float range = ai->GetRange("follow");
@@ -68,6 +74,7 @@ WorldLocation FollowFormation::GetLocation()
     return WorldLocation(bot->GetMapId(), x, y, z);
 }
 
+// 获取前移阵型的目标站位
 WorldLocation MoveAheadFormation::GetLocation()
 {
     Unit* followTarget = ai->GetUnit(AI_VALUE(ObjectGuid, "follow target"));
@@ -78,6 +85,7 @@ WorldLocation MoveAheadFormation::GetLocation()
 
     return loc;
 
+    // 注释：以下为旧版前移距离与地面高度修正注释代码
     /*
     if (Formation::IsNullLocation(loc))
         return loc;
@@ -120,6 +128,7 @@ WorldLocation MoveAheadFormation::GetLocation()
 
 namespace ai
 {
+    // 近战阵型：紧紧跟随主控目标
     class MeleeFormation : public FollowFormation
     {
     public:
@@ -129,6 +138,7 @@ namespace ai
         virtual float GetOffset() override { return ai->GetRange("follow"); }
     };
 
+    // 纵队阵型：依次跟随队列前一名目标
     class QueueFormation : public FollowFormation
     {
     public:
@@ -138,6 +148,7 @@ namespace ai
         virtual float GetOffset() override { return ai->GetRange("follow"); }
     };
 
+    // 贴近阵型：在主控附近射线检测合法落点站位
     class NearFormation : public MoveAheadFormation
     {
     public:
@@ -180,6 +191,7 @@ namespace ai
     };
 
 
+    // 散乱阵型：在主控周围随机角度与半径分散站位
     class ChaosFormation : public MoveAheadFormation
     {
     public:
@@ -191,7 +203,7 @@ namespace ai
                 return WorldLocation();
 
             float range = ai->GetRange("follow");
-			float angle = GetFollowAngle();
+            float angle = GetFollowAngle();
 
             time_t now = time(0);
             if (!lastChangeTime || now - lastChangeTime >= 3) 
@@ -229,6 +241,7 @@ namespace ai
         float dx = 0, dy = 0, dr = 0;
     };
 
+    // 圆环阵型：围绕主控按角度均分站成圆圈
     class CircleFormation : public MoveFormation
     {
     public:
@@ -243,7 +256,7 @@ namespace ai
                 target = followTarget;
 
             if (!target || !ai->IsSafe(target))
-				return Formation::NullLocation;
+                return Formation::NullLocation;
 
             float angle = GetFollowAngle();
             float x = target->GetPositionX() + cos(angle) * range;
@@ -266,6 +279,7 @@ namespace ai
         }
     };
 
+    // 横排阵型：将全体成员按横向或双排布阵
     class LineFormation : public MoveAheadFormation
     {
     public:
@@ -302,6 +316,7 @@ namespace ai
         }
     };
 
+    // 盾牌阵型：坦克排在前排，其余输出/治疗排在后排
     class ShieldFormation : public MoveFormation
     {
     public:
@@ -365,6 +380,7 @@ namespace ai
         }
     };
 
+    // 远程松散阵型：在较远距离保持与主控的站位
     class FarFormation : public FollowFormation
     {
     public:
@@ -401,6 +417,7 @@ namespace ai
         virtual float GetOffset() override { return ai->GetRange("follow"); }
     };
 
+    // 自定义阵型：根据成员预设的固定角度与距离计算相对坐标
     class CustomFormation : public MoveAheadFormation
     {
     public:
@@ -453,6 +470,7 @@ namespace ai
     };
 };
 
+// 根据同职业队伍名册序号计算错开角度与随机偏移，防止机器人站位重叠
 float Formation::GetFollowAngle()
 {
     Player* followTarget = (Player*)ai->GetUnit(AI_VALUE(ObjectGuid, "follow target"));
@@ -514,6 +532,7 @@ float Formation::GetFollowAngle()
     return start + (0.125f + 1.75f * index / total + (total == 2 ? 0.125f : 0.0f)) * M_PI;
 }
 
+// 构造函数：初始化阵型指针值
 FormationValue::FormationValue(PlayerbotAI* ai) : ManualSetValue<Formation*>(ai, nullptr, "formation")
 {
     if (!Load(sPlayerbotAIConfig.defaultFormation))
@@ -522,6 +541,7 @@ FormationValue::FormationValue(PlayerbotAI* ai) : ManualSetValue<Formation*>(ai,
     }
 }
 
+// 释放并清空当前阵型对象
 void FormationValue::Reset()
 {
     if (value) delete value;
@@ -532,11 +552,13 @@ void FormationValue::Reset()
     }
 }
 
+// 返回当前阵型名称以便存档
 std::string FormationValue::Save()
 {
     return value ? value->getName() : "?";
 }
 
+// 根据阵型名称实例化对应的阵型对象（支持 near/melee/queue/chaos/circle/line/shield/arrow/far/custom）
 bool FormationValue::Load(std::string formation)
 {
     if (formation == "melee")
@@ -594,6 +616,7 @@ bool FormationValue::Load(std::string formation)
     return true;
 }
 
+// 处理聊天命令设置或重置阵型，并汇报当前阵型位置
 bool SetFormationAction::Execute(Event& event)
 {
     std::string formation = event.getParam();
@@ -637,6 +660,7 @@ bool SetFormationAction::Execute(Event& event)
     return true;
 }
 
+// 将成员分为最多 6 人一排的多行队列并计算机器人落点
 WorldLocation MoveFormation::MoveLine(std::vector<Player*> line, float diff, float cx, float cy, float cz, float orientation, float range)
 {
     if (line.size() < 5)
@@ -665,6 +689,7 @@ WorldLocation MoveFormation::MoveLine(std::vector<Player*> line, float diff, flo
     return Formation::NullLocation;
 }
 
+// 将成员排成单横排并计算指定机器人的落点坐标
 WorldLocation MoveFormation::MoveSingleLine(std::vector<Player*> line, float diff, float cx, float cy, float cz, float orientation, float range)
 {
     float count = line.size();

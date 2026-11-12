@@ -6,20 +6,22 @@
 
 using namespace ai;
 
+/// 构造函数：初始化自动更新装备动作
 UpdateGearAction::UpdateGearAction(PlayerbotAI* ai): Action(ai, "update gear")
 {
     enchants.clear();
 }
 
+/// 执行动作主逻辑（自动更新装备动作）
 bool UpdateGearAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
 
-    // Get bot class and spec
+    // Get bot class and spec (获取机器人职业与专精)
     const uint8 cls = bot->getClass();
     uint8 spec = AiFactory::GetPlayerSpecTab(bot);
 
-    // Spec is overridden by bot role
+    // Spec is overridden by bot role (专精选择已被机器人职责设定覆盖)
     if (cls == CLASS_WARRIOR)
     {
         if (ai->IsTank(bot))
@@ -66,13 +68,13 @@ bool UpdateGearAction::Execute(Event& event)
 
     const uint8 avgProgressionLevel = GetMasterAverageProgressionLevel();
 
-    // Get gear for the progression level
+    // Get gear for the progression level (按当前进度等级获取对应装备)
     for (uint8 slot = 0; slot < SLOT_EMPTY; slot++)
     {
-        // Get the master item phase for this slot
+        // Get the master item phase for this slot (获取主人该装备槽位对应的装备阶段)
         const uint8 itemProgressionLevel = GetMasterItemProgressionLevel(slot, avgProgressionLevel);
 
-        // Retrieve the desired item from the progression levels
+        // Retrieve the desired item from the progression levels (从装备进度阶段表中获取目标装备)
         const int32 itemId = sPlayerbotAIConfig.gearProgressionSystemItems[itemProgressionLevel][cls][spec][slot];
         if (itemId >= 0)
         {
@@ -80,19 +82,19 @@ bool UpdateGearAction::Execute(Event& event)
             Item* oldItem = bot->GetItemByPos(INVENTORY_SLOT_BAG_0, slot);
             if (oldItem)
             {
-                // Ignore this item as it is already equipped
+                // Ignore this item as it is already equipped (该物品已装备，跳过处理)
                 if (oldItem->GetEntry() == pItemId)
                 {
                     continue;
                 }
 
-                // Destroy the old item
+                // Destroy the old item (销毁旧物品)
                 bot->DestroyItem(oldItem->GetBagSlot(), oldItem->GetSlot(), true);
             }
 
             if (pItemId > 0)
             {
-                // Try to equip and enchant the item
+                // Try to equip and enchant the item (尝试穿戴该物品并为其附魔)
                 uint16 eDest;
                 if (RandomPlayerbotMgr::CanEquipUnseenItem(bot, slot, eDest, pItemId) == EQUIP_ERR_OK)
                 {
@@ -123,11 +125,12 @@ bool UpdateGearAction::Execute(Event& event)
     return true;
 }
 
+/// 判断当前状态下该动作是否可用/有效（自动更新装备动作）
 bool UpdateGearAction::isUseful()
 {
     if (sPlayerbotAIConfig.gearProgressionSystemEnabled)
     {
-        // Only for max level random bots that are playing with a real player
+        // Only for max level random bots that are playing with a real player (仅适用于与真实玩家同玩的满级随机机器人)
         Player* master = GetMaster();
         if (master && master->isRealPlayer() && bot->IsInGroup(master) && sRandomPlayerbotMgr.IsRandomBot(bot))
         {
@@ -138,6 +141,7 @@ bool UpdateGearAction::isUseful()
     return false;
 }
 
+/// 获取机器人当前等级对应的装备进度阶段
 uint8 UpdateGearAction::GetProgressionLevel(uint32 itemLevel)
 {
     uint8 itemProgressionLevel = 0;
@@ -155,14 +159,16 @@ uint8 UpdateGearAction::GetProgressionLevel(uint32 itemLevel)
     return itemProgressionLevel;
 }
 
+/// 获取主人全身装备的平均装等或进度等级
 uint8 UpdateGearAction::GetMasterAverageProgressionLevel()
 {
     return GetProgressionLevel(ai->GetEquipGearScore(ai->GetMaster(), false, false));
 }
 
+/// 获取主人指定槽位装备的进度等级
 uint8 UpdateGearAction::GetMasterItemProgressionLevel(uint8 slot, uint8 avgProgressionLevel)
 {
-    // If checking weapons or ranged weapons use the average item lvl
+    // If checking weapons or ranged weapons use the average item lvl (检查主副手或远程武器时使用平均装等)
     if (slot == EQUIPMENT_SLOT_MAINHAND ||
         slot == EQUIPMENT_SLOT_OFFHAND || 
         slot == EQUIPMENT_SLOT_RANGED || 
@@ -197,6 +203,7 @@ uint8 UpdateGearAction::GetMasterItemProgressionLevel(uint8 slot, uint8 avgProgr
     }
 }
 
+/// 为指定装备或背包物品施放附魔配方
 void UpdateGearAction::EnchantItem(Item* item)
 {
     if (item)

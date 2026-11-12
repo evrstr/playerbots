@@ -1,8 +1,10 @@
+// 德鲁伊 - 德鲁伊策略头文件 (DruidStrategy.h)
 #pragma once
 #include "playerbot/strategy/generic/ClassStrategy.h"
 
 namespace ai
 {
+    // 德鲁伊策略：定义该专精/场景下的触发器与默认行为
     class DruidStrategy : public ClassStrategy
     {
     public:
@@ -15,6 +17,7 @@ namespace ai
         virtual void InitDeadTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 德鲁伊PVP策略：定义该专精/场景下的触发器与默认行为
     class DruidPvpStrategy : public ClassPvpStrategy
     {
     public:
@@ -24,6 +27,7 @@ namespace ai
         static void InitDeadTriggers(std::list<TriggerNode*>& triggers);
     };
 
+    // 德鲁伊PVE策略：定义该专精/场景下的触发器与默认行为
     class DruidPveStrategy : public ClassPveStrategy
     {
     public:
@@ -33,6 +37,7 @@ namespace ai
         static void InitDeadTriggers(std::list<TriggerNode*>& triggers);
     };
 
+    // 德鲁伊团队副本策略：定义该专精/场景下的触发器与默认行为
     class DruidRaidStrategy : public ClassRaidStrategy
     {
     public:
@@ -42,6 +47,7 @@ namespace ai
         static void InitDeadTriggers(std::list<TriggerNode*>& triggers);
     };
 
+    // 德鲁伊AOE群体策略：定义该专精/场景下的触发器与默认行为
     class DruidAoeStrategy : public AoeStrategy
     {
     public:
@@ -52,6 +58,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 德鲁伊AOE群体PVP策略：定义该专精/场景下的触发器与默认行为
     class DruidAoePvpStrategy : public AoePvpStrategy
     {
     public:
@@ -59,6 +66,7 @@ namespace ai
         static void InitNonCombatTriggers(std::list<TriggerNode*>& triggers);
     };
 
+    // 德鲁伊AOE群体PVE策略：定义该专精/场景下的触发器与默认行为
     class DruidAoePveStrategy : public AoePveStrategy
     {
     public:
@@ -66,6 +74,7 @@ namespace ai
         static void InitNonCombatTriggers(std::list<TriggerNode*>& triggers);
     };
 
+    // 德鲁伊AOE群体团队副本策略：定义该专精/场景下的触发器与默认行为
     class DruidAoeRaidStrategy : public AoeRaidStrategy
     {
     public:
@@ -73,6 +82,7 @@ namespace ai
         static void InitNonCombatTriggers(std::list<TriggerNode*>& triggers);
     };
 
+    // 德鲁伊控制(CC)策略：定义该专精/场景下的触发器与默认行为
     class DruidCcStrategy : public CcStrategy
     {
     public:
@@ -83,6 +93,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 德鲁伊控制(CC)PVP策略：定义该专精/场景下的触发器与默认行为
     class DruidCcPvpStrategy : public CcPvpStrategy
     {
     public:
@@ -90,6 +101,7 @@ namespace ai
         static void InitNonCombatTriggers(std::list<TriggerNode*>& triggers);
     };
 
+    // 德鲁伊控制(CC)PVE策略：定义该专精/场景下的触发器与默认行为
     class DruidCcPveStrategy : public CcPveStrategy
     {
     public:
@@ -97,6 +109,7 @@ namespace ai
         static void InitNonCombatTriggers(std::list<TriggerNode*>& triggers);
     };
 
+    // 德鲁伊控制(CC)团队副本策略：定义该专精/场景下的触发器与默认行为
     class DruidCcRaidStrategy : public CcRaidStrategy
     {
     public:
@@ -104,6 +117,7 @@ namespace ai
         static void InitNonCombatTriggers(std::list<TriggerNode*>& triggers);
     };
 
+    // 德鲁伊增益Buff策略：定义该专精/场景下的触发器与默认行为
     class DruidBuffStrategy : public BuffStrategy
     {
     public:
@@ -114,6 +128,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 德鲁伊增益BuffPVP策略：定义该专精/场景下的触发器与默认行为
     class DruidBuffPvpStrategy : public BuffPvpStrategy
     {
     public:
@@ -121,6 +136,7 @@ namespace ai
         static void InitNonCombatTriggers(std::list<TriggerNode*>& triggers);
     };
 
+    // 德鲁伊增益BuffPVE策略：定义该专精/场景下的触发器与默认行为
     class DruidBuffPveStrategy : public BuffPveStrategy
     {
     public:
@@ -128,6 +144,7 @@ namespace ai
         static void InitNonCombatTriggers(std::list<TriggerNode*>& triggers);
     };
 
+    // 德鲁伊增益Buff团队副本策略：定义该专精/场景下的触发器与默认行为
     class DruidBuffRaidStrategy : public BuffRaidStrategy
     {
     public:
@@ -135,6 +152,7 @@ namespace ai
         static void InitNonCombatTriggers(std::list<TriggerNode*>& triggers);
     };
 
+    // 德鲁伊爆发增益策略：定义该专精/场景下的触发器与默认行为
     class DruidBoostStrategy : public BoostStrategy
     {
     public:
@@ -145,6 +163,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 德鲁伊爆发增益PVP策略：定义该专精/场景下的触发器与默认行为
     class DruidBoostPvpStrategy : public BoostPvpStrategy
     {
     public:
@@ -152,6 +171,7 @@ namespace ai
         static void InitNonCombatTriggers(std::list<TriggerNode*>& triggers);
     };
 
+    // 德鲁伊爆发增益PVE策略：定义该专精/场景下的触发器与默认行为
     class DruidBoostPveStrategy : public BoostPveStrategy
     {
     public:
@@ -159,6 +179,7 @@ namespace ai
         static void InitNonCombatTriggers(std::list<TriggerNode*>& triggers);
     };
 
+    // 德鲁伊爆发增益团队副本策略：定义该专精/场景下的触发器与默认行为
     class DruidBoostRaidStrategy : public BoostRaidStrategy
     {
     public:
@@ -166,6 +187,7 @@ namespace ai
         static void InitNonCombatTriggers(std::list<TriggerNode*>& triggers);
     };
 
+    // 德鲁伊驱散净化策略：定义该专精/场景下的触发器与默认行为
     class DruidCureStrategy : public CureStrategy
     {
     public:
@@ -176,6 +198,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 德鲁伊驱散净化PVP策略：定义该专精/场景下的触发器与默认行为
     class DruidCurePvpStrategy : public CurePvpStrategy
     {
     public:
@@ -183,6 +206,7 @@ namespace ai
         static void InitNonCombatTriggers(std::list<TriggerNode*>& triggers);
     };
 
+    // 德鲁伊驱散净化PVE策略：定义该专精/场景下的触发器与默认行为
     class DruidCurePveStrategy : public CurePveStrategy
     {
     public:
@@ -190,6 +214,7 @@ namespace ai
         static void InitNonCombatTriggers(std::list<TriggerNode*>& triggers);
     };
 
+    // 德鲁伊驱散净化团队副本策略：定义该专精/场景下的触发器与默认行为
     class DruidCureRaidStrategy : public CureRaidStrategy
     {
     public:
@@ -197,6 +222,7 @@ namespace ai
         static void InitNonCombatTriggers(std::list<TriggerNode*>& triggers);
     };
 
+    // 德鲁伊辅助治疗策略：定义该专精/场景下的触发器与默认行为
     class DruidOffhealStrategy : public OffhealStrategy
     {
     public:
@@ -207,6 +233,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 德鲁伊辅助治疗PVP策略：定义该专精/场景下的触发器与默认行为
     class DruidOffhealPvpStrategy : public DruidOffhealStrategy
     {
     public:
@@ -218,6 +245,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 德鲁伊辅助治疗PVE策略：定义该专精/场景下的触发器与默认行为
     class DruidOffhealPveStrategy : public DruidOffhealStrategy
     {
     public:
@@ -229,6 +257,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 德鲁伊辅助治疗团队副本策略：定义该专精/场景下的触发器与默认行为
     class DruidOffhealRaidStrategy : public DruidOffhealStrategy
     {
     public:
@@ -240,6 +269,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 德鲁伊辅助输出策略：定义该专精/场景下的触发器与默认行为
     class DruidOffdpsStrategy : public OffdpsStrategy
     {
     public:
@@ -250,6 +280,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 德鲁伊辅助输出PVP策略：定义该专精/场景下的触发器与默认行为
     class DruidOffdpsPvpStrategy : public DruidOffdpsStrategy
     {
     public:
@@ -261,6 +292,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 德鲁伊辅助输出PVE策略：定义该专精/场景下的触发器与默认行为
     class DruidOffdpsPveStrategy : public DruidOffdpsStrategy
     {
     public:
@@ -272,6 +304,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 德鲁伊辅助输出团队副本策略：定义该专精/场景下的触发器与默认行为
     class DruidOffdpsRaidStrategy : public DruidOffdpsStrategy
     {
     public:

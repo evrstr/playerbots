@@ -1,9 +1,11 @@
+/// 网络数据包事件响应与就绪确认策略实现
 
 #include "playerbot/playerbot.h"
 #include "WorldPacketHandlerStrategy.h"
 
 using namespace ai;
 
+/// 构造默认网络数据包策略，注册需要直接透传处理的网络事件列表
 WorldPacketHandlerStrategy::WorldPacketHandlerStrategy(PlayerbotAI* ai) : PassTroughStrategy(ai)
 {
     supported.push_back("loot start roll");
@@ -25,6 +27,7 @@ WorldPacketHandlerStrategy::WorldPacketHandlerStrategy(PlayerbotAI* ai) : PassTr
     supported.push_back("quest details");
 }
 
+/// 初始化非战斗数据包触发器：组队邀请、交易、拾取、任务进度、升级与复活响应等
 void WorldPacketHandlerStrategy::InitNonCombatTriggers(std::list<TriggerNode*> &triggers)
 {
     PassTroughStrategy::InitNonCombatTriggers(triggers);
@@ -153,16 +156,19 @@ void WorldPacketHandlerStrategy::InitNonCombatTriggers(std::list<TriggerNode*> &
         NextAction::array(0, new NextAction("accept summon", relevance), NULL)));
 }
 
+/// 初始化战斗数据包触发器
 void WorldPacketHandlerStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     InitNonCombatTriggers(triggers);
 }
 
+/// 初始化死亡状态数据包触发器
 void WorldPacketHandlerStrategy::InitDeadTriggers(std::list<TriggerNode*>& triggers)
 {
     InitNonCombatTriggers(triggers);
 }
 
+/// 初始化就绪确认（Ready Check）非战斗触发器
 void ReadyCheckStrategy::InitNonCombatTriggers(std::list<TriggerNode*> &triggers)
 {
     triggers.push_back(new TriggerNode(
@@ -170,11 +176,13 @@ void ReadyCheckStrategy::InitNonCombatTriggers(std::list<TriggerNode*> &triggers
         NextAction::array(0, new NextAction("ready check", relevance), NULL)));
 }
 
+/// 初始化就绪确认战斗触发器
 void ReadyCheckStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     InitNonCombatTriggers(triggers);
 }
 
+/// 初始化就绪确认死亡触发器
 void ReadyCheckStrategy::InitDeadTriggers(std::list<TriggerNode*>& triggers)
 {
     InitNonCombatTriggers(triggers);

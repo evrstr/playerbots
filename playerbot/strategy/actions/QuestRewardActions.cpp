@@ -4,6 +4,7 @@
 
 using namespace ai;
 
+/// 执行动作主逻辑（任务奖励查询指令动作）
 bool QuestRewardAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();

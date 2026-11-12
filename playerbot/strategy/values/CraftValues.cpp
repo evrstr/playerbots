@@ -1,3 +1,4 @@
+// 策略值实现：CraftValues（制造法术检索、材料统计与制造价值评估）
 #include "CraftValues.h"
 #include "ItemUsageValue.h"
 #include "playerbot/ServerFacade.h"
@@ -5,6 +6,7 @@
 
 using namespace ai;
 
+// 遍历机器人已学会法术，收集可生成物品的商业制造技能 ID
 std::vector<uint32> CraftSpellsValue::Calculate()
 {
     std::vector<uint32> spellIds;
@@ -23,7 +25,7 @@ std::vector<uint32> CraftSpellsValue::Calculate()
             continue;
 
 #ifdef MANGOSBOT_TWO
-        if (pSpellInfo->Effect[0] == SPELL_EFFECT_CREATE_ITEM_2 && spellId == 61288 && bot->IsSpellReady(61288)) //Todo handle other item_2 spells
+        if (pSpellInfo->Effect[0] == SPELL_EFFECT_CREATE_ITEM_2 && spellId == 61288 && bot->IsSpellReady(61288)) //Todo handle other item_2 spells | 待办：处理其他 SPELL_EFFECT_CREATE_ITEM_2 类型制造法术
         {
             spellIds.push_back(spellId);
             continue;
@@ -46,6 +48,7 @@ std::vector<uint32> CraftSpellsValue::Calculate()
     return spellIds;
 }
 
+// 遍历机器人已学会法术，收集附魔类技能 ID
 std::vector<uint32> EnchantSpellsValue::Calculate()
 {
     std::vector<uint32> spellIds;
@@ -74,6 +77,7 @@ std::vector<uint32> EnchantSpellsValue::Calculate()
     return spellIds;
 }
 
+// 根据背包内各种所需材料的库存计算最大可制造次数
 uint32 HasReagentsForValue::Calculate()
 {
     if (ai->HasCheat(BotCheatMask::item))
@@ -107,6 +111,7 @@ uint32 HasReagentsForValue::Calculate()
     return craftCount;
 }
 
+// 综合检查施法条件、材料是否足够以及是否已准备好
 bool CanCraftSpellValue::Calculate()
 {
     uint32 spellId = stoi(getQualifier());
@@ -122,6 +127,7 @@ bool CanCraftSpellValue::Calculate()
     return true;
 }
 
+// 判断是否能提升专业技能点数，或产出物对机器人具有实用/经济价值
 bool ShouldCraftSpellValue::Calculate()
 {
     uint32 spellId = stoi(getQualifier());
@@ -134,7 +140,7 @@ bool ShouldCraftSpellValue::Calculate()
         return false;
 
 #ifdef MANGOSBOT_TWO
-    if (pSpellInfo->Effect[0] == SPELL_EFFECT_CREATE_ITEM_2) //todo proper check what items are created and if they are needed.
+    if (pSpellInfo->Effect[0] == SPELL_EFFECT_CREATE_ITEM_2) //todo proper check what items are created and if they are needed. | 待办：完善检查此类技能产出的物品及其需求度
         return true;
 #endif
 
@@ -203,6 +209,7 @@ inline int SkillGainChance(uint32 SkillValue, uint32 GrayLevel, uint32 GreenLeve
     return sWorld.getConfig(CONFIG_UINT32_SKILL_CHANCE_ORANGE) * 10;
 }
 
+// 查询技能等级阈值（灰/绿/黄/橙），判断施放该法术是否有概率提升技能点
 bool ShouldCraftSpellValue::SpellGivesSkillUp(uint32 spellId, Player* bot)
 {
     SkillLineAbilityMapBounds bounds = sSpellMgr.GetSkillLineAbilityMapBoundsBySpellId(spellId);

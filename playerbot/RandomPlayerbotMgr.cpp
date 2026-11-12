@@ -174,6 +174,7 @@ void activateCheckPlayersThread()
 #endif
 }
 
+// 离散增量 PID 控制器内部实现类
 class botPIDImpl
 {
 public:
@@ -275,6 +276,7 @@ botPIDImpl::~botPIDImpl()
 {
 }
 
+// 初始化随机机器人管理器、PID 参数、控制台命令映射及定时检查器
 RandomPlayerbotMgr::RandomPlayerbotMgr() 
 : PlayerbotHolder()
 , processTicks(0)
@@ -401,6 +403,7 @@ inline void print_path(Unit* bot, std::vector<std::pair<int, int>>& log)
         print_line(bot, line, false); //Print remaining path.
 }
 
+// 周期性采样在线玩家与随机机器人的地图坐标及移动轨迹日志
 void RandomPlayerbotMgr::LogPlayerLocation()
 {
     botCount = 0;
@@ -670,6 +673,7 @@ void RandomPlayerbotMgr::LogPlayerLocation()
     }
 }
 
+// 随机机器人调度主循环：驱动上下线队列、战场/LFG 队列检测、活动度缩放及周期随机事件
 void RandomPlayerbotMgr::UpdateAIInternal(uint32 elapsed, bool minimal)
 {
 #ifdef MEMORY_MONITOR
@@ -830,6 +834,7 @@ void RandomPlayerbotMgr::UpdateAIInternal(uint32 elapsed, bool minimal)
     PlayerbotHolder::UpdateAIInternal(elapsed, minimal);
 }
 
+// 使用 PID 控制器根据服务器帧耗时(diff)动态调节机器人活跃度百分比
 void RandomPlayerbotMgr::ScaleBotActivity()
 {
     float activityPercentage = getActivityPercentage();
@@ -922,6 +927,7 @@ bool RandomPlayerbotMgr::BumpDeferredJoinTries(uint32 botGuid)
     return true;
 }
 
+// 批量处理处于登录/登出队列及自由小号机器人的上下线操作
 void RandomPlayerbotMgr::LoginFreeBots()
 {
     if (!sPlayerbotAIConfig.freeAltBots.empty() && sPlayerbotAIConfig.botAutologin != BotAutoLogin::LOGIN_ONLY_ALWAYS_ACTIVE)
@@ -1498,6 +1504,7 @@ void RandomPlayerbotMgr::LoadBattleMastersCache()
     sLog.outString();
 }
 
+// 扫描各等级段战场排队情况并调度随机机器人补充战场人数
 void RandomPlayerbotMgr::CheckBgQueue()
 {
     if (!BgCheckTimer)
@@ -1844,6 +1851,7 @@ void RandomPlayerbotMgr::CheckBgQueue()
     return;
 }
 
+// 扫描地下城查找器(LFG)队列并匹配随机机器人响应组队
 void RandomPlayerbotMgr::CheckLfgQueue()
 {
     if (!LfgCheckTimer || time(NULL) > (LfgCheckTimer + 30))
@@ -2388,6 +2396,7 @@ bool RandomPlayerbotMgr::ProcessBot(uint32 bot)
     return false;
 }
 
+// 周期性评估单个在线随机机器人的传送、洗点、复活、换策略及超时下线任务
 bool RandomPlayerbotMgr::ProcessBot(Player* player)
 {
     if (!player || !player->IsInWorld() || player->IsBeingTeleported() || player->GetSession()->isLogingOut())
@@ -2490,6 +2499,7 @@ void RandomPlayerbotMgr::Revive(Player* player)
     }
 }
 
+// 从候选位置列表中挑选合适点位并将机器人安全传送过去
 void RandomPlayerbotMgr::RandomTeleport(Player* bot, std::vector<WorldLocation>& locs, bool hearth, bool activeOnly)
 {
     if (bot->IsBeingTeleported())
@@ -2773,6 +2783,7 @@ std::vector<std::pair<uint32, uint32>> RandomPlayerbotMgr::RpgLocationsNear(Worl
     return results;
 }
 
+// 按地图与等级区间预构建适合各等级练级、RPG 与旅店休息的传送点缓存
 void RandomPlayerbotMgr::PrepareTeleportCache()
 {
     uint32 maxLevel = sPlayerbotAIConfig.randomBotMaxLevel;
@@ -3081,6 +3092,7 @@ void RandomPlayerbotMgr::InstaRandomize(Player* bot)
         sRandomPlayerbotMgr.RandomTeleportForLevel(bot, false);
 }
 
+// 按配置对机器人执行一次完整随机养成（重设等级、装备、技能、天赋与策略）
 void RandomPlayerbotMgr::Randomize(Player* bot)
 {
     if (!bot || !bot->IsInWorld() || bot->IsBeingTeleported() || bot->GetSession()->isLogingOut())
@@ -3199,9 +3211,9 @@ void RandomPlayerbotMgr::RandomizeFirst(Player* bot)
 
 uint32 RandomPlayerbotMgr::GetZoneLevel(uint16 mapId, float teleX, float teleY, float teleZ)
 {
-	uint32 maxLevel = sWorld.getConfig(CONFIG_UINT32_MAX_PLAYER_LEVEL);
+    uint32 maxLevel = sWorld.getConfig(CONFIG_UINT32_MAX_PLAYER_LEVEL);
 
-	uint32 level;
+    uint32 level;
     auto results = WorldDatabase.PQuery("SELECT AVG(t.minlevel) minlevel, AVG(t.maxlevel) maxlevel FROM creature c "
             "INNER JOIN creature_template t ON c.id = t.entry "
             "WHERE map = '%u' AND minlevel > 1 AND abs(position_x - '%f') < '%u' AND abs(position_y - '%f') < '%u'",
@@ -3224,6 +3236,7 @@ uint32 RandomPlayerbotMgr::GetZoneLevel(uint16 mapId, float teleX, float teleY, 
     return level;
 }
 
+// 在不重置等级的情况下刷新机器人状态（回血回蓝、修装备、补消耗品）
 void RandomPlayerbotMgr::Refresh(Player* bot)
 {
     if (bot->IsBeingTeleportedFar() || !bot->IsInWorld())
@@ -3252,8 +3265,8 @@ void RandomPlayerbotMgr::Refresh(Player* bot)
         , false
 #endif
     );
-	bot->SetHealthPercent(100);
-	bot->SetPvP(true);
+    bot->SetHealthPercent(100);
+    bot->SetPvP(true);
 
     PlayerbotFactory factory(bot, bot->GetLevel());
     factory.Refresh();
@@ -3438,6 +3451,7 @@ void RandomPlayerbotMgr::SetValue(Player* bot, std::string type, uint32 value, s
     SetValue(bot->GetObjectGuid().GetCounter(), type, value, data, validIn);
 }
 
+// 解析并执行 rndbot 控制台指令（stats/sample/find/reload/pid/mem/grid 等）
 bool RandomPlayerbotMgr::HandlePlayerbotConsoleCommand(ChatHandler* handler, char const* args)
 {
     if (!sPlayerbotAIConfig.enabled)
@@ -3672,12 +3686,12 @@ void RandomPlayerbotMgr::OnBotLoginInternal(Player * const bot)
     sLog.outDetail("%u/%d Bot %s logged in", GetPlayerbotsAmount(), sRandomPlayerbotMgr.GetMaxAllowedBotCount(), bot->GetName());
 
     ApplyActionHistorySize(bot);
-	//if (loginProgressBar && playerBots.size() < sRandomPlayerbotMgr.GetMaxAllowedBotCount()) { loginProgressBar->step(); }
-	//if (loginProgressBar && playerBots.size() >= sRandomPlayerbotMgr.GetMaxAllowedBotCount() - 1) {
+    //if (loginProgressBar && playerBots.size() < sRandomPlayerbotMgr.GetMaxAllowedBotCount()) { loginProgressBar->step(); }
+    //if (loginProgressBar && playerBots.size() >= sRandomPlayerbotMgr.GetMaxAllowedBotCount() - 1) {
     //if (loginProgressBar && playerBots.size() + 1 >= sRandomPlayerbotMgr.GetMaxAllowedBotCount()) {
-	//	sLog.outString("All bots logged in");
+    //    sLog.outString("All bots logged in");
     //    delete loginProgressBar;
-	//}
+    //}
 }
 
 void RandomPlayerbotMgr::OnPlayerLogin(Player* player)
@@ -3746,6 +3760,7 @@ Player* RandomPlayerbotMgr::GetPlayer(uint32 playerGuid)
     return (it == players.end()) ? nullptr : it->second ? it->second : nullptr;
 }
 
+// 在线机器人全局统计数据聚合（阵营、职业、职责、活跃度、所在区域与旅行状态）
 RandomPlayerbotMgr::BotStats RandomPlayerbotMgr::GatherBotStats()
 {
     BotStats stats;
@@ -4800,6 +4815,7 @@ void RandomPlayerbotMgr::Hotfix(Player* bot, uint32 version)
         bot->GetGUIDLow(), MANGOSBOT_VERSION);
 }
 
+// 在线镜像同步拍卖行在售物品价格列表供机器人查询
 void RandomPlayerbotMgr::MirrorAh()
 {
     sRandomPlayerbotMgr.m_ahActionMutex.lock();

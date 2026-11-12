@@ -1,6 +1,8 @@
+/// 卡拉赞（Karazhan）团队副本及首领策略头文件
 #pragma once
 #include "playerbot/strategy/Strategy.h"
 
+    /// 埃兰之影战斗阶段枚举
 enum class AranPhase : uint8
 {
     PHASE_NONE = 1,
@@ -11,6 +13,7 @@ enum class AranPhase : uint8
 
 namespace ai
 {
+    /// 策略：卡拉赞副本总控策略，负责监测并启用各首领专项策略
     class KarazhanDungeonStrategy : public Strategy
     {
     public:
@@ -21,6 +24,7 @@ namespace ai
         void InitCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    /// 策略：虚空幽龙（Netherspite）战斗策略（虚空地带规避与三色射线管理）
     class NetherspiteFightStrategy : public Strategy
     {
     public:
@@ -37,6 +41,7 @@ namespace ai
         void OnStrategyAdded(BotState state) override;
     };
 
+    /// 策略：埃兰之影（Shade of Aran）战斗策略（奥/火/冰阶段走位与水元素处理）
     class ShadeOfAranFightStrategy : public Strategy
     {
     public:
@@ -63,6 +68,7 @@ namespace ai
         void OnStrategyAdded(BotState state) override;
     };
   
+    /// 策略：歌剧院大灰狼战斗策略（小红帽风筝走位）
     class BigBadWolfFightStrategy : public Strategy
     {
     public:
@@ -74,6 +80,7 @@ namespace ai
         void InitDeadTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    /// 策略：玛克扎尔王子战斗策略（地狱火规避、虚弱散开与暗影新星躲避）
     class PrinceMalchezaarFightStrategy : public Strategy
     {
     public:

@@ -5,6 +5,7 @@
 
 using namespace ai;
 
+/// 执行动作主逻辑（阵营声望查询/设置动作）
 bool FactionAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -29,7 +30,7 @@ bool FactionAction::Execute(Event& event)
 
     std::set<uint32> factionIds = ChatHelper::ExtractAllFactionIds(factionName);
 
-    // converting string that we try to find to lower case
+    // converting string that we try to find to lower case (将待查找的文本转换为小写)
     wstrToLower(wnamepart);
 
     ReputationMgr& mgr = bot->GetReputationMgr();

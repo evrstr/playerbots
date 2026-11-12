@@ -16,6 +16,7 @@
 using namespace ai;
 using namespace MaNGOS;
 
+// 采集玩家当前位置、等级、专业技能、金币、焦点任务及 AI 布尔状态快照
 PlayerTravelInfo::PlayerTravelInfo(Player* player)
 {
     PlayerbotAI* ai = player->GetPlayerbotAI();
@@ -52,6 +53,7 @@ PlayerTravelInfo::PlayerTravelInfo(Player* player)
         value = AI_VALUE(uint32, valueName);
 }
 
+// 获取生物或游戏物体的本地化简称
 std::string EntryTravelDestination::GetShortName() const
 {
     switch (purpose)
@@ -100,6 +102,7 @@ std::string QuestTravelDestination::GetTitle() const {
     return ChatHelper::formatQuest(GetQuestTemplate());
 }
 
+// 判断当前玩家是否满足接取或交付该任务的等级/前置/队伍条件
 bool QuestRelationTravelDestination::IsPossible(const PlayerTravelInfo& info) const
 {
     if (!info.GetBoolValue2("has strategy", "rpg quest"))
@@ -218,6 +221,7 @@ std::string QuestRelationTravelDestination::GetTitle() const {
     return out.str();
 }
 
+// 判断任务目标（击杀/采集）当前是否可行
 bool QuestObjectiveTravelDestination::IsPossible(const PlayerTravelInfo& info) const
 {
     if (!info.GetBoolValue2("has strategy", "rpg quest"))
@@ -455,6 +459,7 @@ uint8 QuestObjectiveTravelDestination::GetObjective() const
     return 0;
 }
 
+// 判断 RPG 交互目的地是否适合当前阵营与等级
 bool RpgTravelDestination::IsPossible(const PlayerTravelInfo& info) const
 {   
     //Horde pvp baracks
@@ -550,6 +555,7 @@ AreaTableEntry const* ZoneTravelDestination::GetArea() const
     return nullptr;
 }
 
+// 判断探索区域目的地是否适合当前等级与未探索状态
 bool ExploreTravelDestination::IsPossible(const PlayerTravelInfo& info) const
 {
     AreaTableEntry const* area = GetArea();
@@ -577,6 +583,7 @@ bool ExploreTravelDestination::IsActive(Player* bot, const PlayerTravelInfo& inf
     return !(currFields & val);    
 }
 
+// 判断刷怪练级点等级与阵营是否合适
 bool GrindTravelDestination::IsPossible(const PlayerTravelInfo& info) const
 {
     if (info.GetBoolValue("should sell") && (info.GetBoolValue("can sell") || info.GetBoolValue("can ah sell")))
@@ -636,6 +643,7 @@ std::string GrindTravelDestination::GetTitle() const
     return out.str();
 }
 
+// 判断首领挑战目的地是否满足团队/副本条件
 bool BossTravelDestination::IsPossible(const PlayerTravelInfo& info) const
 {
     if (!info.GetBoolValue("can fight boss"))
@@ -719,6 +727,7 @@ std::string BossTravelDestination::GetTitle() const
     return out.str();
 }
 
+// 判断草药/矿点/钓鱼采集目的地是否满足对应专业技能
 bool GatherTravelDestination::IsPossible(const PlayerTravelInfo& info) const
 {
     uint32 skillId = SKILL_NONE;
@@ -876,6 +885,7 @@ void TravelTarget::CopyTarget(TravelTarget* const target) {
     extendRetryCount = target->extendRetryCount;
 }
 
+// 切换旅行目标阶段状态并刷新对应超时计时器
 void TravelTarget::SetStatus(TravelStatus status) {
     m_status = status;
     startTime = WorldTimer::getMSTime();
@@ -953,6 +963,7 @@ bool TravelTarget::IsConditionsActive(bool clear)
     return true;
 }
 
+// 状态机主推进：在 PREPARE/READY/TRAVEL/WORK/COOLDOWN/EXPIRED 间流转
 void TravelTarget::CheckStatus()
 {
     if (!IsActive())
@@ -1067,6 +1078,7 @@ TravelState TravelTarget::GetTravelState() {
     return TravelState::TRAVEL_STATE_IDLE;
 }
 
+// 释放所有旅行目的地索引内存
 void TravelMgr::Clear()
 {
 #ifndef MANGOSBOT_ZERO
@@ -1086,6 +1098,7 @@ void TravelMgr::Clear()
     fishPoints.clear();
 }
 
+// 推算指定区域的推荐怪物等级
 int32 TravelMgr::GetAreaLevel(uint32 area_id)
 {
     auto lev = areaLevels.find(area_id);
@@ -1301,6 +1314,7 @@ void TravelMgr::SetMobAvoidAreaMap(uint32 mapId)
     }
 }
 
+// 启动时加载任务、生物、游戏物体、商店、探索与训练师等全量旅行目的地索引
 void TravelMgr::LoadQuestTravelTable()
 {
     if (!sTravelMgr.destinationMap.empty())
@@ -2346,6 +2360,7 @@ uint32 TravelMgr::GetFishZone(const AsyncGuidPosition& pos) const
     return 0;
 }
 
+// 加载并按需扫描生成各区域水域钓鱼点缓存
 void TravelMgr::LoadFishLocations()
 {
     sLog.outString("Loading Fish locations.");
@@ -2616,6 +2631,7 @@ WorldPosition* TravelMgr::GetFishSpot(WorldPosition start, bool onlyNearestGrid)
     return fishMap.GetNextPoint(start, chances);
 }
 
+// 按用途掩码、模板 ID 与最大距离筛选可用旅行目的地
 DestinationList TravelMgr::GetDestinations(const PlayerTravelInfo& info, uint32 purposeFlag, const std::vector<int32>& entries, bool onlyPossible, float maxDistance) const
 {
     WorldPosition center = info.GetPosition();
@@ -2700,6 +2716,7 @@ bool TravelMgr::IsLocationLevelValid(const WorldPosition& position, const Player
     return true;
 }
 
+// 按距离分段桶并发安全地筛选并随机打乱候选旅行目的地坐标
 PartitionedTravelList TravelMgr::GetPartitions(const WorldPosition& center, const std::vector<uint32>& distancePartitions, const PlayerTravelInfo& info, uint32 purposeFlag, const std::vector<int32>& entries, bool onlyPossible, float maxDistance) const
 {
     sTravelMgr.GetPartitionsLock();
@@ -2835,6 +2852,7 @@ void TravelMgr::AddMapTransfer(WorldPosition start, WorldPosition end, float por
         mapTransfers->second.push_back(MapTransfer(start, end, portalDistance));        
 };
 
+// 加载跨地图区域触发器、传送门及船只/飞艇中转点距离图
 void TravelMgr::LoadMapTransfers()
 {
     for (auto& startNode : sTravelNodeMap.getNodes())

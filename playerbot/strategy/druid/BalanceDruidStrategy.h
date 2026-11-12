@@ -1,8 +1,10 @@
+// 德鲁伊 - 平衡德鲁伊策略头文件 (BalanceDruidStrategy.h)
 #pragma once
 #include "DruidStrategy.h"
 
 namespace ai
 {
+    // 平衡德鲁伊专精占位策略：用于专精识别与占位的策略类
     class BalanceDruidPlaceholderStrategy : public SpecPlaceholderStrategy
     {
     public:
@@ -11,6 +13,7 @@ namespace ai
         std::string getName() override { return "balance"; }
     };
 
+    // 平衡德鲁伊策略：定义该专精/场景下的触发器与默认行为
     class BalanceDruidStrategy : public DruidStrategy
     {
     public:
@@ -25,6 +28,7 @@ namespace ai
         virtual NextAction** GetDefaultCombatActions() override;
     };
 
+    // 平衡德鲁伊PVE策略：定义该专精/场景下的触发器与默认行为
     class BalanceDruidPveStrategy : public BalanceDruidStrategy
     {
     public:
@@ -38,6 +42,7 @@ namespace ai
         void InitDeadTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 平衡德鲁伊PVP策略：定义该专精/场景下的触发器与默认行为
     class BalanceDruidPvpStrategy : public BalanceDruidStrategy
     {
     public:
@@ -51,6 +56,7 @@ namespace ai
         void InitDeadTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 平衡德鲁伊团队副本策略：定义该专精/场景下的触发器与默认行为
     class BalanceDruidRaidStrategy : public BalanceDruidStrategy
     {
     public:
@@ -66,6 +72,7 @@ namespace ai
         NextAction** GetDefaultCombatActions() override;
     };
 
+    // 平衡德鲁伊AOE群体策略：定义该专精/场景下的触发器与默认行为
     class BalanceDruidAoeStrategy : public DruidAoeStrategy
     {
     public:
@@ -76,6 +83,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 平衡德鲁伊AOE群体PVE策略：定义该专精/场景下的触发器与默认行为
     class BalanceDruidAoePveStrategy : public BalanceDruidAoeStrategy
     {
     public:
@@ -87,6 +95,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 平衡德鲁伊AOE群体PVP策略：定义该专精/场景下的触发器与默认行为
     class BalanceDruidAoePvpStrategy : public BalanceDruidAoeStrategy
     {
     public:
@@ -98,6 +107,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 平衡德鲁伊AOE群体团队副本策略：定义该专精/场景下的触发器与默认行为
     class BalanceDruidAoeRaidStrategy : public BalanceDruidAoeStrategy
     {
     public:
@@ -109,6 +119,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 平衡德鲁伊增益Buff策略：定义该专精/场景下的触发器与默认行为
     class BalanceDruidBuffStrategy : public DruidBuffStrategy
     {
     public:
@@ -119,6 +130,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 平衡德鲁伊增益BuffPVE策略：定义该专精/场景下的触发器与默认行为
     class BalanceDruidBuffPveStrategy : public BalanceDruidBuffStrategy
     {
     public:
@@ -130,6 +142,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 平衡德鲁伊增益BuffPVP策略：定义该专精/场景下的触发器与默认行为
     class BalanceDruidBuffPvpStrategy : public BalanceDruidBuffStrategy
     {
     public:
@@ -141,6 +154,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 平衡德鲁伊增益Buff团队副本策略：定义该专精/场景下的触发器与默认行为
     class BalanceDruidBuffRaidStrategy : public BalanceDruidBuffStrategy
     {
     public:
@@ -152,6 +166,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 平衡德鲁伊爆发增益策略：定义该专精/场景下的触发器与默认行为
     class BalanceDruidBoostStrategy : public DruidBoostStrategy
     {
     public:
@@ -162,6 +177,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 平衡德鲁伊爆发增益PVE策略：定义该专精/场景下的触发器与默认行为
     class BalanceDruidBoostPveStrategy : public BalanceDruidBoostStrategy
     {
     public:
@@ -173,6 +189,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 平衡德鲁伊爆发增益PVP策略：定义该专精/场景下的触发器与默认行为
     class BalanceDruidBoostPvpStrategy : public BalanceDruidBoostStrategy
     {
     public:
@@ -184,6 +201,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 平衡德鲁伊爆发增益团队副本策略：定义该专精/场景下的触发器与默认行为
     class BalanceDruidBoostRaidStrategy : public BalanceDruidBoostStrategy
     {
     public:
@@ -195,6 +213,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 平衡德鲁伊控制(CC)策略：定义该专精/场景下的触发器与默认行为
     class BalanceDruidCcStrategy : public DruidCcStrategy
     {
     public:
@@ -205,6 +224,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 平衡德鲁伊控制(CC)PVE策略：定义该专精/场景下的触发器与默认行为
     class BalanceDruidCcPveStrategy : public BalanceDruidCcStrategy
     {
     public:
@@ -216,6 +236,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 平衡德鲁伊控制(CC)PVP策略：定义该专精/场景下的触发器与默认行为
     class BalanceDruidCcPvpStrategy : public BalanceDruidCcStrategy
     {
     public:
@@ -227,6 +248,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 平衡德鲁伊控制(CC)团队副本策略：定义该专精/场景下的触发器与默认行为
     class BalanceDruidCcRaidStrategy : public BalanceDruidCcStrategy
     {
     public:
@@ -238,6 +260,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 平衡德鲁伊驱散净化策略：定义该专精/场景下的触发器与默认行为
     class BalanceDruidCureStrategy : public DruidCureStrategy
     {
     public:
@@ -248,6 +271,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 平衡德鲁伊驱散净化PVE策略：定义该专精/场景下的触发器与默认行为
     class BalanceDruidCurePveStrategy : public BalanceDruidCureStrategy
     {
     public:
@@ -259,6 +283,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 平衡德鲁伊驱散净化PVP策略：定义该专精/场景下的触发器与默认行为
     class BalanceDruidCurePvpStrategy : public BalanceDruidCureStrategy
     {
     public:
@@ -270,6 +295,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 平衡德鲁伊驱散净化团队副本策略：定义该专精/场景下的触发器与默认行为
     class BalanceDruidCureRaidStrategy : public BalanceDruidCureStrategy
     {
     public:

@@ -4,6 +4,7 @@
 
 using namespace ai;
 
+/// 执行动作主逻辑（作弊调试指令动作）
 bool CheatAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -48,6 +49,7 @@ bool CheatAction::Execute(Event& event)
     return false;
 }
 
+/// 根据作弊名称获取对应的位掩码标志
 BotCheatMask CheatAction::GetCheatMask(std::string cheat)
 {
     BotCheatMask cheatMask = BotCheatMask::none;
@@ -65,11 +67,13 @@ BotCheatMask CheatAction::GetCheatMask(std::string cheat)
     return cheatMask;
 }
 
+/// 根据作弊位掩码获取可读名称
 std::string CheatAction::GetCheatName(BotCheatMask cheatMask)
 {
     return sPlayerbotAIConfig.BotCheatMaskName[log2(((uint32)cheatMask))];
 }
 
+/// 列出机器人当前已开启的所有作弊功能
 void CheatAction::ListCheats(Player* requester)
 {
     std::ostringstream out;
@@ -84,15 +88,16 @@ void CheatAction::ListCheats(Player* requester)
             out << "[" << GetCheatName(BotCheatMask(cheatMask)) << "]";
     }
 
-    std::streampos pos = out.tellp();  // store current location
-    out.seekp(0, std::ios_base::end);  // go to end
+    std::streampos pos = out.tellp();  // store current location (保存当前位置坐标)
+    out.seekp(0, std::ios_base::end);  // go to end (前往终点)
     if (out.tellp() == std::streampos(0))
         out << "No cheats enabled.";
-    out.seekp(pos);                    // restore location
+    out.seekp(pos);                    // restore location (恢复原有坐标位置)
 
     ai->TellPlayerNoFacing(requester, out);
 }
 
+/// 为机器人启用指定的作弊调试标志
 void CheatAction::AddCheat(BotCheatMask cheatMask)
 {
     switch(cheatMask)
@@ -115,6 +120,7 @@ void CheatAction::AddCheat(BotCheatMask cheatMask)
     }
 }
 
+/// 移除机器人指定的作弊调试标志
 void CheatAction::RemCheat(BotCheatMask cheatMask)
 {
     switch (cheatMask)

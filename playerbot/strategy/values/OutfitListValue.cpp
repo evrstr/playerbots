@@ -1,9 +1,11 @@
+// 策略值实现：OutfitListValue（配装方案列表存取序列化）
 
 #include "playerbot/playerbot.h"
 #include "OutfitListValue.h"
 
 using namespace ai;
 
+// 将配装方案列表以 ^ 符号拼接为字符串
 std::string OutfitListValue::Save()
 {
     std::ostringstream out;
@@ -17,6 +19,7 @@ std::string OutfitListValue::Save()
     return out.str();
 }
 
+// 按 ^ 符号拆分字符串并恢复配装方案列表
 bool OutfitListValue::Load(std::string text)
 {
     value.clear();

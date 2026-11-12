@@ -1,3 +1,4 @@
+// 策略值实现：ThreatValues（仇恨值读取与 OT 风险分级计算）
 
 #include "playerbot/playerbot.h"
 #include "ThreatValues.h"
@@ -7,11 +8,12 @@
 
 using namespace ai;
 
+// 计算机器人对目标的当前仇恨值（切换目标时重置变化日志）
 float MyThreatValue::Calculate()
 {
     Unit* target = ai->GetUnit(AI_VALUE(ObjectGuid, qualifier));
     
-    if (target->GetObjectGuid() != lastTarget) //Reset history if we switched target.
+    if (target->GetObjectGuid() != lastTarget) //Reset history if we switched target. | 切换目标时重置仇恨变化历史记录
         LogCalculatedValue::Reset();
 
     lastTarget = target->GetObjectGuid();
@@ -19,6 +21,7 @@ float MyThreatValue::Calculate()
     return ThreatValue::GetThreat(bot, target);
 }
 
+// 查询队伍成员中对目标拥有最高仇恨的值作为参考坦克仇恨
 float TankThreatValue::Calculate()
 {
     Unit* target = ai->GetUnit(AI_VALUE(ObjectGuid, qualifier));
@@ -26,6 +29,7 @@ float TankThreatValue::Calculate()
     return ThreatValue::GetTankThreat(ai, target);
 }
 
+// 当限定符为 "aoe" 时返回所有可攻击目标中的最高威胁级别，否则计算指定目标的威胁级别
 uint8 ThreatValue::Calculate()
 {
     if (qualifier == "aoe")
@@ -54,6 +58,7 @@ uint8 ThreatValue::Calculate()
     return Calculate(target);
 }
 
+// 通过 ThreatManager 读取指定玩家对目标的实际仇恨数值
 float ThreatValue::GetThreat(Player* player, Unit* target)
 {
     if (!target || target->GetMapId() != player->GetMapId())
@@ -73,6 +78,7 @@ float ThreatValue::GetThreat(Player* player, Unit* target)
     return botThreat;
 }
 
+// 从目标仇恨列表中提取队内主坦或最高仇恨队友的仇恨值
 float ThreatValue::GetTankThreat(PlayerbotAI* ai, Unit* target)
 {
     if (!target)
@@ -107,6 +113,7 @@ float ThreatValue::GetTankThreat(PlayerbotAI* ai, Unit* target)
     return maxThreat;
 }
 
+// 根据机器人与坦克的仇恨比例及当前最高目标归属计算 0-100 威胁级别
 uint8 ThreatValue::Calculate(Unit* target)
 {
     if (!target)
@@ -140,15 +147,15 @@ uint8 ThreatValue::Calculate(Unit* target)
     if (maxThreat < 0)
         return 0;
 
-    // calculate normal threat for fleeing targets
+    // calculate normal threat for fleeing targets | 对逃跑中的怪物按常规比例计算威胁值
     bool fleeing = target->GetMotionMaster()->GetCurrentMovementGeneratorType() == FLEEING_MOTION_TYPE ||
         target->GetMotionMaster()->GetCurrentMovementGeneratorType() == TIMED_FLEEING_MOTION_TYPE;
 
-    // return high threat if tank has no threat
+    // return high threat if tank has no threat | 若坦克毫无仇恨或目标尚未锁定坦克则返回高威胁提示（100）
     if (target->IsInCombat() && maxThreat == 0 && !fleeing)
         return 100;
 
-    // return low threat if mob if fleeing
+    // return low threat if mob if fleeing | 怪物正在逃跑时返回低威胁等级（0）
     if (maxThreat > 0 && fleeing)
         return 0;
 

@@ -23,7 +23,7 @@ using namespace ai;
 
 bool IsAlliance(uint8 race);
 
-// Bounded per-bot record of executed actions/reactions (populated by ActionHistoryListener).
+// Bounded per-bot record of executed actions/reactions (populated by ActionHistoryListener). | 单个机器人动作/反应执行历史记录条目
 struct ActionHistoryEntry
 {
     uint32 tick = 0;            // per-bot AI update counter
@@ -39,7 +39,7 @@ struct ActionHistoryEntry
 
 class PlayerbotAI;
 
-// Records every action the engines actually attempt into the owning bot's history.
+// Records every action the engines actually attempt into the owning bot's history. | 动作执行历史监听器，记录引擎实际尝试的每个动作
 // Attached to the normal engines and to the reaction engine (two instances, so entries
 // can be tagged as reactions); looks after itself via Engine's listener ownership.
 class ActionHistoryListener : public ActionExecutionListener
@@ -58,6 +58,7 @@ private:
     uint32 startMs = 0;
 };
 
+/// 机器人内部聊天命令解析辅助类
 class PlayerbotChatHandler: protected ChatHandler
 {
 public:
@@ -80,6 +81,7 @@ public:
     }
 };
 
+/// 聊天频道成员与权限访问结构
 class ChannelAcces
 {
 public:    
@@ -113,32 +115,35 @@ namespace ai
     class IterateItemsVisitor;
     class FindItemVisitor;
 
-	class MinValueCalculator {
-	public:
-		MinValueCalculator(float def = 0.0f) {
-			param = NULL;
-			minValue = def;
-		}
+    /// 最小值探测辅助器
+    class MinValueCalculator {
+    public:
+        MinValueCalculator(float def = 0.0f) {
+            param = NULL;
+            minValue = def;
+        }
 
-	public:
-		void probe(float value, void* p) {
-			if (!param || minValue >= value) {
-				minValue = value;
-				param = p;
-			}
-		}
+    public:
+        void probe(float value, void* p) {
+            if (!param || minValue >= value) {
+                minValue = value;
+                param = p;
+            }
+        }
 
-	public:
-		void* param;
-		float minValue;
-	};
+    public:
+        void* param;
+        float minValue;
+    };
 };
 
+/// 重要区域 ID 枚举
 enum ImportantAreaId
 {
     CITY = 3459
 };
 
+/// 聊天频道 ID 枚举
 enum ChatChannelId
 {
     GENERAL = 1,
@@ -154,6 +159,7 @@ enum ChatChannelId
     GUILD_RECRUITMENT = 25,
 };
 
+/// 聊天消息来源频道类型枚举
 enum ChatChannelSource
 {
     SRC_GUILD,
@@ -177,6 +183,7 @@ enum ChatChannelSource
     SRC_UNDEFINED
 };
 
+/// 治疗消耗品外观/物品显示 ID 枚举
 enum HealingItemDisplayId
 {
    HEALTHSTONE_DISPLAYID = 8026,
@@ -200,6 +207,7 @@ enum HealingItemDisplayId
    MAJOR_DREAMLESS_SLEEP_POTION = 37845,
 };
 
+/// 盗贼毒药显示 ID 枚举
 enum RoguePoisonDisplayId
 {
    DEADLY_POISON_DISPLAYID = 13707,
@@ -214,6 +222,7 @@ enum RoguePoisonDisplayId
 #endif
 };
 
+/// 磨刀石显示 ID 枚举
 enum SharpeningStoneDisplayId
 {
    ROUGH_SHARPENING_DISPLAYID = 24673,
@@ -227,6 +236,7 @@ enum SharpeningStoneDisplayId
    ADAMANTITE_SHARPENING_DISPLAYID = 39193,
 };
 
+/// 平衡石显示 ID 枚举
 enum WeightStoneDisplayId
 {
    ROUGH_WEIGHTSTONE_DISPLAYID = 24683,
@@ -277,12 +287,14 @@ enum ManaOilDisplayId
 };
 #endif
 
+/// 盾牌防御附魔显示 ID 枚举
 enum ShieldWardDisplayId
 {
    LESSER_WARD_OFSHIELDING = 38759,
    GREATER_WARD_OFSHIELDING = 38760,
 };
 
+/// 机器人伪随机固定编号分类枚举
 enum class BotTypeNumber : uint8
 {
     ACTIVITY_TYPE_NUMBER = 1,
@@ -295,6 +307,7 @@ enum class BotTypeNumber : uint8
     WORLD_PVP_LOCATION = 8
 };
 
+/// 机器人组队偏好类型（独行/成员/小队或团队队长）
 enum class GrouperType : uint8
 {
     SOLO = 0,
@@ -312,6 +325,7 @@ enum class GrouperType : uint8
 #endif
 };
 
+/// 机器人公会规模偏好类型
 enum class GuilderType : uint8
 {
     SOLO = 0,
@@ -322,6 +336,7 @@ enum class GuilderType : uint8
     MASSIVE = 250
 };
 
+/// 机器人活跃度优先级分类枚举
 enum class ActivePiorityType : uint8
 {
     IS_REAL_PLAYER = 0,
@@ -346,6 +361,7 @@ enum class ActivePiorityType : uint8
     MAX_TYPE
 };
 
+/// 机器人活动调度类型枚举（刷怪/RPG/旅行/组外/数据包等）
 enum ActivityType
 {
     GRIND_ACTIVITY = 1,
@@ -360,6 +376,7 @@ enum ActivityType
     MAX_ACTIVITY_TYPE
 };
 
+/// 网络数据包延迟队列与 opcode 处理器映射助手
 class PacketHandlingHelper
 {
 public:
@@ -374,6 +391,7 @@ private:
     std::mutex m_botPacketMutex;
 };
 
+/// 待处理聊天命令缓存封装类
 class ChatCommandHolder
 {
 public:
@@ -399,12 +417,13 @@ private:
     time_t time;
 };
 
+/// 玩家机器人单个角色的核心 AI 控制器，管理战斗/非战斗/死亡/反应四大引擎、聊天、施法、背包、任务与移动
 class PlayerbotAI : public PlayerbotAIBase
 {
 public:
-	PlayerbotAI();
-	PlayerbotAI(Player* bot);
-	virtual ~PlayerbotAI();
+    PlayerbotAI();
+    PlayerbotAI(Player* bot);
+    virtual ~PlayerbotAI();
 
     virtual void UpdateAI(uint32 elapsed, bool minimal = false);
 
@@ -414,7 +433,7 @@ private:
 public:    
     static std::string BotStateToString(BotState state);
 
-    // Runs action(target) on the thread that owns target's map. This AI's bot is the player whose
+    // Runs action(target) on the thread that owns target's map. | 在目标所属地图线程安全执行回调（跨地图时投递到世界线程） This AI's bot is the player whose
     // map thread we are currently running on (the acting bot). If the acting bot and the target
     // are on the same map (or target is the acting bot), the action runs inline. Otherwise the
     // target belongs to a different map and the action is queued to the world thread messager,
@@ -422,27 +441,27 @@ public:
     // map's player (teleports, resets, ...) from a foreign map thread.
     void RunOnOwningThread(Player* target, std::function<void(Player*)> action);
 
-    // Uses the normal summon path: sets the summon point and sends SMSG_SUMMON_REQUEST so the
+    // Uses the normal summon path: sets the summon point and sends SMSG_SUMMON_REQUEST | 通过标准召唤流程发送召唤请求 so the
     // target accepts and teleports itself on its own map thread. Works for bots and real players.
     // Returns false when target cannot accept a summon (dead, in combat, no session) and the
     // caller should fall back to a direct teleport.
     static bool SendSummonRequest(Player* summoner, Player* target);
     static bool SendSummonRequest(Player* summoner, Player* target, uint32 mapId, float x, float y, float z);
 
-    // Uses the normal resurrect path: creates a resurrect request for a dead target. Because the
+    // Uses the normal resurrect path: creates a resurrect request for a dead target. | 通过标准复活请求在目标所在地图线程安全复活 Because the
     // caster is a player, core's ResurrectUsingRequestDataInit teleports the target to the given
     // location before resurrecting it. The target accepts and does all of it on its own map thread.
     // Returns false if the target is alive, already has a pending request, or no rez spell resolves.
     static bool SendResurrectRequest(Player* summoner, Player* target, uint32 mapId, float x, float y, float z);
     std::string GetDefaultMovementStrategy();
     void EnsureDefaultMovementStrategy(Player* requester = nullptr);
-	std::string HandleRemoteCommand(std::string command);
+    std::string HandleRemoteCommand(std::string command);
     void HandleCommand(uint32 type, const std::string& text, Player& fromPlayer, const uint32 lang = LANG_UNIVERSAL);
     void QueueChatResponse(uint32 msgType, ObjectGuid guid1, ObjectGuid guid2, std::string message, std::string chanName, std::string name, bool noDelay = false);
-	void HandleBotOutgoingPacket(const WorldPacket& packet);
+    void HandleBotOutgoingPacket(const WorldPacket& packet);
     void HandleMasterIncomingPacket(const WorldPacket& packet);
     void HandleMasterOutgoingPacket(const WorldPacket& packet);
-	void HandleTeleportAck();
+    void HandleTeleportAck();
     void ChangeEngine(BotState type);
     void DoNextAction(bool minimal = false);
     bool CanDoSpecificAction(const std::string& name, bool isUseful = true, bool isPossible = true);
@@ -637,10 +656,10 @@ private:
     bool IsTellAllowed(Player* player, PlayerbotSecurityLevel securityLevel = PlayerbotSecurityLevel::PLAYERBOT_SECURITY_ALLOW_ALL);
 
 public:
-	Player* GetBot() { return bot; }
+    Player* GetBot() { return bot; }
     Player* GetMaster() { return master; }
 
-    //Checks if the bot is really a player. Players always have themselves as master.
+    //Checks if the bot is really a player. Players always have themselves as master. | 检查实体是否为真实玩家
     bool IsRealPlayer() { return bot->GetSession()->GetRemoteAddress() != "disconnected/bot"; }
     bool IsRealPlayer(Unit* unit) { return unit->IsPlayer() && ((Player*)unit)->GetSession()->GetRemoteAddress() != "disconnected/bot"; }
     bool IsSelfMaster() { return master ? (master == bot) : false; }
@@ -761,9 +780,9 @@ private:
     void UpdateFaceTarget(uint32 elapsed, bool minimal);
 
 protected:
-	Player* bot;
-	Player* master;
-	uint32 accountId;
+    Player* bot;
+    Player* master;
+    uint32 accountId;
     ObjectGuid m_killWatchTarget;
     AiObjectContext* aiObjectContext;
     Engine* currentEngine;

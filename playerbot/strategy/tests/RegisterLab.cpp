@@ -1,3 +1,4 @@
+/// 测试生成器：跨地图隔离、停留/守卫、拾取、微操及逃跑实验室（Lab）测试注册实现
 #include "playerbot/playerbot.h"
 #include "TestRegistry.h"
 
@@ -6,9 +7,10 @@ using namespace ai;
 static uint32 const DUMMY_ENTRY = 6788;
 static uint32 const DUMMY_LEVEL = 80;
 
+/// 注册各实验室区域的隔离性（isolation）、接战可控性（containment）与寻路（room）测试
 void TestRegistry::RegisterLabTests()
 {
-    // Enough-space probing across cross-core lab candidates. Three tests per map:
+    // Enough-space probing across cross-core lab candidates. Three tests per map: | 跨核心/跨地图实验室空间探测，每张地图注册隔离、接战、通行三类测试
     //   isolation   - park the bot at the anchor; ambient units must not engage it
     //   containment - the AI must engage and kill a pulled quest-objective dummy at the anchor
     //   room        - the zone must path end-to-end between two anchors within 10 min
@@ -40,7 +42,7 @@ void TestRegistry::RegisterLabTests()
         RegisterNamedLocation(farName,
             GuidPosition(ObjectGuid(), WorldPosition(lab.mapId, lab.fx, lab.fy, lab.fz)));
 
-        // containment v2: the AI must own the fight, so the pulled dummy is a real quest
+        // containment v2: the AI must own the fight, so the pulled dummy is a real quest | containment v2：使用真实任务击杀目标（任务 2139，怪 6788）确保 AI 主动接敌
         // kill objective (quest 2139, Den Mother 6788) instead of the old raw pull-only probe
         // that the AI ignored (possible-attack-targets stayed empty, monitor "Encounter not
         // resolved in 5 min" FAILed all six maps).
@@ -111,6 +113,7 @@ void TestRegistry::RegisterLabTests()
     }
 }
 
+/// 注册 Stay 与 Guard 原地驻守策略稳定性测试
 void TestRegistry::RegisterLabStayGuardTests()
 {
     static const char* pins[] = { "stay", "guard" };
@@ -195,6 +198,7 @@ void TestRegistry::RegisterLabStayGuardTests()
     }
 }
 
+/// 注册战利品拾取及脱战后不漏拾测试
 void TestRegistry::RegisterLabLootTests()
 {
     RegisterTest("lab_loot_follow_far_corpse", {
@@ -225,6 +229,7 @@ void TestRegistry::RegisterLabLootTests()
     });
 }
 
+/// 注册微操与基础移动控制实验室测试
 void TestRegistry::RegisterLabMicroTests()
 {
     RegisterTest("lab_micro1_stockade", {
@@ -257,6 +262,7 @@ void TestRegistry::RegisterLabMicroTests()
     });
 }
 
+/// 注册各种族/职业与怪物距离条件下的逃跑（Flee）风筝测试
 void TestRegistry::RegisterFleeTests()
 {
     static const uint32 DUMMY_ENTRY = 6788;

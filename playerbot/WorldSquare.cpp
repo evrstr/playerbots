@@ -3,6 +3,7 @@
 
 
 using namespace ai;
+// 以 WKT 格式输出点或包围盒多边形用于可视化调试
 void WorldPointContainer::printWKT(std::ostringstream& out, bool squares) const
 {
     if (!squares)
@@ -16,6 +17,7 @@ void WorldPointContainer::printWKT(std::ostringstream& out, bool squares) const
     }
 }
 
+// 计算目标点到地图包围盒的距离平方（跨地图时经由传送点中转估算）
 float MapWpSquare::sqOutDistance(const WorldPosition& point) const
 {
     if (point.mapid != mapId)
@@ -35,6 +37,7 @@ float MapWpSquare::sqOutDistance(const WorldPosition& point) const
     return WorldPointSquareContainer::sqOutDistance(point);
 }
 
+// 查找距离目标点最近的地图 ID
 uint32 WorldWpSquare::ClosestMapId(const WorldPosition& point) const
 {
     uint32 closetMapId = 999;

@@ -18,6 +18,7 @@
 
 using namespace ahbot;
 
+// 带线程安全缓存的商业技能物品判定入口
 bool TradeSkill::Contains(ItemPrototype const* proto)
 {
     if (!Trade::Contains(proto))
@@ -30,7 +31,7 @@ bool TradeSkill::Contains(ItemPrototype const* proto)
             return cached->second;
     }
 
-    // The scan runs unlocked: it is long and its result for an item never changes.
+    // The scan runs unlocked: it is long and its result for an item never changes. | 全表扫描耗时较长且结果不变，故在无锁状态下执行
     bool contains = ContainsInternal(proto);
 
     std::lock_guard<std::mutex> guard(itemCacheMutex);
@@ -38,6 +39,7 @@ bool TradeSkill::Contains(ItemPrototype const* proto)
     return contains;
 }
 
+// 遍历技能法术、训练师法术及图纸物品，判断该物品是否为本技能材料或成品
 bool TradeSkill::ContainsInternal(ItemPrototype const* proto)
 {
 
@@ -121,6 +123,7 @@ bool TradeSkill::IsCraftedBySpell(ItemPrototype const* proto, uint32 spellId)
     return IsCraftedBySpell(proto, entry);
 }
 
+// 检查指定法术是否消耗该物品作为材料或直接制造出该物品
 bool TradeSkill::IsCraftedBySpell(ItemPrototype const* proto, SpellEntry const *entry)
 {
     if (reagent)
@@ -175,6 +178,7 @@ bool TradeSkill::IsCraftedBy(ItemPrototype const* proto, uint32 spellId)
     return false;
 }
 
+// 返回商业技能分类键名（成品追加 .craft 后缀）
 std::string TradeSkill::GetName()
 {
     std::string name;
@@ -213,6 +217,7 @@ std::string TradeSkill::GetName()
     return reagent ? name : name + ".craft";
 }
 
+// 返回商业技能基础分类键名（不含 .craft 后缀）
 std::string TradeSkill::GetMainName()
 {
     std::string name;
@@ -251,6 +256,7 @@ std::string TradeSkill::GetMainName()
     return name;
 }
 
+// 返回用于显示与日志输出的可读分类标签
 std::string TradeSkill::GetLabel()
 {
     if (reagent)

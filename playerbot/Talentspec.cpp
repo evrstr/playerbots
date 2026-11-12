@@ -6,7 +6,7 @@
 
 using namespace std::placeholders;
 
-//Checks a talent link on basic validity.
+//Checks a talent link on basic validity. (检查天赋链接格式合法性)
 bool TalentSpec::CheckTalentLink(std::string link, std::ostringstream* out) {
 
     std::string validChar = "-";
@@ -42,7 +42,7 @@ uint32 TalentSpec::PointstoLevel(int points) const
     return uint32(ceil(points / sWorld.getConfig(CONFIG_FLOAT_RATE_TALENT)))+9;
 }
 
-//Check the talentspec for errors.
+//Check the talentspec for errors. (校验天赋依赖、前置点数与总点数上限)
 bool TalentSpec::CheckTalents(uint32 freeTalentPoints, std::ostringstream* out)
 {
     for (auto& entry : talents)
@@ -105,7 +105,7 @@ bool TalentSpec::CheckTalents(uint32 freeTalentPoints, std::ostringstream* out)
     return true;
 }
 
-//Set the talents for the bots to the current spec.
+//Set the talents for the bots to the current spec. (将当前天赋配置学习/移除应用到机器人身上)
 void TalentSpec::ApplyTalents(Player* bot, std::ostringstream* out)
 {
     for (auto& entry : talents)
@@ -141,7 +141,7 @@ void TalentSpec::SetPublicNote(Player* bot)
     }
 }
 
-//Returns a base talentlist for a class.
+//Returns a base talentlist for a class. (根据职业掩码从 DBC 初始化基础天赋列表)
 void TalentSpec::GetTalents(uint32 classMask) {
     TalentListEntry entry;
 
@@ -176,7 +176,7 @@ void TalentSpec::GetTalents(uint32 classMask) {
     SortTalents(talents, SORT_BY_DEFAULT);
 }
 
-//Sorts a talent list by page, row, column.
+//Sorts a talent list by page, row, column. (按天赋页、行、列排序天赋列表)
 bool sortTalentMap(TalentSpec::TalentListEntry i, TalentSpec::TalentListEntry j, int* tabSort) {
     uint32 itab = i.tabPage();
     uint32 jtab = j.tabPage();
@@ -307,7 +307,7 @@ int TalentSpec::GetTalentPoints(std::vector<TalentListEntry>& talents, int tabpa
     return tPoints;
 }
 
-//Generates a wow-head link from a talent list.
+//Generates a wow-head link from a talent list. (生成 0-0-0 格式的天赋字符串)
 std::string TalentSpec::GetTalentLink()
 {
     std::string link = "";
@@ -376,7 +376,7 @@ std::string TalentSpec::formatSpec(uint8 cls)
     return out.str();
 }
 
-//Removes talentpoints to match the level
+//Removes talentpoints to match the level (按当前可用天赋点数裁剪超出部分)
 void TalentSpec::CropTalents(Player* bot)
 {
     if (points <= bot->CalculateTalentsPoints())
@@ -425,7 +425,7 @@ bool TalentSpec::isEarlierVersionOf(TalentSpec& newSpec)
 }
 
 
-//Modifies current talents towards new talents up to a maximum of points.
+//Modifies current talents towards new talents up to a maximum of points. (在当前已点天赋基础上向目标方案增量调整)
 void TalentSpec::ShiftTalents(TalentSpec* currentSpec, Player* bot)
 {    
 

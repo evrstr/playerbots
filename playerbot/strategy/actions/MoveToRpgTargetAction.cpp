@@ -11,6 +11,7 @@
 
 using namespace ai;
 
+/// 执行动作主逻辑（前往 RPG 目标动作）
 bool MoveToRpgTargetAction::Execute(Event& event)
 {
     GuidPosition guidP = AI_VALUE(GuidPosition, "rpg target");
@@ -127,8 +128,8 @@ bool MoveToRpgTargetAction::Execute(Event& event)
 
         ai->Poi(x, y, name);
     }
-	
-	if (sPlayerbotAIConfig.RandombotsWalkingRPG)
+    
+    if (sPlayerbotAIConfig.RandombotsWalkingRPG)
         if (!bot->GetTerrain()->IsOutdoors(bot->GetPositionX(), bot->GetPositionY(), bot->GetPositionZ()))
             bot->m_movementInfo.AddMovementFlag(MOVEFLAG_WALK_MODE);
 
@@ -138,21 +139,21 @@ bool MoveToRpgTargetAction::Execute(Event& event)
     if (bot->IsWithinLOS(x, y, z, true))
     {
         if (!unit || !unit->IsMoving())
-            angle = wo->GetAngle(bot) + (M_PI * irand(-25, 25) / 100.0); //Closest 45 degrees towards the target
+            angle = wo->GetAngle(bot) + (M_PI * irand(-25, 25) / 100.0); // Closest 45 degrees towards the target (朝向目标方向最近的 45 度角位置)
         else if (!unit->HasInArc(bot))
-            angle = wo->GetOrientation() + (M_PI * irand(-10, 10) / 100.0); //20 degrees infront of target (leading it's movement)
+            angle = wo->GetOrientation() + (M_PI * irand(-10, 10) / 100.0); // 20 degrees infront of target (leading it's movement) (目标前方 20 度位置（预判其移动方向）)
         else
-            angle = wo->GetAngle(bot); //Current approuch angle.
+            angle = wo->GetAngle(bot); // Current approuch angle. (当前接近角度。)
 
         if (guidP.sqDistance2d(bot) < INTERACTION_DISTANCE * INTERACTION_DISTANCE)
-            distance = sqrt(guidP.sqDistance2d(bot)); //Stay at this distance.
-        else if(unit || !urand(0, 5)) //Stay futher away from npc's and sometimes gameobjects (for large hitbox objects).
+            distance = sqrt(guidP.sqDistance2d(bot)); // Stay at this distance. (保持在此间距。)
+        else if(unit || !urand(0, 5)) // Stay futher away from npc's and sometimes gameobjects (for large hitbox objects). (与大型 NPC 或游戏对象保持稍远距离（适配大型碰撞体积）。)
             distance = frand(0.5, 1);
         else
             distance = frand(0, 0.5);
     }
     else
-        angle = 2 * M_PI * urand(0, 100) / 100.0; //A circle around the target.
+        angle = 2 * M_PI * urand(0, 100) / 100.0; // A circle around the target. (围绕目标的圆形范围。)
 
     x += cos(angle) * INTERACTION_DISTANCE * distance;
     y += sin(angle) * INTERACTION_DISTANCE * distance;
@@ -218,6 +219,7 @@ bool MoveToRpgTargetAction::Execute(Event& event)
     return couldMove;
 }
 
+/// 判断当前状态下该动作是否可用/有效（前往 RPG 目标动作）
 bool MoveToRpgTargetAction::isUseful()
 {
     GuidPosition guidP = AI_VALUE(GuidPosition, "rpg target");
@@ -251,7 +253,7 @@ bool MoveToRpgTargetAction::isUseful()
     if (!AI_VALUE(bool, "can move around"))
         return false;
 
-    //Should the bot still loot something?
+    // Should the bot still loot something? (检查机器人是否仍有尚未拾取的战利品)
     if (AI_VALUE(bool, "has available loot"))
     {
         LootObject lootObject = AI_VALUE(LootObjectStack*, "available loot")->GetLoot(ai->GetRange("loot"));
@@ -259,7 +261,7 @@ bool MoveToRpgTargetAction::isUseful()
             return false;
     }
 
-    //Is the bot still going to loot something?
+    // Is the bot still going to loot something? (检查机器人是否仍有待拾取的目标)
     LootObject loot = AI_VALUE(LootObject, "loot target");
 
     if (loot.IsLootPossible(bot))

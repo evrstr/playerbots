@@ -1,8 +1,10 @@
+// 术士 - 痛苦术士策略头文件 (AfflictionWarlockStrategy.h)
 #pragma once
 #include "WarlockStrategy.h"
 
 namespace ai
 {
+    // 痛苦术士专精占位策略：用于专精识别与占位的策略类
     class AfflictionWarlockPlaceholderStrategy : public SpecPlaceholderStrategy
     {
     public:
@@ -11,6 +13,7 @@ namespace ai
         std::string getName() override { return "affliction"; }
     };
 
+    // 痛苦术士策略：定义该专精/场景下的触发器与默认行为
     class AfflictionWarlockStrategy : public WarlockStrategy
     {
     public:
@@ -25,6 +28,7 @@ namespace ai
         virtual NextAction** GetDefaultCombatActions() override;
     };
 
+    // 痛苦术士PVE策略：定义该专精/场景下的触发器与默认行为
     class AfflictionWarlockPveStrategy : public AfflictionWarlockStrategy
     {
     public:
@@ -38,6 +42,7 @@ namespace ai
         void InitDeadTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 痛苦术士PVP策略：定义该专精/场景下的触发器与默认行为
     class AfflictionWarlockPvpStrategy : public AfflictionWarlockStrategy
     {
     public:
@@ -51,6 +56,7 @@ namespace ai
         void InitDeadTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 痛苦术士团队副本策略：定义该专精/场景下的触发器与默认行为
     class AfflictionWarlockRaidStrategy : public AfflictionWarlockStrategy
     {
     public:
@@ -64,6 +70,7 @@ namespace ai
         void InitDeadTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 痛苦术士AOE群体策略：定义该专精/场景下的触发器与默认行为
     class AfflictionWarlockAoeStrategy : public WarlockAoeStrategy
     {
     public:
@@ -74,6 +81,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 痛苦术士AOE群体PVE策略：定义该专精/场景下的触发器与默认行为
     class AfflictionWarlockAoePveStrategy : public AfflictionWarlockAoeStrategy
     {
     public:
@@ -85,6 +93,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 痛苦术士AOE群体PVP策略：定义该专精/场景下的触发器与默认行为
     class AfflictionWarlockAoePvpStrategy : public AfflictionWarlockAoeStrategy
     {
     public:
@@ -96,6 +105,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 痛苦术士AOE群体团队副本策略：定义该专精/场景下的触发器与默认行为
     class AfflictionWarlockAoeRaidStrategy : public AfflictionWarlockAoeStrategy
     {
     public:
@@ -107,6 +117,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 痛苦术士增益Buff策略：定义该专精/场景下的触发器与默认行为
     class AfflictionWarlockBuffStrategy : public WarlockBuffStrategy
     {
     public:
@@ -117,6 +128,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 痛苦术士增益BuffPVE策略：定义该专精/场景下的触发器与默认行为
     class AfflictionWarlockBuffPveStrategy : public AfflictionWarlockBuffStrategy
     {
     public:
@@ -128,6 +140,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 痛苦术士增益BuffPVP策略：定义该专精/场景下的触发器与默认行为
     class AfflictionWarlockBuffPvpStrategy : public AfflictionWarlockBuffStrategy
     {
     public:
@@ -139,6 +152,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 痛苦术士增益Buff团队副本策略：定义该专精/场景下的触发器与默认行为
     class AfflictionWarlockBuffRaidStrategy : public AfflictionWarlockBuffStrategy
     {
     public:
@@ -150,6 +164,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 痛苦术士爆发增益策略：定义该专精/场景下的触发器与默认行为
     class AfflictionWarlockBoostStrategy : public WarlockBoostStrategy
     {
     public:
@@ -160,6 +175,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 痛苦术士爆发增益PVE策略：定义该专精/场景下的触发器与默认行为
     class AfflictionWarlockBoostPveStrategy : public AfflictionWarlockBoostStrategy
     {
     public:
@@ -171,6 +187,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 痛苦术士爆发增益PVP策略：定义该专精/场景下的触发器与默认行为
     class AfflictionWarlockBoostPvpStrategy : public AfflictionWarlockBoostStrategy
     {
     public:
@@ -182,6 +199,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 痛苦术士爆发增益团队副本策略：定义该专精/场景下的触发器与默认行为
     class AfflictionWarlockBoostRaidStrategy : public AfflictionWarlockBoostStrategy
     {
     public:
@@ -193,6 +211,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 痛苦术士控制(CC)策略：定义该专精/场景下的触发器与默认行为
     class AfflictionWarlockCcStrategy : public WarlockCcStrategy
     {
     public:
@@ -203,6 +222,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 痛苦术士控制(CC)PVE策略：定义该专精/场景下的触发器与默认行为
     class AfflictionWarlockCcPveStrategy : public AfflictionWarlockCcStrategy
     {
     public:
@@ -214,6 +234,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 痛苦术士控制(CC)PVP策略：定义该专精/场景下的触发器与默认行为
     class AfflictionWarlockCcPvpStrategy : public AfflictionWarlockCcStrategy
     {
     public:
@@ -225,6 +246,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 痛苦术士控制(CC)团队副本策略：定义该专精/场景下的触发器与默认行为
     class AfflictionWarlockCcRaidStrategy : public AfflictionWarlockCcStrategy
     {
     public:
@@ -236,6 +258,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 痛苦术士宠物策略：定义该专精/场景下的触发器与默认行为
     class AfflictionWarlockPetStrategy : public WarlockPetStrategy
     {
     public:
@@ -246,6 +269,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 痛苦术士宠物PVE策略：定义该专精/场景下的触发器与默认行为
     class AfflictionWarlockPetPveStrategy : public AfflictionWarlockPetStrategy
     {
     public:
@@ -257,6 +281,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 痛苦术士宠物PVP策略：定义该专精/场景下的触发器与默认行为
     class AfflictionWarlockPetPvpStrategy : public AfflictionWarlockPetStrategy
     {
     public:
@@ -268,6 +293,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 痛苦术士宠物团队副本策略：定义该专精/场景下的触发器与默认行为
     class AfflictionWarlockPetRaidStrategy : public AfflictionWarlockPetStrategy
     {
     public:
@@ -279,6 +305,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 痛苦术士诅咒策略：定义该专精/场景下的触发器与默认行为
     class AfflictionWarlockCursesStrategy : public WarlockCursesStrategy
     {
     public:
@@ -288,6 +315,7 @@ namespace ai
         virtual void InitCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 痛苦术士诅咒PVE策略：定义该专精/场景下的触发器与默认行为
     class AfflictionWarlockCursesPveStrategy : public AfflictionWarlockCursesStrategy
     {
     public:
@@ -298,6 +326,7 @@ namespace ai
         void InitCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 痛苦术士诅咒PVP策略：定义该专精/场景下的触发器与默认行为
     class AfflictionWarlockCursesPvpStrategy : public AfflictionWarlockCursesStrategy
     {
     public:
@@ -308,6 +337,7 @@ namespace ai
         void InitCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 痛苦术士诅咒团队副本策略：定义该专精/场景下的触发器与默认行为
     class AfflictionWarlockCursesRaidStrategy : public AfflictionWarlockCursesStrategy
     {
     public:

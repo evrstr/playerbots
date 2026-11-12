@@ -7,6 +7,7 @@
 
 namespace ahbot
 {
+    /// 拍卖行物品分类基类，定义分类匹配、堆叠数量及定价策略接口
     class Category
     {
     public:
@@ -14,14 +15,18 @@ namespace ahbot
         virtual ~Category() { if (pricingStrategy) delete pricingStrategy; }
 
     public:
+        /// 判断给定物品原型是否属于当前分类
         virtual bool Contains(ItemPrototype const* proto) { return false; }
+        /// 获取分类内部配置键名
         virtual std::string GetName() { return typeName; }
         virtual std::string GetDisplayName() { return GetName(); }
         virtual std::string GetLabel() { return GetName(); }
 
+        /// 根据物品品质与稀有度计算推荐上架堆叠数
         virtual uint32 GetStackCount(ItemPrototype const* proto);
         virtual uint32 GetSkillId() { return 0; }
 
+        /// 获取或延迟创建当前分类对应的定价策略实例
         virtual PricingStrategy* GetPricingStrategy();
 
         virtual uint32 GetMaxAllowedAuctionCount()
@@ -40,6 +45,7 @@ namespace ahbot
         PricingStrategy *pricingStrategy;
     };
 
+    /// 消耗品分类（药水、食物、卷轴、绷带等）
     class Consumable : public Category
     {
     public:
@@ -68,6 +74,7 @@ namespace ahbot
         int32 defaultMaxType = 10;
     };
 
+    /// 任务物品分类
     class Quest : public Category
     {
     public:
@@ -95,6 +102,7 @@ namespace ahbot
         int32 defaultMaxType = 5;
     };
 
+    /// 商业制造与杂项材料分类（商业材料、杂项、施法材料、宝石）
     class Trade : public Category
     {
     public:
@@ -129,6 +137,7 @@ namespace ahbot
         int32 defaultMaxType = 5;
     };
 
+    /// 施法材料分类
     class Reagent : public Category
     {
     public:
@@ -157,6 +166,7 @@ namespace ahbot
         int32 defaultMaxType = 1;
     };
 
+    /// 配方与图纸分类
     class Recipe : public Category
     {
     public:
@@ -190,6 +200,7 @@ namespace ahbot
         int32 defaultMaxType = 1;
     };
 
+    /// 武器与护甲装备分类（物品等级 > 1）
     class Equip : public Category
     {
     public:
@@ -224,6 +235,7 @@ namespace ahbot
         int32 defaultMaxType = 1;
     };
 
+    /// 箭袋与弹药袋分类
     class Quiver : public Category
     {
     public:
@@ -259,6 +271,7 @@ namespace ahbot
         int32 defaultMaxType = 1;
     };
 
+    /// 箭矢与子弹消耗品分类
     class Projectile : public Category
     {
     public:
@@ -294,6 +307,7 @@ namespace ahbot
         int32 defaultMaxType = 5;
     };
 
+    /// 背包容器分类
     class Container : public Category
     {
     public:
@@ -329,6 +343,7 @@ namespace ahbot
         int32 defaultMaxType = 1;
     };
 
+    /// 工程零件、装置与爆炸物分类
     class DevicesAndParts : public Category
     {
     public:
@@ -362,6 +377,7 @@ namespace ahbot
         int32 defaultMaxType = 1;
     };
 
+    /// 物品品质分类包装器，将基础分类与特定物品品质（白/绿/蓝/紫等）组合
     class QualityCategoryWrapper : public Category
     {
     public:

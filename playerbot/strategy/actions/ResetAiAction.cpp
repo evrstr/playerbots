@@ -7,6 +7,7 @@
 
 using namespace ai;
 
+/// 执行动作主逻辑（重置 AI 动作）
 bool ResetAiAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -21,6 +22,7 @@ bool ResetAiAction::Execute(Event& event)
     return true;
 }
 
+/// 重置机器人当前 AI 策略至默认状态
 void ResetAiAction::ResetStrategies()
 {
     bool loadStrats = !fullReset;
@@ -31,6 +33,7 @@ void ResetAiAction::ResetStrategies()
         sPlayerbotDbStore.Save(ai);
 }
 
+/// 清空并重置机器人黑板状态值
 void ResetAiAction::ResetValues()
 {
     uint64 guid = ai->GetBot()->GetObjectGuid().GetRawValue();
@@ -65,6 +68,7 @@ void ResetAiAction::ResetValues()
     }
 }
 
+/// 执行动作主逻辑（保存 AI 配置动作）
 bool SaveAiAction::Execute(Event& event)
 {
    std::string preset = event.getParam();
@@ -86,6 +90,7 @@ bool SaveAiAction::Execute(Event& event)
    return true;
 }
 
+/// 执行动作主逻辑（加载 AI 配置动作）
 bool LoadAiAction::Execute(Event& event)
 {
    std::string preset = event.getParam();
@@ -107,6 +112,7 @@ bool LoadAiAction::Execute(Event& event)
    return true;
 }
 
+/// 执行动作主逻辑（列出 AI 配置动作）
 bool ListAiAction::Execute(Event& event)
 {
    if (Player* requester = event.getOwner() ? event.getOwner() : GetMaster())
@@ -132,6 +138,7 @@ bool ListAiAction::Execute(Event& event)
    return true;
 }
 
+/// 执行动作主逻辑（重置策略动作）
 bool ResetStratsAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -145,6 +152,7 @@ bool ResetStratsAction::Execute(Event& event)
     return true;
 }
 
+/// 执行动作主逻辑（重置状态值动作）
 bool ResetValuesAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();

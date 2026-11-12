@@ -1,8 +1,10 @@
+// 策略值头文件：GroupValues（队伍成员列表、跟随状态与全队就绪判定）
 #pragma once
 #include "playerbot/strategy/Value.h"
 
 namespace ai
 {
+    // 目标列表计算器：获取当前小队或团队的所有玩家成员 GUID（含自身）
     class GroupMembersValue : public ObjectGuidListCalculatedValue
     {
     public:
@@ -10,6 +12,7 @@ namespace ai
         virtual std::list<ObjectGuid> Calculate() override;
     };
 
+    // 布尔值计算器：判断机器人当前是否处于跟随队伍或漫游状态
     class IsFollowingPartyValue : public BoolCalculatedValue
     {
     public:
@@ -17,6 +20,7 @@ namespace ai
         virtual bool Calculate() override;
     };
 
+    // 布尔值计算器：判断机器人是否在队长或主控的跟随范围内
     class IsNearLeaderValue : public BoolCalculatedValue
     {
     public:
@@ -24,6 +28,7 @@ namespace ai
         virtual bool Calculate() override;
     };
 
+    // 数值计算器：统计队伍中满足指定布尔 AI 值的成员人数
     class GroupBoolCountValue : public Uint32CalculatedValue, public Qualified
     {
     public:
@@ -31,6 +36,7 @@ namespace ai
         virtual uint32 Calculate() override;
     };
     
+    // 布尔值计算器：判断队伍中所有成员是否全部满足指定布尔 AI 值（逻辑与）
     class GroupBoolANDValue : public BoolCalculatedValue, public Qualified
     {
     public:
@@ -38,6 +44,7 @@ namespace ai
         virtual bool Calculate() override;
     };
 
+    // 布尔值计算器：判断队伍中是否至少有一名成员满足指定布尔 AI 值（逻辑或）
     class GroupBoolORValue : public BoolCalculatedValue, public Qualified
     {
     public:
@@ -45,6 +52,7 @@ namespace ai
         virtual bool Calculate() override;
     };
 
+    // 布尔值计算器：检查范围内跟随队友是否均已存活且恢复至安全血蓝状态
     class GroupReadyValue : public BoolCalculatedValue, public Qualified
     {
     public:

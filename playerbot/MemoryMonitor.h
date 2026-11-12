@@ -11,6 +11,7 @@
 #include <atomic>
 #include <cstdint>
 
+/// 引擎内部对象实例计数类型枚举
 enum ObjectCounterType
 {
     OBJECT_COUNTER_CREATURE_GENERIC = 0,
@@ -22,6 +23,7 @@ enum ObjectCounterType
     OBJECT_COUNTER_COUNT
 };
 
+/// 将 CreatureSubtype 映射为内存统计计数器类型
 inline ObjectCounterType CreatureCounterType(CreatureSubtype subtype)
 {
     switch (subtype)
@@ -33,6 +35,7 @@ inline ObjectCounterType CreatureCounterType(CreatureSubtype subtype)
     }
 }
 
+/// 内存与对象生命周期监控器，跟踪各类型实例数与分配调用栈
 class MemoryMonitor
 {
     public:
@@ -44,10 +47,10 @@ class MemoryMonitor
             return instance;
         }
 
-	public:        
-        //Objecttype is the name of the class/struct.
-        //Object is a pointer to the object or unique identifier.
-        //level = 0 only count total number of objects, otherwise log the creation stack of any (object%level) = 0 object.
+    public:        
+        //Objecttype is the name of the class/struct. | 对象类型名
+        //Object is a pointer to the object or unique identifier. | 对象指针或唯一标识
+        //level = 0 only count total number of objects, otherwise log the creation stack of any (object%level) = 0 object. | level>0 时按取模采样记录创建栈
         void Add(std::string objectType, uint64_t object, int level = 0, std::string stack = ""); //Method to call when object gets created.
         void Rem(std::string objectType, uint64_t object, int level = 0); //Method to call when object gets destroyed.
         void Count(ObjectCounterType type, int delta = 1);
@@ -58,7 +61,7 @@ class MemoryMonitor
         void DumpStacks(std::string filename);
         void LogCount(std::string filename);
         void SampleDiagnostics();
-	private:
+    private:
         void BrowseTo(FILE* file);
         std::unordered_map<std::thread::id, std::map<std::string, int>> objectnumbers;
         std::list<std::map<std::string, int >> objectnumbersHist;
@@ -70,6 +73,7 @@ class MemoryMonitor
 
 #define sMemoryMonitor MemoryMonitor::instance()
 
+/// 进程堆内存定时巡检采样器
 class HeapWatch
 {
     public:
@@ -90,6 +94,7 @@ class HeapWatch
 #define sHeapWatch HeapWatch::instance()
 
 
+/// 内存分配热点采样监控器
 class AllocWatch
 {
     public:

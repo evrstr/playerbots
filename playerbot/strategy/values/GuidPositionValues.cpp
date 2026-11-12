@@ -1,3 +1,4 @@
+// 策略值实现：GuidPositionValues（周围 GameObject 收集及多维条件过滤）
 #include "GuidPositionValues.h"
 #include "playerbot/TravelMgr.h"
 #include "NearestGameObjects.h"
@@ -8,6 +9,7 @@
 using namespace ai;
 using namespace MaNGOS;
 
+// 利用网格搜索器查找反应距离内的全部 GameObject
 std::list<GuidPosition> GameObjectsValue::Calculate()
 {
     std::list<GameObject*> targets;
@@ -23,6 +25,7 @@ std::list<GuidPosition> GameObjectsValue::Calculate()
     return result;
 }
 
+// 解析目标列表值名与 Entry 列表，保留 Entry 匹配的对象
 std::list<GuidPosition> EntryFilterValue::Calculate()
 {
    std::list<GuidPosition> result;
@@ -45,6 +48,7 @@ std::list<GuidPosition> EntryFilterValue::Calculate()
     return result;
 }
 
+// 辅助函数：判断字符串是否为有效数字
 bool is_numeric(const std::string& number)
 {
    char* end = 0;
@@ -54,11 +58,13 @@ bool is_numeric(const std::string& number)
 }
 
 
+// 辅助函数：判断字符串是否为整数
 bool is_integer(const std::string& number)
 {
    return is_numeric(number) && std::strchr(number.c_str(), '.') == 0;
 }
 
+// 递归解析限定符中的整数 ID、AI 值或游戏对象聊天链接为 GUID 计数列表
 std::vector<std::string> GuidFilterValue::QualifierToEntryList(const std::string& qualifier)
 {
    std::vector<std::string> entryList;
@@ -106,6 +112,7 @@ std::vector<std::string> GuidFilterValue::QualifierToEntryList(const std::string
    return entryList;
 }
 
+// 根据 GUID 计数器列表过滤 GuidPosition 集合
 std::list<GuidPosition> GuidFilterValue::Calculate()
 {
    std::list<GuidPosition> result;
@@ -133,6 +140,7 @@ std::list<GuidPosition> GuidFilterValue::Calculate()
    return result;
 }
 
+// 根据限定距离和参考基准玩家（bot/master）过滤 GuidPosition 集合
 std::list<GuidPosition> RangeFilterValue::Calculate()
 {
     std::list<GuidPosition> result;
@@ -142,11 +150,11 @@ std::list<GuidPosition> RangeFilterValue::Calculate()
     {
        std::list<GuidPosition> guidList = AI_VALUE(std::list<GuidPosition>, params[0]);
        float range = stof(params[1]);
-       Player* from_player = bot; // default
+       Player* from_player = bot; // default | 默认以机器人自身为距离基准
 
        if (params.size() >= 3)
        {
-          if (params[2] == "self") // technically not needed
+          if (params[2] == "self") // technically not needed | 严格来说该分支可省略
           {
              from_player = bot;
           }
@@ -174,6 +182,7 @@ std::list<GuidPosition> RangeFilterValue::Calculate()
     return result;
 }
 
+// 解析可选对象集、距离和参照物参数并委托给 range filter 执行查询
 std::list<GuidPosition> GosInSightValue::Calculate()
 { 
    std::string querried_object = "gos";
@@ -203,6 +212,7 @@ std::list<GuidPosition> GosInSightValue::Calculate()
    return AI_VALUE2(std::list<GuidPosition>, "range filter", ss.str());
 }
 
+// 保留当前对机器人可开启、交互或激活的 GameObject
 std::list<GuidPosition> GoUsableFilterValue::Calculate()
 {
     std::list<GuidPosition> guidList = AI_VALUE(std::list<GuidPosition>, getQualifier());
@@ -222,6 +232,7 @@ std::list<GuidPosition> GoUsableFilterValue::Calculate()
     return result;
 }
 
+// 保留当前带有触发陷阱的 GameObject
 std::list<GuidPosition> GoTrappedFilterValue::Calculate()
 {
     std::list<GuidPosition> guidList = AI_VALUE(std::list<GuidPosition>, getQualifier());

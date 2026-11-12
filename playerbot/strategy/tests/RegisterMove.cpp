@@ -1,8 +1,10 @@
+/// 测试生成器：移动与乘船/飞艇/电梯跨地图交通测试注册实现
 #include "playerbot/playerbot.h"
 #include "TestRegistry.h"
 
 using namespace ai;
 
+/// 注册手写跨海乘船测试及自动生成的常规移动与交通工具测试
 void TestRegistry::RegisterMoveTests()
 {
     static const std::string gmInvisible = "gm visible off";
@@ -12,8 +14,8 @@ void TestRegistry::RegisterMoveTests()
     static const std::string timeout10Min = "monitor time > 600 => fail \"Timeout: bot did not reach destination (traveled <distance traveled> / wanted <distance wanted>)\"";
     static const std::string timeout20Min = "monitor time > 1200 => fail \"Timeout: bot did not reach the other side (traveled <distance traveled> / wanted <distance wanted>)\"";
 
-    // Transport ride: Menethil Harbor -> Theramore boat. Bot waits at the pier, boards,
-    // rides, disembarks and walks to Theramore. Hand-written because the generated
+    // Transport ride: Menethil Harbor -> Theramore boat. Bot waits at the pier, boards, | 乘船测试：米奈希尔港 -> 塞拉摩航线。机器人将在码头等待、登船、航行、下船并步行至塞拉摩，
+    // rides, disembarks and walks to Theramore. Hand-written because the generated | 因该码头在旅行网格中缺少节点故采用手写脚本。
     // transport suite needs dock nodes the travel mesh did not create for this pier.
     RegisterTest("movement_transport_boat_menethil_theramore", {
         gmInvisible,
@@ -102,7 +104,7 @@ void TestRegistry::RegisterMoveTests()
 
     GenerateMovementTests(1000, 5.0f, 100000.0f);
 
-    //Special movement: transport rides (boats/zeppelins/elevators/trams). One test per ride edge:
+    //Special movement: transport rides (boats/zeppelins/elevators/trams). One test per ride edge: | 特殊移动测试：交通工具乘坐（船只/飞艇/电梯/地铁），每条航线生成一个测试。
     //teleport to one dock, send the bot to the other side, it must wait/board/ride/disembark.
     GenerateTransportTests(100);
 }

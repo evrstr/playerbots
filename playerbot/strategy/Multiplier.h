@@ -11,6 +11,7 @@ namespace ai
 
 namespace ai
 {
+    /// 动作相关性权重乘数基类，用于在决策阶段动态缩放特定动作的优先级
     class Multiplier : public AiNamedObject
     {
     public:

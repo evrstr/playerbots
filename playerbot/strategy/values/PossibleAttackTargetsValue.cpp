@@ -1,3 +1,4 @@
+// 策略值实现：PossibleAttackTargetsValue（控场/免疫/灰名抢怪过滤与增援判定）
 
 #include "playerbot/playerbot.h"
 #include "PossibleAttackTargetsValue.h"
@@ -14,6 +15,7 @@
 using namespace ai;
 using namespace MaNGOS;
 
+// 从 attackers 获取战斗目标并移除非威胁或无法直接攻击的目标
 std::list<ObjectGuid> PossibleAttackTargetsValue::Calculate()
 {
     std::list<ObjectGuid> result;
@@ -21,7 +23,7 @@ std::list<ObjectGuid> PossibleAttackTargetsValue::Calculate()
     {
         if (bot->IsInWorld() && !bot->IsBeingTeleported())
         {
-            // Check if we only need one possible attack target
+            // Check if we only need one possible attack target | 检查是否只需获取单个可攻击目标
             bool getOne = false;
             if (!qualifier.empty())
             {
@@ -30,12 +32,12 @@ std::list<ObjectGuid> PossibleAttackTargetsValue::Calculate()
 
             if (getOne)
             {
-                // Try to get one possible attack target
+                // Try to get one possible attack target | 尝试仅获取一个可攻击目标
                 result = AI_VALUE2(std::list<ObjectGuid>, "attackers", 1);
                 RemoveNonThreating(result, getOne);
             }
 
-            // If the one possible attack target failed, retry with multiple attackers
+            // If the one possible attack target failed, retry with multiple attackers | 若单个目标筛选失败，则回退获取完整列表
             if (result.empty())
             {
                 result = AI_VALUE(std::list<ObjectGuid>, "attackers");
@@ -44,9 +46,10 @@ std::list<ObjectGuid> PossibleAttackTargetsValue::Calculate()
         }
     }
 
-	return result;
+    return result;
 }
 
+// 清理无威胁目标：尽量保留可交战目标，仅在全员被控场时按优先级回退
 void PossibleAttackTargetsValue::RemoveNonThreating(std::list<ObjectGuid>& targets, bool getOne)
 {
     std::list<ObjectGuid> breakableCC;
@@ -79,7 +82,7 @@ void PossibleAttackTargetsValue::RemoveNonThreating(std::list<ObjectGuid>& targe
         {
             if (getOne)
             {
-                // If the target is valid return it straight away
+                // If the target is valid return it straight away | 若只需一个目标且当前目标有效则立即返回
                 std::list<ObjectGuid> result = { *tIter };
                 targets = result;
                 break;
@@ -104,12 +107,14 @@ void PossibleAttackTargetsValue::RemoveNonThreating(std::list<ObjectGuid>& targe
     }
 }
 
+// 检查目标的团队标记是否为当前应忽略控场的集火标记
 bool PossibleAttackTargetsValue::HasIgnoreCCRti(Unit* target, Player* player)
 {
     Group* group = player->GetGroup();
     return group && (group->GetTargetIcon(7) == target->GetObjectGuid());
 }
 
+// 判断目标身上是否带有受击会打破的控场效果（变形、致盲、闷棍等）
 bool PossibleAttackTargetsValue::HasBreakableCC(Unit* target, Player* player)
 {
     if (target->IsPolymorphed())
@@ -144,6 +149,7 @@ bool PossibleAttackTargetsValue::HasBreakableCC(Unit* target, Player* player)
     return false;
 }
 
+// 判断目标是否处于不可打破的无敌或强控制状态（放逐、冰箱等）
 bool PossibleAttackTargetsValue::HasUnBreakableCC(Unit* target, Player* player)
 {
     if (target->IsStunned())
@@ -164,6 +170,7 @@ bool PossibleAttackTargetsValue::HasUnBreakableCC(Unit* target, Player* player)
     return false;
 }
 
+// 判断目标是否已被队友或机器人选为控场（RTI CC）目标
 bool PossibleAttackTargetsValue::IsCcTarget(Unit* attacker, Player* player)
 {
     PlayerbotAI* ai = player->GetPlayerbotAI();
@@ -200,16 +207,17 @@ bool PossibleAttackTargetsValue::IsCcTarget(Unit* attacker, Player* player)
     return false;
 }
 
+// 判断目标是否对物理或全部法术系免疫伤害
 bool PossibleAttackTargetsValue::IsImmuneToDamage(Unit* target, Player* player)
 {
-    // Charmed
+    // Charmed | 被魅惑控制时跳过常规免疫检测
     if (sServerFacade.IsCharmed(target) && target->IsInTeam(player, true))
     {
         return true;
     }
 
-    // Immune to damage
-    // Before we check auras, check school derived immunity for creatures
+    // Immune to damage | 检查是否具有伤害免疫光环或状态
+    // Before we check auras, check school derived immunity for creatures | 在检查光环前先校验生物自带的法术系免疫掩码
     if (target->IsCreature())
     {
         if(((Creature*)target)->GetCreatureInfo()->SchoolImmuneMask == SPELL_SCHOOL_MASK_ALL)
@@ -243,6 +251,7 @@ bool PossibleAttackTargetsValue::IsImmuneToDamage(Unit* target, Player* player)
     return false;
 }
 
+// 将当前可攻击目标列表格式化为可读名称字符串
 std::string PossibleAttackTargetsValue::Format()
 {
     std::ostringstream out;
@@ -263,6 +272,7 @@ std::string PossibleAttackTargetsValue::Format()
     return out.str();
 }
 
+// 检查 NPC 怪物归属权（是否已被其他非队友玩家占怪灰名）
 bool PossibleAttackTargetsValue::IsTapped(Unit* target, Player* player)
 {
     if (player)
@@ -279,26 +289,26 @@ bool PossibleAttackTargetsValue::IsTapped(Unit* target, Player* player)
             Player* master = ai ? ai->GetMaster() : nullptr;
             PlayerbotAI* ai = player->GetPlayerbotAI();
 
-             if (!victim) //Target is not attacking anything.
+             if (!victim) //Target is not attacking anything. | 目标当前未攻击任何单位
                 return true;
 
-            if (master && victim == master) //Target is attacking master.
+            if (master && victim == master) //Target is attacking master. | 目标正在攻击主控玩家
                 return true;
 
-            if (player->IsInGroup(victim)) //Target is attacking groupmember.
+            if (player->IsInGroup(victim)) //Target is attacking groupmember. | 目标正在攻击队伍成员
                 return true;
 
-            if (!creature->HasLootRecipient()) //Target is untapped.
+            if (!creature->HasLootRecipient()) //Target is untapped. | 目标尚未被任何玩家占怪（非灰名）
                 return true;
 
-            if (creature->IsTappedBy(player)) //Target is tapped by player.
+            if (creature->IsTappedBy(player)) //Target is tapped by player. | 目标已被己方玩家占有归属权
                 return true;
 
-            if (master && target->getThreatManager().getThreat(master)) //Master as threat
+            if (master && target->getThreatManager().getThreat(master)) //Master as threat | 主控对该目标拥有仇恨
                 return true;
 
-            if (ai && ai->HasStrategy("attack tagged", BotState::BOT_STATE_NON_COMBAT)) //Can attack tagged.
-                if(ai->HasActivePlayerMaster() || !player->GetGroup() || player->GetGroup()->IsLeader(player->GetObjectGuid())) //Playing with a player or not in a group or master of group.
+            if (ai && ai->HasStrategy("attack tagged", BotState::BOT_STATE_NON_COMBAT)) //Can attack tagged. | 已开启 attack tagged 策略允许攻击被占怪
+                if(ai->HasActivePlayerMaster() || !player->GetGroup() || player->GetGroup()->IsLeader(player->GetObjectGuid())) //Playing with a player or not in a group or master of group. | 当前跟随真人玩家或独立/作为队长时生效
                     return true;
         }
     }
@@ -306,9 +316,10 @@ bool PossibleAttackTargetsValue::IsTapped(Unit* target, Player* player)
     return false;
 }
 
+// 综合验证目标是否处于合法战斗可攻击状态
 bool PossibleAttackTargetsValue::IsValid(Unit* target, Player* player, float range, bool ignoreCC, bool checkAttackerValid)
 {
-    // Check for the valid attackers value
+    // Check for the valid attackers value | 先通过 attackers 合法性校验
     if (checkAttackerValid && !AttackersValue::IsValid(target, player))
     {
         return false;
@@ -338,33 +349,34 @@ bool PossibleAttackTargetsValue::IsValid(Unit* target, Player* player, float ran
     return false;
 }
 
+// 校验目标的距离、伤害免疫、控场状态与归属权
 bool PossibleAttackTargetsValue::IsPossibleTarget(Unit* target, Player* player, float range, bool ignoreCC)
 {
     if(target)
     {
-        // If the target is in an attackable distance
+        // If the target is in an attackable distance | 检查目标是否在可攻击距离内
         if(!player->IsWithinDistInMap(target, range))
         {
             return false;
         }
 
-        // If the target is immune to any damage
+        // If the target is immune to any damage | 排除伤害免疫的目标
         if (IsImmuneToDamage(target, player))
         {
             return false;
         }
 
-        // If the target is CC'ed or is a CC target (don't place a dot before we recast cc...)
+        // If the target is CC'ed or is a CC target (don't place a dot before we recast cc...) | 排除已受控或被指定为控场目标的单位
         if(!ignoreCC && !HasIgnoreCCRti(target, player) && (HasBreakableCC(target, player) || HasUnBreakableCC(target, player)) || IsCcTarget(target, player))
         {
             return false;
         }
 
-        // If the target is a NPC
+        // If the target is a NPC | 目标为 NPC 时的额外归属检查
         Player* enemyPlayer = dynamic_cast<Player*>(target);
         if (!enemyPlayer)
         {
-            // If the target is not tapped (the player doesn't have the loot rights (gray name))
+            // If the target is not tapped (the player doesn't have the loot rights (gray name)) | 若怪物已被他人占怪（灰名且无拾取权）则排除
             if (!IsTapped(target, player))
             {
                 return false;
@@ -377,6 +389,7 @@ bool PossibleAttackTargetsValue::IsPossibleTarget(Unit* target, Player* player, 
     return false;
 }
 
+// 检查无视线潜在目标中是否有靠近当前攻击目标且尚未参战的怪物
 bool PossibleAddsValue::Calculate()
 {
     PlayerbotAI *ai = bot->GetPlayerbotAI();

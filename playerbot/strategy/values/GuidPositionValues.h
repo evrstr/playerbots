@@ -1,3 +1,4 @@
+// 策略值头文件：GuidPositionValues（游戏对象查找及 Entry/GUID/距离/可用/陷阱过滤器）
 #pragma once
 
 #include "playerbot/playerbot.h"
@@ -6,6 +7,7 @@
 
 namespace ai
 {
+    // 坐标列表计算器：扫描反应距离内的所有 GameObject 并返回其 GuidPosition 列表
     class GameObjectsValue : public GuidPositionListCalculatedValue
     {
     public:
@@ -15,6 +17,7 @@ namespace ai
     };
 
 
+    // 过滤器计算器：按指定的模板 Entry ID 列表过滤 GuidPosition 列表
     class EntryFilterValue : public GuidPositionListCalculatedValue, public Qualified
     {
     public:
@@ -23,7 +26,7 @@ namespace ai
         virtual std::list<GuidPosition> Calculate() override;
 
 #ifdef GenerateBotHelp
-        virtual std::string GetHelpName() { return "entry filter"; } //Must equal iternal name
+        virtual std::string GetHelpName() { return "entry filter"; } //Must equal iternal name | 必须与内部名称一致
         virtual std::string GetHelpTypeName() { return "entry"; }
         virtual std::string GetHelpDescription()
         {
@@ -33,6 +36,7 @@ namespace ai
 #endif 
     };
 
+    // 过滤器计算器：按实例 GUID 计数器或对象链接过滤 GuidPosition 列表
     class GuidFilterValue : public GuidPositionListCalculatedValue, public Qualified
     {
     public:
@@ -41,7 +45,7 @@ namespace ai
        virtual std::list<GuidPosition> Calculate() override;
 
 #ifdef GenerateBotHelp
-       virtual std::string GetHelpName() { return "guid filter"; } //Must equal iternal name
+       virtual std::string GetHelpName() { return "guid filter"; } //Must equal iternal name | 必须与内部名称一致
        virtual std::string GetHelpTypeName() { return "guid"; }
        virtual std::string GetHelpDescription()
        {
@@ -54,6 +58,7 @@ namespace ai
        std::vector<std::string> QualifierToEntryList(const std::string& qualifier);
     };
 
+    // 过滤器计算器：按距离参考玩家的范围上限过滤 GuidPosition 列表
     class RangeFilterValue : public GuidPositionListCalculatedValue, public Qualified
     {
     public:
@@ -62,7 +67,7 @@ namespace ai
         virtual std::list<GuidPosition> Calculate() override;
 
 #ifdef GenerateBotHelp
-        virtual std::string GetHelpName() { return "range filter"; } //Must equal iternal name
+        virtual std::string GetHelpName() { return "range filter"; } //Must equal iternal name | 必须与内部名称一致
         virtual std::string GetHelpTypeName() { return "entry"; }
         virtual std::string GetHelpDescription()
         {
@@ -72,6 +77,7 @@ namespace ai
 #endif 
     };
 
+    // 过滤器计算器：筛出当前可交互/可点击（未上锁、无冷却等）的 GameObject
     class GoUsableFilterValue : public GuidPositionListCalculatedValue, public Qualified
     {
     public:
@@ -80,7 +86,7 @@ namespace ai
         virtual std::list<GuidPosition> Calculate() override;
 
 #ifdef GenerateBotHelp
-        virtual std::string GetHelpName() { return "go usable filter"; } //Must equal iternal name
+        virtual std::string GetHelpName() { return "go usable filter"; } //Must equal iternal name | 必须与内部名称一致
         virtual std::string GetHelpTypeName() { return "entry"; }
         virtual std::string GetHelpDescription()
         {
@@ -90,6 +96,7 @@ namespace ai
 #endif 
     };
 
+    // 过滤器计算器：筛出当前有关联陷阱（需拆陷阱或避开）的 GameObject
     class GoTrappedFilterValue : public GuidPositionListCalculatedValue, public Qualified
     {
     public:
@@ -98,7 +105,7 @@ namespace ai
         virtual std::list<GuidPosition> Calculate() override;
 
 #ifdef GenerateBotHelp
-        virtual std::string GetHelpName() { return "go trapped filter"; } //Must equal iternal name
+        virtual std::string GetHelpName() { return "go trapped filter"; } //Must equal iternal name | 必须与内部名称一致
         virtual std::string GetHelpTypeName() { return "entry"; }
         virtual std::string GetHelpDescription()
         {
@@ -109,14 +116,16 @@ namespace ai
     };
 
 
+    // 坐标列表计算器：查找视距内或指定参数范围内的 GameObject
     class GosInSightValue : public GuidPositionListCalculatedValue, public Qualified
-	{
-	public:
+    {
+    public:
         GosInSightValue(PlayerbotAI* ai, std::string name = "gos in sight") : GuidPositionListCalculatedValue(ai, name, 3), Qualified() {}
 
         virtual std::list<GuidPosition> Calculate() override;
     };
 
+    // 坐标列表计算器：查找交互距离（INTERACTION_DISTANCE）内的 GameObject
     class GoSCloseValue : public GuidPositionListCalculatedValue, public Qualified
     {
     public:
@@ -127,6 +136,7 @@ namespace ai
 
 
 
+    // 布尔值计算器：判断指定 GuidPosition 列表值是否非空
     class HasObjectValue : public BoolCalculatedValue, public Qualified
     {
     public:

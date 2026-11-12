@@ -4,6 +4,7 @@
 
 using namespace ai;
 
+/// 判断当前状态下该动作是否可用/有效（公会共享物品动作）
 bool GuildShareItemAction::isUseful()
 {
     if (!bot->GetGuildId())
@@ -15,6 +16,7 @@ bool GuildShareItemAction::isUseful()
     return AI_VALUE(GuildShareTarget, "guild share target").IsValid();
 }
 
+/// 执行动作主逻辑（公会共享物品动作）
 bool GuildShareItemAction::Execute(Event& event)
 {
     GuildShareTarget shareTarget = AI_VALUE(GuildShareTarget, "guild share target");
@@ -23,7 +25,7 @@ bool GuildShareItemAction::Execute(Event& event)
 
     Player* receiver = shareTarget.receiver;
     uint32 itemId = shareTarget.itemId;
-    uint32 shareAmount = shareTarget.amount; // 0 = give all (existing behavior)
+    uint32 shareAmount = shareTarget.amount; // 0 = give all (existing behavior) (0 = 全部给予（现有默认行为）)
 
     PlayerbotAI* receiverAi = receiver->GetPlayerbotAI();
     if (!receiverAi)
@@ -69,8 +71,8 @@ bool GuildShareItemAction::Execute(Event& event)
                 return false;
             }
 
-            // SetCount and StoreItem do not update the quest item counters, unlike
-            // MoveItemFromInventory and MoveItemToInventory for a whole stack.
+            // SetCount and StoreItem do not update the quest item counters, unlike (SetCount 与 StoreItem 不会自动更新任务物品计数，不同于)
+            // MoveItemFromInventory and MoveItemToInventory for a whole stack. (对整组堆叠物品执行背包移出与移入操作。)
             bot->ItemRemovedQuestCheck(itemId, giveCount);
             item->SetCount(stackCount - giveCount);
             item->SetState(ITEM_CHANGED, bot);

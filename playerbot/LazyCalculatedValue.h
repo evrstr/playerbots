@@ -2,6 +2,7 @@
 
 namespace ai 
 {
+    /// 惰性求值缓存模板，首次调用 GetValue 时求值并缓存结果，直至调用 Reset
     template <class TValue, class TOwner>
     class LazyCalculatedValue
     {

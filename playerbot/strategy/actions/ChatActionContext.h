@@ -87,9 +87,11 @@
 
 namespace ai
 {
+    /// 聊天指令动作上下文：注册通过密语或频道命令触发的机器人动作
     class ChatActionContext : public NamedObjectContext<Action>
     {
     public:
+        /// 构造函数：初始化聊天指令动作上下文
         ChatActionContext()
         {
             creators["range"] = [](PlayerbotAI* ai) { return new RangeAction(ai); };

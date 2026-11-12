@@ -11,6 +11,7 @@ using namespace ai;
 
 uint64 extractGuid(WorldPacket& packet);
 
+/// 执行动作主逻辑（检查坐骑状态动作）
 bool CheckMountStateAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -49,7 +50,7 @@ bool CheckMountStateAction::Execute(Event& event)
     bool IsMounted = AI_VALUE2(uint32, "current mount speed", "self target");
     bool IsLeaderMounted = groupMaster && AI_VALUE2(uint32, "current mount speed", "master target");
 
-    //Mount up in battle grounds
+    // Mount up in battle grounds (在战场中上马)
     if (bot->InBattleGround())
     {
         if (WorldPosition(bot).currentHeight() < -5.0f)
@@ -70,7 +71,7 @@ bool CheckMountStateAction::Execute(Event& event)
         }
     }
 
-    //Unmounted when able to attack target and not fleeing
+    // Unmounted when able to attack target and not fleeing (能够攻击目标且非撤退状态时下马准备战斗)
     if (canAttackTarget && !ai->HasStrategy("passive", BotState::BOT_STATE_COMBAT))
     {
         if (ai->HasStrategy("debug mount", BotState::BOT_STATE_NON_COMBAT) && IsMounted)
@@ -78,11 +79,11 @@ bool CheckMountStateAction::Execute(Event& event)
         return UnMount();
     }
 
-    //No more logic needed in bg.
+    // No more logic needed in bg. (战场中无需执行后续逻辑。)
     if (bot->InBattleGround())
         return false;
 
-    //Chase to current target.
+    // Chase to current target. (追击当前目标。)
     if (!canAttackTarget && (farFromTarget || shouldChaseTarget))
     {
         if (ai->HasStrategy("debug mount", BotState::BOT_STATE_NON_COMBAT) && !IsMounted)
@@ -91,7 +92,7 @@ bool CheckMountStateAction::Execute(Event& event)
         return Mount(requester);
     }
 
-    //Following master and close to master that is unmounted.
+    // Following master and close to master that is unmounted. (正在跟随主人且靠近未上马的主人。)
     if ((ai->HasStrategy("follow", BotState::BOT_STATE_NON_COMBAT) ||
         ai->HasStrategy("wander", BotState::BOT_STATE_NON_COMBAT)) &&
         groupMaster && groupMaster != bot &&
@@ -103,7 +104,7 @@ bool CheckMountStateAction::Execute(Event& event)
         return UnMount();
     }
 
-    //Near guard position
+    // Near guard position (接近警戒守卫位置)
     if (ai->HasStrategy("guard", ai->GetState()))
     {
         PositionMap& posMap = AI_VALUE(PositionMap&, "position");
@@ -120,7 +121,7 @@ bool CheckMountStateAction::Execute(Event& event)
         }
     }
 
-    //Near stay position
+    // Near stay position (接近原地停留位置)
     if (ai->HasStrategy("stay", ai->GetState()))
     {
         PositionMap& posMap = AI_VALUE(PositionMap&, "position");
@@ -137,7 +138,7 @@ bool CheckMountStateAction::Execute(Event& event)
         }
     }
 
-    //Doing stuff nearby.
+    // Doing stuff nearby. (正在附近执行交互行为。)
     if (AI_VALUE(bool, "travel target working"))
     {
         if (ai->HasStrategy("debug mount", BotState::BOT_STATE_NON_COMBAT) && IsMounted)
@@ -146,7 +147,7 @@ bool CheckMountStateAction::Execute(Event& event)
         return UnMount();
     }
 
-    //Rping nearby.
+    // Rping nearby. (正在附近进行 RPG 交互。)
     if (AI_VALUE(GuidPosition, "rpg target") && sServerFacade.IsDistanceLessThan(AI_VALUE2(float, "distance", "rpg target"), sPlayerbotAIConfig.farDistance))
     {
         if (ai->HasStrategy("debug mount", BotState::BOT_STATE_NON_COMBAT) && IsMounted)
@@ -159,7 +160,7 @@ bool CheckMountStateAction::Execute(Event& event)
         ai->HasStrategy("wander", BotState::BOT_STATE_NON_COMBAT)) &&
         groupMaster && groupMaster != bot)
     {
-        //Mounting with master.
+        // Mounting with master. (跟随主人同步上马。)
         if (IsLeaderMounted && !hasAttackers)
         {
             if (ai->HasStrategy("debug mount", BotState::BOT_STATE_NON_COMBAT) && !IsMounted)
@@ -168,7 +169,7 @@ bool CheckMountStateAction::Execute(Event& event)
             return Mount(requester);
         }
 
-        //Mounting to move to master.
+        // Mounting to move to master. (骑乘以快速靠近主人。)
         if (farFromMaster && !bot->IsInCombat())
         {
             if (ai->HasStrategy("debug mount", BotState::BOT_STATE_NON_COMBAT) && !IsMounted)
@@ -180,7 +181,7 @@ bool CheckMountStateAction::Execute(Event& event)
 
     if (!ai->IsStateActive(BotState::BOT_STATE_COMBAT) && !hasEnemy)
     {
-        //Mounting to travel.
+        // Mounting to travel. (骑乘以执行长途旅行。)
         if (AI_VALUE(bool, "travel target traveling") && AI_VALUE(bool, "can move around"))
         {
             if (ai->HasStrategy("debug mount", BotState::BOT_STATE_NON_COMBAT) && !IsMounted)
@@ -190,7 +191,7 @@ bool CheckMountStateAction::Execute(Event& event)
         }
         else if (!hasAttackers)
         {
-            //Mounting to move to rpg target.
+            // Mounting to move to rpg target. (骑乘以快速前往 RPG 目标。)
             if (AI_VALUE(GuidPosition, "rpg target") && sServerFacade.IsDistanceGreaterThan(AI_VALUE2(float, "distance", "rpg target"), sPlayerbotAIConfig.sightDistance))
             {
                 if (ai->HasStrategy("debug mount", BotState::BOT_STATE_NON_COMBAT) && !IsMounted)
@@ -199,7 +200,7 @@ bool CheckMountStateAction::Execute(Event& event)
                 return Mount(requester, true);
             }
 
-            //Mounting in safe place.
+            // Mounting in safe place. (在安全位置骑乘。)
             if (!ai->HasStrategy("guard", ai->GetState()) && !ai->HasStrategy("stay", ai->GetState()) && !AI_VALUE(std::list<ObjectGuid>, "possible rpg targets").empty() && urand(0, 100) > 50)
             {
                 if (ai->HasStrategy("debug mount", BotState::BOT_STATE_NON_COMBAT) && !IsMounted)
@@ -209,7 +210,7 @@ bool CheckMountStateAction::Execute(Event& event)
             }
         }
 
-        //Far from guard position
+        // Far from guard position (远离警戒守卫位置)
         if (ai->HasStrategy("guard", ai->GetState()))
         {
             PositionMap& posMap = AI_VALUE(PositionMap&, "position");
@@ -226,7 +227,7 @@ bool CheckMountStateAction::Execute(Event& event)
             }
         }
 
-        //Far from stay position
+        // Far from stay position (远离原地停留位置)
         if (ai->HasStrategy("stay", ai->GetState()))
         {
             PositionMap& posMap = AI_VALUE(PositionMap&, "position");
@@ -247,9 +248,10 @@ bool CheckMountStateAction::Execute(Event& event)
     return false;
 }
 
+/// 判断当前状态下该动作是否可用/有效（检查坐骑状态动作）
 bool CheckMountStateAction::isUseful()
 {
-    // do not use on vehicle
+    // do not use on vehicle (在载具上时不使用)
     if (ai->IsInVehicle())
         return false;
 
@@ -283,7 +285,7 @@ bool CheckMountStateAction::isUseful()
     if (!bot->IsMounted() && bot->IsInWater())
         return false;
 
-    // Do not use with BG Flags, except forms like "Travel Form" and "Ghost Wolf"
+    // Do not use with BG Flags, except forms like "Travel Form" and "Ghost Wolf" (携带战场旗帜时禁止使用，旅行形态与幽魂之狼除外)
     if (bot->HasAura(23333) || bot->HasAura(23335) || bot->HasAura(34976))
 {
     if (!bot->HasSpell(783) && !bot->HasSpell(2645))
@@ -291,7 +293,7 @@ bool CheckMountStateAction::isUseful()
 }
 
 
-    // Only mount if BG starts in less than 30 sec
+    // Only mount if BG starts in less than 30 sec (仅在距离战场开启不足 30 秒时才上马)
     if (bot->InBattleGround())
     {
         BattleGround* bg = bot->GetBattleGround();
@@ -311,6 +313,7 @@ bool CheckMountStateAction::isUseful()
     return true;
 }
 
+/// 判断机器人当前区域及坐骑状态是否支持飞行移动
 bool CheckMountStateAction::CanFly() const
 {
     if (bot->GetMapId() != 530 && bot->GetMapId() != 571)
@@ -338,9 +341,10 @@ bool CheckMountStateAction::CanFly() const
     return false;
 }
 
+/// 判断当前战场规则与携带旗帜状态是否允许上马
 bool CheckMountStateAction::CanMountInBg() const
 {
-    //Do not mount with or near flag.
+    // Do not mount with or near flag. (携带旗帜或靠近旗帜点时不要上马。)
     if (bot->GetBattleGroundTypeId() == BattleGroundTypeId::BATTLEGROUND_WS)
     {
         BattleGroundWS* bg = (BattleGroundWS*)ai->GetBot()->GetBattleGround();
@@ -350,7 +354,7 @@ bool CheckMountStateAction::CanMountInBg() const
             return false;
         }
 #ifdef MANGOSBOT_ZERO
-        //check near A Flag
+        // check near A Flag (检查是否靠近联盟旗帜)
         uint32 lowguid = 90000;
         uint32 id = 179830;
         if (!bg)
@@ -360,7 +364,7 @@ bool CheckMountStateAction::CanMountInBg() const
         if (bot->IsWithinDistInMap(AllianceflagStand, 3.0f))
             return false;
 
-        //check near H Flag
+        // check near H Flag (检查是否靠近部落旗帜)
         lowguid = 90001;
         id = 179831;
         GameObject* HordeflagStand = bg->GetBgMap()->GetGameObject(ObjectGuid(HIGHGUID_GAMEOBJECT, id, lowguid));
@@ -372,6 +376,7 @@ bool CheckMountStateAction::CanMountInBg() const
     return true;
 }
 
+/// 根据职业与策略获取对目标的期望攻击距离
 float CheckMountStateAction::GetAttackDistance() const
 {
     switch (bot->getClass())
@@ -391,6 +396,7 @@ float CheckMountStateAction::GetAttackDistance() const
     return 35.0f;
 }
 
+/// 召唤并骑乘适合当前区域的陆地或飞行坐骑
 bool CheckMountStateAction::Mount(Player* requester, bool limitSpeedToGroup)
 {
 #ifdef MANGOSBOT_ZERO
@@ -398,7 +404,7 @@ bool CheckMountStateAction::Mount(Player* requester, bool limitSpeedToGroup)
 #else
     Player* groupMaster = ai->GetGroupMaster();
 
-    // only use a flying mount if master has a flying mount, to avoid laggards on ground (TBC flying is 60% ground speed)
+    // only use a flying mount if master has a flying mount, to avoid laggards on ground (TBC flying is 60% ground speed) (仅在主人拥有飞行坐骑时才骑飞行坐骑，避免地面与空中速度不一致掉队)
     bool canFly = groupMaster && groupMaster != bot ? CanFly() && (groupMaster->HasAuraType(SPELL_AURA_FLY) || 
         groupMaster->HasAuraType(SPELL_AURA_MOD_FLIGHT_SPEED_MOUNTED)) : CanFly();
     if (ai->HasStrategy("debug mount", BotState::BOT_STATE_NON_COMBAT))
@@ -467,7 +473,7 @@ bool CheckMountStateAction::Mount(Player* requester, bool limitSpeedToGroup)
             return false;
         }
 
-        if (currentSpeed) //Already mounted
+        if (currentSpeed) // Already mounted (已处于骑乘状态)
         {
             if (ai->HasStrategy("debug mount", BotState::BOT_STATE_NON_COMBAT))
                 ai->TellPlayerNoFacing(requester, "Mounted, unmount to mount faster next time.");
@@ -552,6 +558,7 @@ bool CheckMountStateAction::Mount(Player* requester, bool limitSpeedToGroup)
     return false;
 }
 
+/// 下马并取消当前的坐骑光环
 bool CheckMountStateAction::UnMount() const
 {
     if (!AI_VALUE2(uint32, "current mount speed", "self target"))

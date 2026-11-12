@@ -31,6 +31,7 @@ std::unordered_map<RandomPlayerbotFactory::NameRaceAndGender, std::vector<std::s
 std::mutex RandomPlayerbotFactory::nameMutex;
 bool RandomPlayerbotFactory::namesInitialized = false;
 
+// 初始化随机机器人创建工厂并缓存各职业可选种族表
 RandomPlayerbotFactory::RandomPlayerbotFactory(uint32 accountId) : accountId(accountId)
 {
     availableRaces[CLASS_WARRIOR].push_back(RACE_HUMAN);
@@ -124,6 +125,7 @@ RandomPlayerbotFactory::RandomPlayerbotFactory(uint32 accountId) : accountId(acc
 #endif
 }
 
+// 检查指定职业是否允许创建目标种族
 bool RandomPlayerbotFactory::isAvailableRace(uint8 cls, uint8 race)
 {
     if (race == RACE_GOBLIN)
@@ -138,6 +140,7 @@ bool RandomPlayerbotFactory::isAvailableRace(uint8 cls, uint8 race)
     return std::find(availableRaces[cls].begin(), availableRaces[cls].end(), race) != availableRaces[cls].end();
 }
 
+// 检查指定职业是否能胜任目标团队职责
 bool RandomPlayerbotFactory::isAvailableRole(uint8 cls, BotRoles role)
 {
     if (role == BotRoles::BOT_ROLE_NONE)
@@ -166,6 +169,7 @@ bool RandomPlayerbotFactory::isAvailableRole(uint8 cls, BotRoles role)
     }
 }
 
+// 按种族或团队职责随机抽取可用职业
 uint8 RandomPlayerbotFactory::GetRandomClass(uint8 useRace, BotRoles role)
 {
     uint32 classProb[MAX_CLASSES] = { 0 };
@@ -226,6 +230,7 @@ bool RandomPlayerbotFactory::isRaceForTeam(uint8 race, Team team)
     return false;
 }
 
+// 根据职业与阵营概率分布随机抽取种族
 uint8 RandomPlayerbotFactory::GetRandomRace(uint8 cls, Team team)
 {
     uint32 totalClassProb = 0;
@@ -258,6 +263,7 @@ uint8 RandomPlayerbotFactory::GetRandomRace(uint8 cls, Team team)
     return availableRaces[cls].front();
 }
 
+// 从 DBC 合法组合中为指定种族与性别随机挑选肤色、脸型、发型、发色与面部特征
 void RandomPlayerbotFactory::RandomizeAppearance(uint8 race, uint8 gender, uint8& skin, uint8& face, uint8& hairStyle, uint8& hairColor, uint8& facialHair)
 {
     std::vector<uint8> skinColors, facialHairTypes;
@@ -303,14 +309,14 @@ void RandomPlayerbotFactory::RandomizeAppearance(uint8 race, uint8 gender, uint8
 #endif
     }
 
-    // Keep the caller's defaults if the race/gender has no sections to pick from.
+    // Keep the caller's defaults if the race/gender has no sections to pick from. (无 DBC 外观数据时保留默认参数)
     if (skinColors.empty() || faces.empty() || hairs.empty())
         return;
 
     std::pair<uint8, uint8> faceEntry = faces[urand(0, faces.size() - 1)];
     std::pair<uint8, uint8> hairEntry = hairs[urand(0, hairs.size() - 1)];
 
-    // A face entry carries the skin colour it must be paired with, so use that
+    // A face entry carries the skin colour it must be paired with, so use that | 脸型记录绑定了配套肤色，必须成对使用以保证 DBC 合法性
     // (an independently picked skin colour could form an invalid combination).
     skin = faceEntry.second;
     face = faceEntry.first;
@@ -326,6 +332,7 @@ void RandomPlayerbotFactory::RandomizeAppearance(uint8 race, uint8 gender, uint8
 #endif
 }
 
+// 创建并持久化保存一个随机种族/外观/名称的新机器人角色
 bool RandomPlayerbotFactory::CreateRandomBot(uint8 cls, uint8 inputRace)
 {
     std::lock_guard<std::mutex> lock(nameMutex);
@@ -370,7 +377,7 @@ bool RandomPlayerbotFactory::CreateRandomBot(uint8 cls, uint8 inputRace)
         2, 0, LOCALE_enUS, "", 0, 0, false);
 #endif
 #ifdef MANGOSBOT_ONE
-		2, 0, LOCALE_enUS, "", 0, 0, false);
+        2, 0, LOCALE_enUS, "", 0, 0, false);
 #endif
 #ifdef MANGOSBOT_ZERO
         0, LOCALE_enUS, "", 0);
@@ -384,12 +391,12 @@ bool RandomPlayerbotFactory::CreateRandomBot(uint8 cls, uint8 inputRace)
         sLog.outError("BOTS: Unable to create session or player for random acc %d - name: \"%s\"; race: %u; class: %u", accountId, name.c_str(), race, cls);
         return false;
     }
-	if (!player->Create(sObjectMgr.GeneratePlayerLowGuid(), name, race, cls, gender,
-	        skin, // skinColor,
-	        face,
-	        hairStyle,
-	        hairColor,
-	        facialHair, 0))
+    if (!player->Create(sObjectMgr.GeneratePlayerLowGuid(), name, race, cls, gender,
+            skin, // skinColor,
+            face,
+            hairStyle,
+            hairColor,
+            facialHair, 0))
     {
         player->DeleteFromDB(player->GetObjectGuid(), accountId, true, true);
         delete session;
@@ -413,6 +420,7 @@ bool RandomPlayerbotFactory::CreateRandomBot(uint8 cls, uint8 inputRace)
     return true;
 }
 
+// 从对应种族性别名称池线程安全地弹出一个未使用角色名（耗尽时自动生成后缀名）
 std::string RandomPlayerbotFactory::CreateRandomBotName(NameRaceAndGender raceAndGender)
 {
     std::lock_guard<std::mutex> lock(nameMutex);
@@ -453,6 +461,7 @@ inline std::string GetNamePostFix(int32 nr)
     return ret;
 }
 
+// 从数据库加载可用随机名字并剔除已被占用名称
 void RandomPlayerbotFactory::EnsureNamesInitialized()
 {
     if (namesInitialized)
@@ -522,6 +531,7 @@ void RandomPlayerbotFactory::EnsureNamesInitialized()
     namesInitialized = true;
 }
 
+// 批量生成或补齐配置的随机机器人账号与角色（满足职业/种族分布及随机公会/竞技场队伍）
 void RandomPlayerbotFactory::CreateRandomBots()
 {
     EnsureNamesInitialized();
@@ -871,59 +881,59 @@ void RandomPlayerbotFactory::CreateRandomBots()
             continue;
         }
 
-	RandomPlayerbotFactory factory(accountId);
-	if (sPlayerbotAIConfig.useFixedClassRaceCounts)
-	{
+    RandomPlayerbotFactory factory(accountId);
+    if (sPlayerbotAIConfig.useFixedClassRaceCounts)
+    {
 #ifdef MANGOSBOT_TWO
-	    uint32 maxAllowed = 10 - count;
+        uint32 maxAllowed = 10 - count;
 #else
-	    uint32 maxAllowed = 9 - count;
+        uint32 maxAllowed = 9 - count;
 #endif
-	    uint32 created = 0;
+        uint32 created = 0;
 
-	    while (!remaining.empty() && created < maxAllowed)
-	    {
-	        std::vector<std::pair<uint8, uint8>> shuffledKeys;
-	        for (const auto& entry : remaining)
-	            shuffledKeys.push_back(entry.first);
+        while (!remaining.empty() && created < maxAllowed)
+        {
+            std::vector<std::pair<uint8, uint8>> shuffledKeys;
+            for (const auto& entry : remaining)
+                shuffledKeys.push_back(entry.first);
 
-	        // Shuffle the keys of the map
-	        std::random_device rnd;
-		std::mt19937 rng(rnd()); // Mersenne Twister RNG
-		std::shuffle(shuffledKeys.begin(), shuffledKeys.end(), rng);
+            // Shuffle the keys of the map
+            std::random_device rnd;
+        std::mt19937 rng(rnd()); // Mersenne Twister RNG
+        std::shuffle(shuffledKeys.begin(), shuffledKeys.end(), rng);
 
-	        for (const auto& key : shuffledKeys)
-	        {
-	            if (created >= maxAllowed)
-	                break;
+            for (const auto& key : shuffledKeys)
+            {
+                if (created >= maxAllowed)
+                    break;
 
-	            uint8 cls = key.first;
-	            uint8 race = key.second;
+                uint8 cls = key.first;
+                uint8 race = key.second;
 
-	            if (!((1 << (cls - 1)) & CLASSMASK_ALL_PLAYABLE) || !sChrClassesStore.LookupEntry(cls))
-	                continue;
+                if (!((1 << (cls - 1)) & CLASSMASK_ALL_PLAYABLE) || !sChrClassesStore.LookupEntry(cls))
+                    continue;
 
 #ifdef MANGOSBOT_TWO
-	            if (cls == 10)
-	                continue;
+                if (cls == 10)
+                    continue;
 #else
-	            if (cls == 10 || cls == 6)
-	                continue;
+                if (cls == 10 || cls == 6)
+                    continue;
 #endif
 
-	            if (factory.CreateRandomBot(cls, race))
-	            {
-	                created++;
-	                botsCreated++;
-	                bar1.step();
-	                if (--remaining[key] == 0)
-	                    remaining.erase(key);
-	            }
-	        }
-	    }
-	}
-	else
-	{
+                if (factory.CreateRandomBot(cls, race))
+                {
+                    created++;
+                    botsCreated++;
+                    bar1.step();
+                    if (--remaining[key] == 0)
+                        remaining.erase(key);
+                }
+            }
+        }
+    }
+    else
+    {
             for (uint8 cls = CLASS_WARRIOR; cls < MAX_CLASSES - count; ++cls)
             {
                 // skip nonexistent classes
@@ -942,7 +952,7 @@ void RandomPlayerbotFactory::CreateRandomBots()
                     bar1.step();
                 }
             }
-	}
+    }
 
         totalRandomBotChars += sAccountMgr.GetCharactersCount(accountId);
     }
@@ -951,31 +961,31 @@ void RandomPlayerbotFactory::CreateRandomBots()
 
     if (sPlayerbotAIConfig.useFixedClassRaceCounts && !remaining.empty())
     {
-	sLog.outError("Unable to create all requested fixed class/race bots due to account character limits.");
-	sLog.outError("The following class/race combination(s) were left uncreated:");
+    sLog.outError("Unable to create all requested fixed class/race bots due to account character limits.");
+    sLog.outError("The following class/race combination(s) were left uncreated:");
 
-	uint32 totalCount = 0;
-	for(const auto& entry : remaining)
-	{
-	    uint8 cls = entry.first.first;
-	    uint8 race = entry.first.second;
-	    uint32 count = entry.second;
-	    totalCount += count;
+    uint32 totalCount = 0;
+    for(const auto& entry : remaining)
+    {
+        uint8 cls = entry.first.first;
+        uint8 race = entry.first.second;
+        uint32 count = entry.second;
+        totalCount += count;
 
-	    sLog.outError(" - Class %u, Race %u: %u bots remaining", cls, race, count);
-	}
+        sLog.outError(" - Class %u, Race %u: %u bots remaining", cls, race, count);
+    }
 #ifdef MANGOSBOT_TWO
-	uint32 missingAccounts = (totalCount + 9) / 10;
+    uint32 missingAccounts = (totalCount + 9) / 10;
 #else
         uint32 missingAccounts = (totalCount + 8) / 9;
 #endif
-	sLog.outError("You need at least %u additional account(s) to fill the remaining fixed class/race combinations.", missingAccounts);
+    sLog.outError("You need at least %u additional account(s) to fill the remaining fixed class/race combinations.", missingAccounts);
     }
 
 
     if (!botsCreated)
     {
-	    sLog.outString("No new random bots needed. Accounts: %zu, bots: %d.", sPlayerbotAIConfig.randomBotAccounts.size(), totalRandomBotChars);
+        sLog.outString("No new random bots needed. Accounts: %zu, bots: %d.", sPlayerbotAIConfig.randomBotAccounts.size(), totalRandomBotChars);
 
         return;
     }
@@ -1028,6 +1038,7 @@ void RandomPlayerbotFactory::LoadRandomBotAccounts()
     } while (results->NextRow());
 }
 
+// 自动创建随机机器人公会并招募无公会机器人加入
 void RandomPlayerbotFactory::CreateRandomGuilds()
 {
     std::vector<uint32> randomBots;
@@ -1135,7 +1146,7 @@ void RandomPlayerbotFactory::CreateRandomGuilds()
         if (!guild->Create(player, guildName))
         {
             sLog.outError("Error creating random guild %s", guildName.c_str());
-			continue;
+            continue;
         }
 
         sGuildMgr.AddGuild(guild);
@@ -1187,6 +1198,7 @@ std::string RandomPlayerbotFactory::CreateRandomGuildName()
 }
 
 #ifndef MANGOSBOT_ZERO
+// 自动创建 2v2/3v3/5v5 竞技场队伍并分配成员
 void RandomPlayerbotFactory::CreateRandomArenaTeams()
 {
     std::vector<uint32> randomBots;

@@ -1,3 +1,4 @@
+/// 测试引擎核心动作：TestAction 实现
 #include "playerbot/playerbot.h"
 #include "TestAction.h"
 #include "TestRegistry.h"
@@ -33,6 +34,7 @@
 
 using namespace ai;
 
+/// 构造 TestAction，初始化命令与监听器注册表并加载全部可用测试
 TestAction::TestAction(PlayerbotAI* ai, std::string name)
     : Action(ai, name, 1), ctx(), bossFocusMgr(std::make_unique<BossFocusManager>(bot, ai, ctx))
 {
@@ -43,6 +45,7 @@ TestAction::TestAction(PlayerbotAI* ai, std::string name)
     TestRegistry::GetAvailableTests();
 }
 
+/// 注册所有内置测试指令处理器（TestCommand）
 void TestAction::RegisterCommands()
 {
     commands.push_back(std::make_unique<RequireBotIs>());
@@ -87,6 +90,7 @@ void TestAction::RegisterCommands()
     commands.push_back(std::make_unique<CommandHideSpawn>());
 }
 
+/// 注册所有内置状态监听器处理器（TestMonitor）
 void TestAction::RegisterMonitors()
 {
     monitors.push_back(std::make_unique<MonitorStateDead>());
@@ -131,6 +135,7 @@ void TestAction::RegisterMonitors()
     monitors.push_back(std::make_unique<MonitorSpawnDead>());
 }
 
+/// 每帧推进执行当前测试脚本指令或评估观察期监听器，直至测试得出结果
 bool TestAction::Execute(Event& event)
 {
     Player* requester = event.getOwner();
@@ -218,13 +223,13 @@ bool TestAction::Execute(Event& event)
 
     if (ctx.observing)
     {
-        // Re-anchor the start position when the test moves the bot to another map (the instance tests
+        // Re-anchor the start position when the test moves the bot to another map (the instance tests | 当测试开始观察且切换了地图时，重新锚定测试起点坐标以便准确计算移动距离
         // teleport after the baseline was taken at the spawn city) so "distance traveled/wanted" in
         // timeout messages measures the in-instance anchor instead of a cross-map artifact.
         if (bot->IsInWorld() && ctx.testStartPosition && bot->GetMapId() != ctx.testStartPosition.getMapId())
             ctx.testStartPosition = WorldPosition(bot);
 
-        // Capture the party-XP baseline here rather than at test start: the script may still level the
+        // Capture the party-XP baseline here rather than at test start: the script may still level the | 在开始观察时捕获小队经验基线（排除准备阶段的升级干扰）
         // host ("require bot is level") and form the party before observation begins, and both would
         // count as "gained xp" against a start-of-test baseline.
         if (!ctx.partyXpCaptured)
@@ -252,7 +257,7 @@ bool TestAction::Execute(Event& event)
     std::string message;
     TestResult commandResult = ExecuteCommand(ctx.script[ctx.pc], message);
 
-    // Log command execution for scenario, quest and lab tests
+    // Log command execution for scenario, quest and lab tests | 记录场景、任务和实验室测试命令的执行结果
     if (ctx.testName.find("scenario_") == 0 || ctx.testName.find("quest_") == 0 || ctx.testName.find("lab_") == 0 || ctx.testName.find("lab_micro") == 0)
     {
         std::string result = (commandResult == TestResult::PASS ? "PASS" :
@@ -294,6 +299,7 @@ bool TestAction::Execute(Event& event)
     return true;
 }
 
+/// 根据命令行前缀匹配并执行单条测试命令（处理清理延迟命令与未知命令）
 TestResult TestAction::ExecuteCommand(const std::string& line, std::string& message)
 {
     if (line.empty() || line[0] == '#')
@@ -322,6 +328,7 @@ TestResult TestAction::ExecuteCommand(const std::string& line, std::string& mess
     return TestResult::FAIL;
 }
 
+/// 测试结束后执行所有 deferred cleanup 清理语句
 void TestAction::RunCleanup()
 {
     for (size_t i = static_cast<size_t>(std::max(0, ctx.pc)); i < ctx.script.size(); ++i)
@@ -335,6 +342,7 @@ void TestAction::RunCleanup()
     }
 }
 
+/// 遍历当前激活的监听器列表，评估状态并在触发 PASS/FAIL/ABORT 时终止观察
 void TestAction::CheckMonitors()
 {
     //LogToConsole("[TestAction] CheckMonitors called, monitor count: " + std::to_string(ctx.monitors.size()));
@@ -361,6 +369,7 @@ void TestAction::CheckMonitors()
     }
 }
 
+/// 设置测试最终结果、停止观察、记录报告日志并移除测试策略
 void TestAction::SetResult(TestResult newResult, const std::string& msg)
 {
     if (ctx.result != TestResult::PENDING)
@@ -382,6 +391,7 @@ void TestAction::SetResult(TestResult newResult, const std::string& msg)
     LogToConsole(std::string("[TestAction] Bot ") + bot->GetName() + " test " + resultStr + ": " + msg);
 }
 
+/// 将测试最终结果、耗时、脚本及上下文报告输出至控制台、日志文件与主人
 void TestAction::ReportResult()
 {
     if (ctx.result == TestResult::PENDING)
@@ -430,6 +440,7 @@ void TestAction::ReportResult()
     }
 }
 
+/// 向主人或机器人发送测试进度与结果提示消息
 void TestAction::TellMaster(const std::string& msg)
 {
     Player* master = ai->GetMaster();
@@ -439,16 +450,19 @@ void TestAction::TellMaster(const std::string& msg)
         ai->TellPlayer(bot, "[TEST] " + msg);
 }
 
+/// 将测试日志输出至服务端控制台
 void TestAction::LogToConsole(const std::string& msg)
 {
     sLog.outString(msg.c_str());
 }
 
+/// 将测试日志追加写入日志文件
 void TestAction::LogToFile(const std::string& msg)
 {
     sPlayerbotAIConfig.log("bot_test_results.log", msg.c_str());
 }
 
+/// 从机器人全部 AI 状态中注销当前 test 策略
 void TestAction::DeactivateStrategy()
 {       
     std::string strategyName = "test::" + ctx.testName;
@@ -457,21 +471,25 @@ void TestAction::DeactivateStrategy()
     ctx.Reset();
 }
 
+/// 静态委托接口：注册指定测试脚本
 void TestAction::RegisterTest(const std::string& name, const std::vector<std::string>& script)
 {
     TestRegistry::RegisterTest(name, script);
 }
 
+/// 静态委托接口：检查测试名称是否已注册
 bool TestAction::HasTest(const std::string& name)
 {
     return TestRegistry::HasTest(name);
 }
 
+/// 静态委托接口：获取测试脚本内容
 std::vector<std::string> TestAction::GetTestScript(const std::string& name)
 {
     return TestRegistry::GetTestScript(name);
 }
 
+/// 静态委托接口：获取所有已注册测试名称列表
 std::vector<std::string> TestAction::GetAvailableTests()
 {
     return TestRegistry::GetAvailableTests();

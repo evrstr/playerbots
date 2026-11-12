@@ -7,6 +7,7 @@ using namespace ai;
 
 std::map<BuyResult, std::string> BuyFailedAction::messages;
 
+/// 执行动作主逻辑（购买失败反馈动作）
 bool BuyFailedAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -27,13 +28,14 @@ bool BuyFailedAction::Execute(Event& event)
         messages[BuyResult::SILENT_ERROR] = "";
     }
 
+    // 解析事件携带的网络封包数据
     WorldPacket p(event.getPacket()); // 8+4+4+1
     ObjectGuid vendorguid;
     p >> vendorguid;
     uint32 vendorSlot;
     p >> vendorSlot;
     uint8 err;
-    p >> err; // error msg
+    p >> err; // error msg (错误提示信息)
     p.resize(13);
 
     std::string msg = messages[(BuyResult)err];

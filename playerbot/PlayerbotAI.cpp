@@ -72,12 +72,14 @@ uint32 PlayerbotChatHandler::extractQuestId(std::string str)
     return cId ? atol(cId) : 0;
 }
 
+// 注册指定 opcode 的触发器名称及是否允许延迟重入队标志
 void PacketHandlingHelper::AddHandler(uint16 opcode, std::string handler, bool shouldDelay)
 {
     handlers[opcode] = handler;
     delay[opcode] = shouldDelay;
 }
 
+// 线程安全消费并派发队列中积累的网络数据包至外部事件处理器
 void PacketHandlingHelper::Handle(ExternalEventHelper &helper)
 {
     if (!m_botPacketMutex.try_lock()) //Packets do not have to be handled now. Handle them later.
@@ -105,7 +107,7 @@ void PacketHandlingHelper::AddPacket(const WorldPacket& packet)
 
     m_botPacketMutex.lock(); //We are going to add packets. Stop any new handling and add them.
 
-	if (handlers.find(packet.GetOpcode()) != handlers.end())
+    if (handlers.find(packet.GetOpcode()) != handlers.end())
         queue.push(WorldPacket(packet));
 
     m_botPacketMutex.unlock();
@@ -124,6 +126,7 @@ PlayerbotAI::PlayerbotAI() : PlayerbotAIBase(), bot(NULL), aiObjectContext(NULL)
     }
 }
 
+// 构造机器人核心 AI 控制器，初始化状态值、网络包监听表、引擎实例与策略上下文
 PlayerbotAI::PlayerbotAI(Player* bot) :
     PlayerbotAIBase(), chatHelper(this), chatFilter(this), security(bot), master(NULL), faceTargetUpdateDelay(0), jumpTime(0), fallAfterJump(false)
 {
@@ -140,7 +143,7 @@ PlayerbotAI::PlayerbotAI(Player* bot) :
         allowActive[i] = false;
     }
 
-	accountId = sObjectMgr.GetPlayerAccountIdByGUID(bot->GetObjectGuid());
+    accountId = sObjectMgr.GetPlayerAccountIdByGUID(bot->GetObjectGuid());
 
     aiObjectContext = AiFactory::createAiObjectContext(bot, this);
 
@@ -273,6 +276,7 @@ PlayerbotAI::~PlayerbotAI()
         delete aiObjectContext;
 }
 
+// 每帧 AI 调度总入口：处理传送、命令队列、反应引擎更新、状态切换(死亡/战斗/非战斗)与主决策执行
 void PlayerbotAI::UpdateAI(uint32 elapsed, bool minimal)
 {
     AiObjectContext* context = aiObjectContext;
@@ -641,6 +645,7 @@ void PlayerbotAI::UpdateAI(uint32 elapsed, bool minimal)
     }
 }
 
+// 驱动反应引擎更新（打断施法/移动或执行即时反应）
 bool PlayerbotAI::UpdateAIReaction(uint32 elapsed, bool minimal, bool isStunned)
 {
     bool reactionFound;
@@ -1461,7 +1466,7 @@ void PlayerbotAI::UpdateAIInternal(uint32 elapsed, bool minimal)
     masterIncomingPacketHandlers.Handle(helper);
     masterOutgoingPacketHandlers.Handle(helper);
 
-	DoNextAction(minimal);
+    DoNextAction(minimal);
     LogKillEvents();
 }
 
@@ -1472,8 +1477,8 @@ void PlayerbotAI::HandleTeleportAck()
 
     StopMoving();
 
-	if (bot->IsBeingTeleportedNear())
-	{
+    if (bot->IsBeingTeleportedNear())
+    {
         if (!bot->GetMotionMaster()->empty())
             if (MovementGenerator* movgen = bot->GetMotionMaster()->top())
                 movgen->Interrupt(*bot);
@@ -1481,19 +1486,19 @@ void PlayerbotAI::HandleTeleportAck()
        /* WorldLocation dest = bot->GetTeleportDest();
         bot->Relocate(dest.coord_x, dest.coord_y, dest.coord_z, dest.orientation);*/
 
-		WorldPacket p = WorldPacket(MSG_MOVE_TELEPORT_ACK, 8 + 4 + 4);
+        WorldPacket p = WorldPacket(MSG_MOVE_TELEPORT_ACK, 8 + 4 + 4);
 #ifdef MANGOSBOT_TWO
         p << bot->GetObjectGuid().WriteAsPacked();
 #else
         p << bot->GetObjectGuid();
 #endif
-		p << (uint32) 0; // supposed to be flags? not used currently
-		p << (uint32) time(0); // time - not currently used
+        p << (uint32) 0; // supposed to be flags? not used currently
+        p << (uint32) time(0); // time - not currently used
         bot->GetSession()->HandleMoveTeleportAckOpcode(p);
 
         // add delay to simulate teleport delay
         SetAIInternalUpdateDelay(urand(1000, 2000));
-	}
+    }
     else if (bot->IsBeingTeleportedFar())
     {
         // guard BG race - bot-only fix for MapManager::CreateInstance assert
@@ -1648,6 +1653,7 @@ bool PlayerbotAI::IsAllowedCommand(std::string text)
     return false;
 }
 
+// 校验交互权限并分发主人或玩家发送的聊天命令
 void PlayerbotAI::HandleCommand(uint32 type, const std::string& text, Player& fromPlayer, const uint32 lang)
 {
     std::string filtered = text;
@@ -1820,43 +1826,44 @@ void PlayerbotAI::HandleCommand(uint32 type, const std::string& text, Player& fr
     }
 }
 
+// 拦截并响应发往机器人客户端的服务端数据包（战斗记录、复活、拾取、交易、组队、战场、邮件等）
 void PlayerbotAI::HandleBotOutgoingPacket(const WorldPacket& packet)
 {
     //if (packet.empty())
     //    return;
 
-	switch (packet.GetOpcode())
-	{
-	case SMSG_SPELL_FAILURE:
-	{
-		WorldPacket p(packet);
-		p.rpos(0);
-		ObjectGuid casterGuid;
+    switch (packet.GetOpcode())
+    {
+    case SMSG_SPELL_FAILURE:
+    {
+        WorldPacket p(packet);
+        p.rpos(0);
+        ObjectGuid casterGuid;
         p >> casterGuid.ReadAsPacked();
-		if (casterGuid != bot->GetObjectGuid())
-			return;
+        if (casterGuid != bot->GetObjectGuid())
+            return;
 
-		uint32 spellId;
-		p >> spellId;
-		SpellInterrupted(spellId);
-		return;
-	}
-	case SMSG_SPELL_DELAYED:
-	{
-		WorldPacket p(packet);
-		p.rpos(0);
-		ObjectGuid casterGuid;
+        uint32 spellId;
+        p >> spellId;
+        SpellInterrupted(spellId);
+        return;
+    }
+    case SMSG_SPELL_DELAYED:
+    {
+        WorldPacket p(packet);
+        p.rpos(0);
+        ObjectGuid casterGuid;
         p >> casterGuid.ReadAsPacked();
 
-		if (casterGuid != bot->GetObjectGuid())
-			return;
+        if (casterGuid != bot->GetObjectGuid())
+            return;
 
-		uint32 delaytime;
-		p >> delaytime;
-		if (delaytime <= 1000)
+        uint32 delaytime;
+        p >> delaytime;
+        if (delaytime <= 1000)
             IncreaseAIInternalUpdateDelay(delaytime);
-		return;
-	}
+        return;
+    }
     case SMSG_EMOTE: // do not react to NPC emotes
     {
         WorldPacket p(packet);
@@ -2243,9 +2250,9 @@ void PlayerbotAI::HandleBotOutgoingPacket(const WorldPacket& packet)
         sLog.outDetail("%s: KNOCKBACK x: %f, y: %f, z: %f, time: %f, dist: %f, maxHeight: %f inPlace: %u, landTime: %u", bot->GetName(), dest_calculated.getX(), dest_calculated.getY(), dest_calculated.getZ(), timeToLand, distToLand, maxHeight, jumpInPlace, jumpTime);
         return;
     }
-	default:
-		botOutgoingPacketHandlers.AddPacket(packet);
-	}
+    default:
+        botOutgoingPacketHandlers.AddPacket(packet);
+    }
 }
 
 void PlayerbotAI::SpellInterrupted(uint32 spellid)
@@ -2293,6 +2300,7 @@ void PlayerbotAI::HandleMasterOutgoingPacket(const WorldPacket& packet)
     masterOutgoingPacketHandlers.AddPacket(packet);
 }
 
+// 切换当前活跃 AI 引擎状态（战斗/非战斗/死亡）并刷新策略与队列
 void PlayerbotAI::ChangeEngine(BotState type)
 {
     Engine* engine = engines[(uint8)type];
@@ -2355,6 +2363,7 @@ void PlayerbotAI::ChangeEngine(BotState type)
 }
 
 
+// 驱动当前活跃引擎选择并执行下一步 AI 动作
 void PlayerbotAI::DoNextAction(bool min)
 {
     if (!bot->IsInWorld() || bot->IsBeingTeleported() || (GetMaster() && GetMaster()->IsBeingTeleported()))
@@ -2555,9 +2564,9 @@ void PlayerbotAI::DoNextAction(bool min)
 #endif
 
     if (master && master->IsInWorld())
-	{
-		if (master->m_movementInfo.HasMovementFlag(MOVEFLAG_WALK_MODE) && sServerFacade.GetDistance2d(bot, master) < 20.0f) bot->m_movementInfo.AddMovementFlag(MOVEFLAG_WALK_MODE);
-		else bot->m_movementInfo.RemoveMovementFlag(MOVEFLAG_WALK_MODE);
+    {
+        if (master->m_movementInfo.HasMovementFlag(MOVEFLAG_WALK_MODE) && sServerFacade.GetDistance2d(bot, master) < 20.0f) bot->m_movementInfo.AddMovementFlag(MOVEFLAG_WALK_MODE);
+        else bot->m_movementInfo.RemoveMovementFlag(MOVEFLAG_WALK_MODE);
 
         if (master->IsSitState() && aiInternalUpdateDelay < 1000)
         {
@@ -2571,8 +2580,8 @@ void PlayerbotAI::DoNextAction(bool min)
         {
             bot->GetPlayerbotAI()->SetMaster(nullptr);
         }
-	}
-	else if (bot->m_movementInfo.HasMovementFlag(MOVEFLAG_WALK_MODE)) bot->m_movementInfo.RemoveMovementFlag(MOVEFLAG_WALK_MODE);
+    }
+    else if (bot->m_movementInfo.HasMovementFlag(MOVEFLAG_WALK_MODE)) bot->m_movementInfo.RemoveMovementFlag(MOVEFLAG_WALK_MODE);
     else if ((aiInternalUpdateDelay < 1000) && bot->IsSitState()) bot->SetStandState(UNIT_STAND_STATE_STAND);
 
 #ifndef MANGOSBOT_ZERO
@@ -2599,6 +2608,7 @@ void PlayerbotAI::ReInitCurrentEngine()
     currentEngine->Init();
 }
 
+// 修改指定状态引擎的启用策略集合
 void PlayerbotAI::ChangeStrategy(const std::string& names, BotState type)
 {
     if(type == BotState::BOT_STATE_ALL)
@@ -4089,6 +4099,7 @@ bool IsRealAura(Player* bot, Aura const* aura, Unit* unit)
     return false;
 }
 
+// 按名称检测目标单位身上是否存在符合层数、归属与剩余时间条件的光环
 bool PlayerbotAI::HasAura(std::string name, Unit* unit, bool maxStack, bool checkIsOwner, int maxAuraAmount, bool hasMyAura, int minDuration, int auraTypeId)
 {
     if (!unit)
@@ -4109,12 +4120,12 @@ bool PlayerbotAI::HasAura(std::string name, Unit* unit, bool maxStack, bool chec
 
     int auraAmount = 0;
 
-	for (uint32 auraType = SPELL_AURA_BIND_SIGHT; auraType < TOTAL_AURAS; auraType++)
-	{
+    for (uint32 auraType = SPELL_AURA_BIND_SIGHT; auraType < TOTAL_AURAS; auraType++)
+    {
         if (auraTypeId != TOTAL_AURAS && auraType != auraTypeId)
             continue;
 
-		Unit::AuraList const& auras = unit->GetAurasByType((AuraType)auraType);
+        Unit::AuraList const& auras = unit->GetAurasByType((AuraType)auraType);
 
         if (auras.empty())
             continue;
@@ -4137,7 +4148,7 @@ bool PlayerbotAI::HasAura(std::string name, Unit* unit, bool maxStack, bool chec
                     continue;
             }
 
-			if (IsRealAura(bot, aura, unit))
+            if (IsRealAura(bot, aura, unit))
             {
                 if (hasMyAura && aura->GetHolder())
                 {
@@ -4178,7 +4189,7 @@ bool PlayerbotAI::HasAura(std::string name, Unit* unit, bool maxStack, bool chec
                 if (maxAuraAmount < 0 && minDurationPassed)
                     return auraAmount > 0;
             }
-		}
+        }
     }
 
     if (maxAuraAmount >= 0)
@@ -4461,6 +4472,7 @@ bool PlayerbotAI::CanCastSpell(std::string name, Unit* target, uint8 effectMask,
     return CanCastSpell(aiObjectContext->GetValue<uint32>("spell id", name)->Get(), target, 0, true, itemTarget, ignoreRange, ignoreInCombat, ignoreMount, checkResult);
 }
 
+// 全面校验法术冷却、距离、视线、施法状态、目标合法性与消耗品条件
 bool PlayerbotAI::CanCastSpell(uint32 spellid, Unit* target, uint8 effectMask, bool checkHasSpell, Item* itemTarget, bool ignoreRange, bool ignoreInCombat, bool ignoreMount, SpellCastResult* checkResult)
 {
     if (!spellid)
@@ -4522,8 +4534,8 @@ bool PlayerbotAI::CanCastSpell(uint32 spellid, Unit* target, uint8 effectMask, b
         return false;
     }
 
-	SpellEntry const *spellInfo = sServerFacade.LookupSpellInfo(spellid);
-	if (!spellInfo)
+    SpellEntry const *spellInfo = sServerFacade.LookupSpellInfo(spellid);
+    if (!spellInfo)
     {
         if (checkResult)
         {
@@ -4551,8 +4563,8 @@ bool PlayerbotAI::CanCastSpell(uint32 spellid, Unit* target, uint8 effectMask, b
         }
     }
 
-	if (!itemTarget)
-	{
+    if (!itemTarget)
+    {
         // Consider neutral spells (spells that are neither positive or negative (e.g. feign death, hunter traps, ...)
         const std::list<uint32> neutralSpells = { 1499, 5384, 13795, 13809, 13813, 14302, 14303, 14304, 14305, 14310, 14311, 14316, 14317, 27023, 27025, 34600, 49055, 49056, 49066, 49067 };
         const bool neutralSpell = std::find(neutralSpells.begin(), neutralSpells.end(), spellid) != neutralSpells.end();
@@ -4644,11 +4656,11 @@ bool PlayerbotAI::CanCastSpell(uint32 spellid, Unit* target, uint8 effectMask, b
 
             return false;
         }
-	}
+    }
 
-	ObjectGuid oldSel = bot->GetSelectionGuid();
-	//bot->SetSelectionGuid(target->GetObjectGuid());
-	Spell *spell = new Spell(bot, spellInfo, false);
+    ObjectGuid oldSel = bot->GetSelectionGuid();
+    //bot->SetSelectionGuid(target->GetObjectGuid());
+    Spell *spell = new Spell(bot, spellInfo, false);
 
     spell->m_targets.setUnitTarget(target);
     spell->SetCastItem(itemTarget ? itemTarget : aiObjectContext->GetValue<Item*>("item for spell", spellid)->Get());
@@ -4656,8 +4668,8 @@ bool PlayerbotAI::CanCastSpell(uint32 spellid, Unit* target, uint8 effectMask, b
 
     SpellCastResult result = spell->CheckCast(true);
     delete spell;
-	//if (oldSel)
-	//	bot->SetSelectionGuid(oldSel);
+    //if (oldSel)
+    //    bot->SetSelectionGuid(oldSel);
 
     if (checkResult)
     {
@@ -4949,6 +4961,7 @@ bool PlayerbotAI::CastSpell(std::string name, Unit* target, Item* itemTarget, bo
     return result;
 }
 
+// 执行法术施放并更新动作冷却与引导等待状态
 bool PlayerbotAI::CastSpell(uint32 spellId, Unit* target, Item* itemTarget, bool waitForSpell, uint32* outSpellDuration)
 {
     if (!spellId)
@@ -4971,10 +4984,10 @@ bool PlayerbotAI::CastSpell(uint32 spellId, Unit* target, Item* itemTarget, bool
     if (bot->IsFlying() || bot->IsTaxiFlying())
         return false;
 
-	//bot->clearUnitState(UNIT_STAT_CHASE);
-	//bot->clearUnitState(UNIT_STAT_FOLLOW);
+    //bot->clearUnitState(UNIT_STAT_CHASE);
+    //bot->clearUnitState(UNIT_STAT_FOLLOW);
 
-	bool failWithDelay = false;
+    bool failWithDelay = false;
     // Respect native seated-casting permissions for eating and drinking.
     SpellEntry const* sitCheckInfo = sServerFacade.LookupSpellInfo(spellId);
     if (!bot->IsStandState() && !(sitCheckInfo && sitCheckInfo->HasAttribute(SPELL_ATTR_ALLOW_WHILE_SITTING)))
@@ -4983,8 +4996,8 @@ bool PlayerbotAI::CastSpell(uint32 spellId, Unit* target, Item* itemTarget, bool
         failWithDelay = true;
     }
 
-	ObjectGuid oldSel = bot->GetSelectionGuid();
-	bot->SetSelectionGuid(target->GetObjectGuid());
+    ObjectGuid oldSel = bot->GetSelectionGuid();
+    bot->SetSelectionGuid(target->GetObjectGuid());
 
     WorldObject* faceTo = target;
     if (!sServerFacade.IsInFront(bot, faceTo, sPlayerbotAIConfig.sightDistance, CAST_ANGLE_IN_FRONT))
@@ -5020,7 +5033,7 @@ bool PlayerbotAI::CastSpell(uint32 spellId, Unit* target, Item* itemTarget, bool
         if (bot->GetTradeData())
         {
             bot->GetTradeData()->SetSpell(spellId);
-			delete spell;
+            delete spell;
             return true;
         }
     }
@@ -5880,19 +5893,19 @@ bool PlayerbotAI::RemoveAura(const std::string& name)
 
 bool PlayerbotAI::IsInterruptableSpellCasting(Unit* target, std::string spell)
 {
-	uint32 spellid = aiObjectContext->GetValue<uint32>("spell id", spell)->Get();
-	if (!spellid || !target->IsNonMeleeSpellCasted(true) || !target->IsInterruptible())
-		return false;
+    uint32 spellid = aiObjectContext->GetValue<uint32>("spell id", spell)->Get();
+    if (!spellid || !target->IsNonMeleeSpellCasted(true) || !target->IsInterruptible())
+        return false;
 
-	SpellEntry const *spellInfo = sServerFacade.LookupSpellInfo(spellid);
-	if (!spellInfo)
-		return false;
+    SpellEntry const *spellInfo = sServerFacade.LookupSpellInfo(spellid);
+    if (!spellInfo)
+        return false;
 
-	for (uint8 i = EFFECT_INDEX_0; i <= EFFECT_INDEX_2; i++)
+    for (uint8 i = EFFECT_INDEX_0; i <= EFFECT_INDEX_2; i++)
     {
         if (target->IsImmuneToSpell(spellInfo, false, (1 << SpellEffectIndex(i)), bot) || target->IsImmuneToSpellEffect(spellInfo, SpellEffectIndex(i), false))
             return false;
-	}
+    }
     for (uint8 i = EFFECT_INDEX_0; i <= EFFECT_INDEX_2; i++)
     {
         if (spellInfo->Effect[i] == SPELL_EFFECT_INTERRUPT_CAST)
@@ -5902,37 +5915,37 @@ bool PlayerbotAI::IsInterruptableSpellCasting(Unit* target, std::string spell)
             return true;
     }
 
-	return false;
+    return false;
 }
 
 bool PlayerbotAI::HasAuraToDispel(Unit* target, uint32 dispelType)
 {
     bool isFriend = sServerFacade.IsFriendlyTo(bot, target);
-	for (uint32 type = SPELL_AURA_NONE; type < TOTAL_AURAS; ++type)
-	{
-		Unit::AuraList const& auras = target->GetAurasByType((AuraType)type);
-		for (Unit::AuraList::const_iterator itr = auras.begin(); itr != auras.end(); ++itr)
-		{
-			const Aura* aura = *itr;
-			const SpellEntry* entry = aura->GetSpellProto();
-			uint32 spellId = entry->Id;
+    for (uint32 type = SPELL_AURA_NONE; type < TOTAL_AURAS; ++type)
+    {
+        Unit::AuraList const& auras = target->GetAurasByType((AuraType)type);
+        for (Unit::AuraList::const_iterator itr = auras.begin(); itr != auras.end(); ++itr)
+        {
+            const Aura* aura = *itr;
+            const SpellEntry* entry = aura->GetSpellProto();
+            uint32 spellId = entry->Id;
 
-			bool isPositiveSpell = IsPositiveSpell(spellId);
+            bool isPositiveSpell = IsPositiveSpell(spellId);
             bool isPositiveAuraEffect = IsPositiveAuraEffect(entry, aura->GetEffIndex());
-			if ((isPositiveSpell || isPositiveAuraEffect) && isFriend)
-				continue;
+            if ((isPositiveSpell || isPositiveAuraEffect) && isFriend)
+                continue;
 
-			if (!isPositiveSpell && !isFriend)
-				continue;
+            if (!isPositiveSpell && !isFriend)
+                continue;
 
-			if (sPlayerbotAIConfig.dispelAuraDuration && aura->GetAuraDuration() && aura->GetAuraDuration() < (int32)sPlayerbotAIConfig.dispelAuraDuration)
-			    return false;
+            if (sPlayerbotAIConfig.dispelAuraDuration && aura->GetAuraDuration() && aura->GetAuraDuration() < (int32)sPlayerbotAIConfig.dispelAuraDuration)
+                return false;
 
-			if (canDispel(entry, dispelType))
-				return true;
-		}
-	}
-	return false;
+            if (canDispel(entry, dispelType))
+                return true;
+        }
+    }
+    return false;
 }
 
 #ifndef WIN32
@@ -6356,6 +6369,7 @@ enum ActivityType
 
 */
 
+// 评估当前机器人所处情境以决定其活动调度优先级档位
 ActivePiorityType PlayerbotAI::GetPriorityType()
 {
     //First priority - priorities disabled or has player master. Always active.
@@ -6620,6 +6634,7 @@ bool PlayerbotAI::AllowActive(ActivityType activityType)
     return ActivityNumber <= (activePerc);           //The given percentage of bots should be active and rotate 1% of those active bots each minute.
 }
 
+// 根据活动优先级配额判断当前是否允许执行指定类型的 AI 行为
 bool PlayerbotAI::AllowActivity(ActivityType activityType, bool checkNow)
 {
     if (!allowActiveCheckTimer[activityType])
@@ -6681,6 +6696,7 @@ void PlayerbotAI::RemoveShapeshift()
 
 }
 
+// 计算角色当前装备（可选含背包与银行）的综合装备评分
 uint32 PlayerbotAI::GetEquipGearScore(Player* player, bool withBags, bool withBank)
 {
     std::vector<uint32> gearScore(EQUIPMENT_SLOT_END);
@@ -6920,6 +6936,7 @@ void PlayerbotAI::EnsureDefaultMovementStrategy(Player* requester)
     }
 }
 
+// 解析并执行远程控制台或测试脚本指令
 std::string PlayerbotAI::HandleRemoteCommand(std::string command)
 {
     if (command == "state")
@@ -7315,6 +7332,7 @@ bool PlayerbotAI::AddAura(Unit* unit, uint32 spellId)
     return true;
 }
 
+// 按指定掩码遍历机器人背包、已穿戴装备、银行与回购栏位中的物品
 void PlayerbotAI::InventoryIterateItems(IterateItemsVisitor* visitor, IterateItemsMask mask)
 {
     if ((uint8)mask & (uint8)IterateItemsMask::ITERATE_ITEMS_IN_BAGS)
@@ -7856,6 +7874,7 @@ void PlayerbotAI::InventoryTellItem(Player* player, ItemPrototype const* proto, 
     return result
 
 
+// 根据名称、链接、品质、类型或装备方案解析匹配的背包物品列表
 std::list<Item*> PlayerbotAI::InventoryParseItems(std::string text, IterateItemsMask mask)
 {
     if (text.empty())
@@ -8084,6 +8103,7 @@ ItemIds PlayerbotAI::InventoryFindOutfitItems(std::string name)
     return std::set<uint32>();
 }
 
+// 根据周边玩家分布按配置倍率动态加速野外怪物刷新倒计时
 void PlayerbotAI::AccelerateRespawn(Creature* creature, float accelMod)
 {
     if (!creature)
@@ -8770,6 +8790,7 @@ uint32 PlayerbotAI::GetBuffedCount(Player* player, std::string spellname)
     return bcount;
 }
 
+// 检查机器人是否未受定身、晕眩、施法或特殊状态限制而可以自由移动
 bool PlayerbotAI::CanMove()
 {
     // do not allow if not vehicle driver
@@ -8857,6 +8878,7 @@ bool PlayerbotAI::CanMove()
     return true;
 }
 
+// 立即停止当前路径移动与样条运动并同步朝向位置
 void PlayerbotAI::StopMoving()
 {
     if (bot->IsTaxiFlying())

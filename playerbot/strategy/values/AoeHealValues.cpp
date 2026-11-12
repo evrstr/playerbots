@@ -1,3 +1,4 @@
+// 策略值实现：AoeHealValues（群体治疗目标人数统计）
 
 #include "playerbot/playerbot.h"
 #include "AoeHealValues.h"
@@ -6,36 +7,37 @@
 
 using namespace ai;
 
+// 统计有效治疗范围内血量低于指定阈值的存活队友人数（萨满为 40 码，其余职业 30 码；牧师仅计同小队成员）
 uint8 AoeHealValue::Calculate()
 {
     Group* group = bot->GetGroup();
     if (!group)
-    	return 0;
+        return 0;
 
     float range = 0;
     if (qualifier == "low")
-    	range = sPlayerbotAIConfig.lowHealth;
+        range = sPlayerbotAIConfig.lowHealth;
     else if (qualifier == "medium")
-    	range = sPlayerbotAIConfig.mediumHealth;
+        range = sPlayerbotAIConfig.mediumHealth;
     else if (qualifier == "critical")
-    	range = sPlayerbotAIConfig.criticalHealth;
+        range = sPlayerbotAIConfig.criticalHealth;
 
     uint8 count = 0;
-	Group::MemberSlotList const& groupSlot = group->GetMemberSlots();
-	for (Group::member_citerator itr = groupSlot.begin(); itr != groupSlot.end(); itr++)
-	{
-		Player *player = sObjectMgr.GetPlayer(itr->guid);
-		if( !player || !sServerFacade.IsAlive(player) || sServerFacade.GetDistance2d(bot, player) > (bot->getClass() == CLASS_SHAMAN ? 40.0f : 30.0f))
-			continue;
+    Group::MemberSlotList const& groupSlot = group->GetMemberSlots();
+    for (Group::member_citerator itr = groupSlot.begin(); itr != groupSlot.end(); itr++)
+    {
+        Player *player = sObjectMgr.GetPlayer(itr->guid);
+        if( !player || !sServerFacade.IsAlive(player) || sServerFacade.GetDistance2d(bot, player) > (bot->getClass() == CLASS_SHAMAN ? 40.0f : 30.0f))
+            continue;
 
         if (bot->getClass() == CLASS_PRIEST && !bot->IsInGroup(player, true))
             continue;
 
-	    float percent = player->GetHealthPercent();
-	    if (percent <= range)
-	    	count++;
-	}
+        float percent = player->GetHealthPercent();
+        if (percent <= range)
+            count++;
+    }
 
-	return count;
+    return count;
 }
 

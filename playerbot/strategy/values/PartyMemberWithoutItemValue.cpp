@@ -1,3 +1,4 @@
+// 策略值实现：PartyMemberWithoutItemValue（缺少补给品的队友筛选）
 
 #include "playerbot/playerbot.h"
 #include "PartyMemberWithoutItemValue.h"
@@ -5,6 +6,7 @@
 #include "playerbot/ServerFacade.h"
 using namespace ai;
 
+// 队友筛选谓词：检查远距内的机器人队友背包里是否缺少指定物品
 class PlayerWithoutItemPredicate : public FindPlayerPredicate, public PlayerbotAIAware
 {
 public:
@@ -44,6 +46,7 @@ private:
     std::string item;
 };
 
+// 调用派生谓词查找需要发放物品的队友 GUID
 ObjectGuid PartyMemberWithoutItemValue::Calculate()
 {
     FindPlayerPredicate *predicate = CreatePredicate();
@@ -52,11 +55,13 @@ ObjectGuid PartyMemberWithoutItemValue::Calculate()
     return unit ? unit->GetObjectGuid() : ObjectGuid();
 }
 
+// 创建默认的缺少指定物品筛选谓词
 FindPlayerPredicate* PartyMemberWithoutItemValue::CreatePredicate()
 {
     return new PlayerWithoutItemPredicate(ai, qualifier);
 }
 
+// 队友筛选谓词：检查队友是否缺少任何同等级段可用食物
 class PlayerWithoutFoodPredicate : public PlayerWithoutItemPredicate
 {
 public:
@@ -77,6 +82,7 @@ public:
 
 };
 
+// 队友筛选谓词：检查使用法力值的队友是否缺少同等级段可用饮水
 class PlayerWithoutWaterPredicate : public PlayerWithoutItemPredicate
 {
 public:
@@ -103,11 +109,13 @@ public:
 
 };
 
+// 创建缺少食物的队友筛选谓词
 FindPlayerPredicate* PartyMemberWithoutFoodValue::CreatePredicate()
 {
     return new PlayerWithoutFoodPredicate(ai);
 }
 
+// 创建缺少饮水的队友筛选谓词
 FindPlayerPredicate* PartyMemberWithoutWaterValue::CreatePredicate()
 {
     return new PlayerWithoutWaterPredicate(ai);

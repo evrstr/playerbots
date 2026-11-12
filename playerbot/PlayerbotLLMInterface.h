@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 
+/// 大语言模型(LLM) HTTP 推理接口封装类，处理 JSON 转义、文本生成、响应正则解析与上下文长度裁剪
 class PlayerbotLLMInterface
 {
 public:

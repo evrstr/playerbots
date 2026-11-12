@@ -6,6 +6,7 @@ namespace ahbot
 {
     class Category;
 
+    /// 拍卖行物品定价策略基类，综合市场均价、稀有度、等级、品质与历史成交计算买卖价格
     class PricingStrategy
     {
     public:
@@ -33,6 +34,7 @@ namespace ahbot
         Category* category;
     };
 
+    /// 仅收购稀有及以上品质物品的定价策略子类
     class BuyOnlyRarePricingStrategy : public PricingStrategy
     {
     public:
@@ -43,6 +45,7 @@ namespace ahbot
         virtual uint32 GetSellPrice(ItemPrototype const* proto, uint32 auctionHouse, bool ignoreMarket = false, std::ostringstream *explain = NULL) override;
     };
 
+    /// 定价策略工厂类，根据配置名称实例化对应策略
     class PricingStrategyFactory
     {
     public:

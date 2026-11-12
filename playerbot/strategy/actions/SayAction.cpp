@@ -17,10 +17,12 @@ std::unordered_set<std::string> noReplyMsgParts = {  };
 
 std::unordered_set<std::string> noReplyMsgStarts = { "@", "accept [", "accept |", "all +", "all -", "b [", "b |", "bank -", "bank [", "bank |", "boost target ", "buff target ", "cast ", "co +", "co -", "cs ", "d [", "d |", "dead +", "dead -", "destroy [", "destroy |", "drop ", "e [", "e |", "emote ", "faction ", "focus heal ", "follow target ", "go npc ", "go zone ", "items ", "jump ", "keep ", "mail ", "nc +", "nc -", "outfit ", "pet autocast ", "q [", "q |", "r [", "r |", "ra ", "range ", "react +", "react -", "repair [", "repair |", "revive target ", "rti ", "rtsc go ", "rtsc save ", "rtsc unsave ", "s [", "s |", "sendmail [", "sendmail |", "share [", "share |", "skill ", "skill unlearn ", "ss ", "t ", "talents ", "u [", "u |", " ue [", "ue |", "wait for attack time ", "avoid creature " };
 
+/// 构造函数：初始化机器人发言动作
 SayAction::SayAction(PlayerbotAI* ai) : Action(ai, "say"), Qualified()
 {
 }
 
+/// 执行动作主逻辑（机器人发言动作）
 bool SayAction::Execute(Event& event)
 {
     std::string text = "";
@@ -55,7 +57,7 @@ bool SayAction::Execute(Event& event)
             placeholders["<subzone>"] = area->area_name[0];
     }
 
-    // set delay before next say
+    // set delay before next say (设置下一次发言前的冷却延迟)
     time_t lastSaid = AI_VALUE2(time_t, "last said", qualifier);
     uint32 nextTime = time(0) + urand(1, 30);
     ai->GetAiObjectContext()->GetValue<time_t>("last said", qualifier)->Set(nextTime);
@@ -94,7 +96,7 @@ bool SayAction::Execute(Event& event)
         }
     }
 
-    // load text based on chance
+    // load text based on chance (按概率加载文本)
     if (!sPlayerbotTextMgr.GetBotText(qualifier, text, placeholders))
         return false;
 
@@ -106,6 +108,7 @@ bool SayAction::Execute(Event& event)
     return true;
 }
 
+/// 判断当前状态下该动作是否可用/有效（机器人发言动作）
 bool SayAction::isUseful()
 {
     if (!ai->AllowActivity())
@@ -118,6 +121,7 @@ bool SayAction::isUseful()
     return (time(0) - lastSaid) > 30;
 }
 
+/// 收集当前场景下的聊天占位符变量（如目标、位置、NPC 职责等）
 void ChatReplyAction::GetAIChatPlaceholders(std::map<std::string, std::string>& placeholders, Unit* sender, Unit* receiver)
 {
     if(receiver)
@@ -142,6 +146,7 @@ void ChatReplyAction::GetAIChatPlaceholders(std::map<std::string, std::string>& 
     return;
 }
 
+/// 收集当前场景下的聊天占位符变量（如目标、位置、NPC 职责等）
 void ChatReplyAction::GetAIChatPlaceholders(std::map<std::string, std::string>& placeholders, Unit* unit, const std::string preFix, Player* observer)
 {
     placeholders["<" + preFix + " name>"] = unit->GetName();
@@ -242,7 +247,7 @@ void ChatReplyAction::GetAIChatPlaceholders(std::map<std::string, std::string>& 
         replace["$B"] = "";
         replace["$c"] = ChatHelper::formatRace(observer->getRace());
         replace["$r"] = ChatHelper::formatClass(unit->getClass());
-        replace["$g boy : girl;"] = unit->getGender() == GENDER_MALE ? "boy" : "girl"; //Todo replace with regexp
+        replace["$g boy : girl;"] = unit->getGender() == GENDER_MALE ? "boy" : "girl"; // Todo replace with regexp (待办：后续替换为正则表达式匹配)
         replace["$g lad : lass;"] = unit->getGender() == GENDER_MALE ? "lass" : "lad";
 
         replace["GOSSIP_OPTION_GOSSIP"] = unit->GetName() + std::string(" can chat some.");
@@ -270,6 +275,7 @@ void ChatReplyAction::GetAIChatPlaceholders(std::map<std::string, std::string>& 
     }
 }
 
+/// 构造用于测试或发送的网络封包模板
 WorldPacket ChatReplyAction::GetPacketTemplate(Opcodes op, uint32 type, Unit* sender, Unit* target, std::string channelName)
 {
     Player* senderPlayer = (sender->IsPlayer()) ? (Player*)sender : nullptr;
@@ -310,7 +316,7 @@ WorldPacket ChatReplyAction::GetPacketTemplate(Opcodes op, uint32 type, Unit* se
         case CHAT_MSG_RAID_BOSS_WHISPER:
         case CHAT_MSG_RAID_BOSS_EMOTE:
         case CHAT_MSG_MONSTER_EMOTE:
-            packetTemplate << ObjectGuid(senderGuid); //Deviation from standards. To support emotes.
+            packetTemplate << ObjectGuid(senderGuid); // Deviation from standards. To support emotes. (为兼容文本表情而做的特殊处理。)
             packetTemplate << uint32(strlen(senderName) + 1);
             packetTemplate << senderName;
             packetTemplate << ObjectGuid(targetGuid);
@@ -339,6 +345,7 @@ WorldPacket ChatReplyAction::GetPacketTemplate(Opcodes op, uint32 type, Unit* se
     return packetTemplate;
 }
 
+/// 将单行文本封装为聊天数据包并加入延迟发送队列
 inline void LineToPacket(delayedPackets& delayedPackets, const WorldPacket packetTemplate, const std::string& line, uint32 MsDelay, bool debug = false)
 {
     WorldPacket packet(packetTemplate);
@@ -352,6 +359,7 @@ inline void LineToPacket(delayedPackets& delayedPackets, const WorldPacket packe
     delayedPackets.push_back(std::make_pair(packet, MsDelay));
 }
 
+/// 将多行文本消息拆分为聊天封包序列
 delayedPackets ChatReplyAction::LinesToPackets(const std::vector<std::string>& lines, WorldPacket packetTemplate, bool debug, uint32 MsPerChar, WorldPacket emoteTemplate, uint32 timeDiff)
 {
     delayedPackets delayedPackets;
@@ -418,6 +426,7 @@ delayedPackets ChatReplyAction::LinesToPackets(const std::vector<std::string>& l
     return delayedPackets;
 }
 
+/// 根据调试或交互命令生成模拟响应网络封包
 delayedPackets ChatReplyAction::GenerateResponsePackets(const std::string json
     , const WorldPacket chatTemplate, const WorldPacket emoteTemplate, const WorldPacket systemTemplate, const std::string startPattern, const std::string endPattern, const std::string deletePattern, const std::string splitPattern, bool debug)
 {
@@ -448,10 +457,11 @@ delayedPackets ChatReplyAction::GenerateResponsePackets(const std::string json
     return packets;
 }
 
+/// 根据玩家聊天消息内容匹配并生成自动回复
 void ChatReplyAction::ChatReplyDo(Player* bot, uint32 type, uint32 guid1, uint32 guid2, std::string msg, std::string chanName, std::string name)
 {
     // if we're just commanding bots around, don't respond...
-    // first one is for exact word matches
+    // first one is for exact word matches (第一项用于精确词匹配)
     if (noReplyMsgs.find(msg) != noReplyMsgs.end())
     {
         //ostringstream out;
@@ -460,7 +470,7 @@ void ChatReplyAction::ChatReplyDo(Player* bot, uint32 type, uint32 guid1, uint32
         return;
     }
 
-    // second one is for partial matches like + or - where we change strats
+    // second one is for partial matches like + or - where we change strats (第二项用于匹配带 + 或 - 前缀的策略增减修改)
     if (std::any_of(noReplyMsgParts.begin(), noReplyMsgParts.end(), [&msg](const std::string& part) { return msg.find(part) != std::string::npos; }))
     {
         //ostringstream out;
@@ -471,7 +481,7 @@ void ChatReplyAction::ChatReplyDo(Player* bot, uint32 type, uint32 guid1, uint32
     }
 
     if (std::any_of(noReplyMsgStarts.begin(), noReplyMsgStarts.end(), [&msg](const std::string& start) {
-        return msg.find(start) == 0;  // Check if the start matches the beginning of msg
+        return msg.find(start) == 0;  // Check if the start matches the beginning of msg (检查起始标识是否匹配消息前缀)
         }))
     {
         //ostringstream out;
@@ -494,7 +504,7 @@ void ChatReplyAction::ChatReplyDo(Player* bot, uint32 type, uint32 guid1, uint32
         return;
     }
 
-    //toxic links
+    // toxic links (趣味恶意链接)
     if (boost::algorithm::istarts_with(msg, sPlayerbotAIConfig.toxicLinksPrefix)
         && (bot->GetPlayerbotAI()->GetChatHelper()->ExtractAllItemIds(msg).size() > 0 || bot->GetPlayerbotAI()->GetChatHelper()->ExtractAllQuestIds(msg).size() > 0))
     {
@@ -502,7 +512,7 @@ void ChatReplyAction::ChatReplyDo(Player* bot, uint32 type, uint32 guid1, uint32
         return;
     }
 
-    //thunderfury
+    // thunderfury (雷霆之怒彩蛋)
     if (bot->GetPlayerbotAI()->GetChatHelper()->ExtractAllItemIds(msg).count(19019))
     {
         HandleThunderfuryReply(bot, chatChannelSource, msg, name);
@@ -584,7 +594,7 @@ void ChatReplyAction::ChatReplyDo(Player* bot, uint32 type, uint32 guid1, uint32
                     prompt.second = PlayerbotLLMInterface::SanitizeForJson(prompt.second);
                 }
 
-                for (auto& prompt : placeholders) //Sanitize now instead of earlier to prevent double Sanitation
+                for (auto& prompt : placeholders) // Sanitize now instead of earlier to prevent double Sanitation (在此处统一进行文本清理，避免提前清理导致重复过滤)
                 {
                     prompt.second = PlayerbotLLMInterface::SanitizeForJson(prompt.second);
                 }
@@ -671,6 +681,7 @@ void ChatReplyAction::ChatReplyDo(Player* bot, uint32 type, uint32 guid1, uint32
     SendGeneralResponse(bot, chatChannelSource, GenerateReplyMessage(bot, msg, guid1, name), name);
 }
 
+/// 处理带有雷霆之怒等趣味梗的聊天触发回复
 bool ChatReplyAction::HandleThunderfuryReply(Player* bot, ChatChannelSource chatChannelSource, std::string msg, std::string name)
 {
     std::map<std::string, std::string> placeholders;
@@ -703,9 +714,10 @@ bool ChatReplyAction::HandleThunderfuryReply(Player* bot, ChatChannelSource chat
     return true;
 }
 
+/// 过滤或趣味回应聊天中的恶搞链接消息
 bool ChatReplyAction::HandleToxicLinksReply(Player* bot, ChatChannelSource chatChannelSource, std::string msg, std::string name)
 {
-    //quests
+    // quests (任务)
     std::vector<uint32> incompleteQuests;
     for (uint16 slot = 0; slot < MAX_QUEST_LOG_SIZE; ++slot)
     {
@@ -714,17 +726,17 @@ bool ChatReplyAction::HandleToxicLinksReply(Player* bot, ChatChannelSource chatC
             continue;
 
         QuestStatus status = bot->GetQuestStatus(questId);
-        // Skip ids with no template: the pick below formats the template and
-        // would dereference null.
+        // Skip ids with no template: the pick below formats the template and (跳过缺少模板的 ID：下方选择逻辑会读取并格式化模板)
+        // would dereference null. (否则将解引用空指针。)
         if ((status == QUEST_STATUS_INCOMPLETE || status == QUEST_STATUS_NONE)
             && sObjectMgr.GetQuestTemplate(questId))
             incompleteQuests.push_back(questId);
     }
 
-    //items
+    // items (物品列表)
     std::vector<Item*> botItems = bot->GetPlayerbotAI()->GetInventoryAndEquippedItems();
 
-    //spells
+    // spells (法术列表)
     //?
 
     std::map<std::string, std::string> placeholders;
@@ -837,7 +849,7 @@ bool ChatReplyAction::HandleWTBItemsReply(Player* bot, ChatChannelSource chatCha
         {
             case ChatChannelSource::SRC_WORLD:
             {
-                //may reply to the same channel or whisper
+                // may reply to the same channel or whisper (回复到同一频道或私聊密语)
                 if (urand(0, 1))
                 {
                     std::string responseMessage = BOT_TEXT2("response_wtb_items_channel", placeholders);
@@ -852,7 +864,7 @@ bool ChatReplyAction::HandleWTBItemsReply(Player* bot, ChatChannelSource chatCha
             }
             case ChatChannelSource::SRC_GENERAL:
             {
-                //may reply to the same channel or whisper
+                // may reply to the same channel or whisper (回复到同一频道或私聊密语)
                 if (urand(0, 1))
                 {
                     std::string responseMessage = BOT_TEXT2("response_wtb_items_channel", placeholders);
@@ -867,7 +879,7 @@ bool ChatReplyAction::HandleWTBItemsReply(Player* bot, ChatChannelSource chatCha
             }
             case ChatChannelSource::SRC_TRADE:
             {
-                //may reply to the same channel or whisper
+                // may reply to the same channel or whisper (回复到同一频道或私聊密语)
                 if (urand(0, 1))
                 {
                     std::string responseMessage = BOT_TEXT2("response_wtb_items_channel", placeholders);
@@ -904,9 +916,9 @@ bool ChatReplyAction::HandleLFGQuestsReply(Player* bot, ChatChannelSource chatCh
     std::set<uint32> matchingQuestIds;
     for (auto botQuestId : botQuestIds)
     {
-        // Only ids that still resolve: the reply below formats every match, so a
-        // set holding nothing formattable would answer with an empty quest list
-        // and still consume the message.
+        // Only ids that still resolve: the reply below formats every match, so a (仅保留仍能正常解析的 ID：下方回复会格式化每条匹配结果，因此)
+        // set holding nothing formattable would answer with an empty quest list (若集合中没有可格式化项，则返回空任务列表)
+        // and still consume the message. (并且仍消费掉该事件消息。)
         if (messageQuestIds.count(botQuestId) != 0 && sObjectMgr.GetQuestTemplate(botQuestId))
         {
             matchingQuestIds.insert(botQuestId);
@@ -936,7 +948,7 @@ bool ChatReplyAction::HandleLFGQuestsReply(Player* bot, ChatChannelSource chatCh
         {
             case ChatChannelSource::SRC_WORLD:
             {
-                //may reply to the same channel or whisper
+                // may reply to the same channel or whisper (回复到同一频道或私聊密语)
                 if (urand(0, 1))
                 {
                     std::string responseMessage = BOT_TEXT2(bot->GetGroup() ? "response_lfg_quests_channel_in_group" : "response_lfg_quests_channel", placeholders);
@@ -951,7 +963,7 @@ bool ChatReplyAction::HandleLFGQuestsReply(Player* bot, ChatChannelSource chatCh
             }
             case ChatChannelSource::SRC_GENERAL:
             {
-                //may reply to the same channel or whisper
+                // may reply to the same channel or whisper (回复到同一频道或私聊密语)
                 if (urand(0, 1))
                 {
                     std::string responseMessage = BOT_TEXT2(bot->GetGroup() ? "response_lfg_quests_channel_in_group" : "response_lfg_quests_channel", placeholders);
@@ -966,8 +978,8 @@ bool ChatReplyAction::HandleLFGQuestsReply(Player* bot, ChatChannelSource chatCh
             }
             case ChatChannelSource::SRC_LOOKING_FOR_GROUP:
             {
-                //do not reply to the chat
-                //may whisper
+                // do not reply to the chat (不回复该聊天消息)
+                // may whisper (允许发送私聊回复)
                 std::string responseMessage = BOT_TEXT2(bot->GetGroup() ? "response_lfg_quests_whisper_in_group" : "response_lfg_quests_whisper", placeholders);
                 bot->GetPlayerbotAI()->Whisper(responseMessage, name);
                 break;
@@ -979,52 +991,53 @@ bool ChatReplyAction::HandleLFGQuestsReply(Player* bot, ChatChannelSource chatCh
     return true;
 }
 
+/// 发送通用的交易或邮件操作反馈消息
 bool ChatReplyAction::SendGeneralResponse(Player* bot, ChatChannelSource chatChannelSource, std::string responseMessage, std::string name)
 {
-    // send responds
+    // send responds (发送响应消息)
     switch (chatChannelSource)
     {
     case ChatChannelSource::SRC_WORLD:
     {
-        //may reply to the same channel or whisper
+        // may reply to the same channel or whisper (回复到同一频道或私聊密语)
         bot->GetPlayerbotAI()->SayToWorld(responseMessage);
         break;
     }
     case ChatChannelSource::SRC_GENERAL:
     {
-        //may reply to the same channel or whisper
+        // may reply to the same channel or whisper (回复到同一频道或私聊密语)
         //bot->GetPlayerbotAI()->SayToGeneral(responseMessage);
         bot->GetPlayerbotAI()->Whisper(responseMessage, name);
         break;
     }
     case ChatChannelSource::SRC_TRADE:
     {
-        //do not reply to the chat
-        //may whisper
+        // do not reply to the chat (不回复该聊天消息)
+        // may whisper (允许发送私聊回复)
         break;
     }
     case ChatChannelSource::SRC_LOCAL_DEFENSE:
     {
-        //may reply to the same channel or whisper
+        // may reply to the same channel or whisper (回复到同一频道或私聊密语)
         bot->GetPlayerbotAI()->SayToLocalDefense(responseMessage);
         break;
     }
     case ChatChannelSource::SRC_WORLD_DEFENSE:
     {
-        //may reply only if rank 11+ for MANGOSBOT_ZERO, may always reply for others
-        //may whisper
+        // may reply only if rank 11+ for MANGOSBOT_ZERO, may always reply for others (经典旧世需军衔 11 级以上才回复，其他版本始终可回复)
+        // may whisper (允许发送私聊回复)
         break;
     }
     case ChatChannelSource::SRC_LOOKING_FOR_GROUP:
     {
-        //do not reply to the chat
-        //may whisper
+        // do not reply to the chat (不回复该聊天消息)
+        // may whisper (允许发送私聊回复)
         break;
     }
     case ChatChannelSource::SRC_GUILD_RECRUITMENT:
     {
-        //do not reply to the chat
-        //may whisper
+        // do not reply to the chat (不回复该聊天消息)
+        // may whisper (允许发送私聊回复)
         break;
     }
     case ChatChannelSource::SRC_WHISPER:
@@ -1055,13 +1068,14 @@ bool ChatReplyAction::SendGeneralResponse(Player* bot, ChatChannelSource chatCha
     return true;
 }
 
+/// 结合模板或占位符生成机器人回复文本
 std::string ChatReplyAction::GenerateReplyMessage(Player* bot, std::string incomingMessage, uint32 guid1, std::string name)
 {
     ChatReplyType replyType = REPLY_NOT_UNDERSTAND; // default not understand
 
     std::string respondsText = "";
 
-    // Chat Logic
+    // Chat Logic (聊天处理逻辑)
     int32 verb_pos = -1;
     int32 verb_type = -1;
     int32 is_quest = 0;
@@ -1093,10 +1107,10 @@ std::string ChatReplyAction::GenerateReplyMessage(Player* bot, std::string incom
     else if (word[0] == "why")
         is_quest = 6;
 
-    // Responds
+    // Responds (响应回复)
     for (uint32 i = 0; i < 8; i++)
     {
-        // blame gm with chat tag
+        // blame gm with chat tag (标记为拥有 GM 聊天标识)
         if (Player* plr = sObjectMgr.GetPlayer(ObjectGuid(HIGHGUID_PLAYER, guid1)))
         {
             if (plr->isGMChat())
@@ -1119,25 +1133,25 @@ std::string ChatReplyAction::GenerateReplyMessage(Player* bot, std::string incom
             if (word[i] == "am" || word[i] == "are" || word[i] == "is")
             {
                 verb_pos = i;
-                verb_type = 2; // present
+                verb_type = 2; // present (存在)
                 if (verb_pos == 0)
                     is_quest = 1;
             }
             else if (word[i] == "will")
             {
                 verb_pos = i;
-                verb_type = 3; // future
+                verb_type = 3; // future (后续待扩展)
             }
             else if (word[i] == "was" || word[i] == "were")
             {
                 verb_pos = i;
-                verb_type = 1; // past
+                verb_type = 1; // past (历史已过时间)
             }
             else if (word[i] == "shut" || word[i] == "noob")
             {
                 if (incomingMessage.find(bot->GetName()) == std::string::npos)
                 {
-                    continue; // not react
+                    continue; // not react (不触发反应)
                     uint32 rnd = urand(0, 2);
                     std::string msg = "";
                     if (rnd == 0)
@@ -1506,20 +1520,20 @@ std::string ChatReplyAction::GenerateReplyMessage(Player* bot, std::string incom
 
     if (!found || urand(0, 4))
     {
-        // Name Responds
+        // Name Responds (按名称响应)
         if (incomingMessage.find(bot->GetName()) != std::string::npos)
         {
             replyType = REPLY_NAME;
             found = true;
         }
-        else if (!found) // Does not understand
+        else if (!found) // Does not understand (无法理解该指令)
         {
             replyType = REPLY_NOT_UNDERSTAND;
             found = true;
         }
     }
 
-    // load text if needed
+    // load text if needed (按需加载文本库)
     if (respondsText.empty())
     {
         respondsText = BOT_TEXT2(replyType, name);
@@ -1534,11 +1548,13 @@ std::string ChatReplyAction::GenerateReplyMessage(Player* bot, std::string incom
 
 }
 
+/// 判断当前状态下该动作是否可用/有效（聊天回复动作）
 bool ChatReplyAction::isUseful()
 {
     return !ai->HasStrategy("silent", BotState::BOT_STATE_NON_COMBAT);
 }
 
+/// 执行动作主逻辑（语音/台词发言动作）
 bool SpeakAction::Execute(Event& event)
 {
     bool botsTalkLikePlayers = true;

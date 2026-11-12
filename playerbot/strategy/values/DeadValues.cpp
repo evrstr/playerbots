@@ -1,3 +1,4 @@
+// 策略值实现：DeadValues（墓地筛选与跑尸/虚弱复活策略）
 
 #include "playerbot/playerbot.h"
 #include "DeadValues.h"
@@ -5,6 +6,7 @@
 
 using namespace ai;
 
+// 获取当前区域最近墓地，若指定 "another" 限定符则查找其他合适墓地
 GuidPosition GraveyardValue::Calculate()
 {
     WorldPosition refPosition = bot, botPos(bot);
@@ -27,7 +29,7 @@ GuidPosition GraveyardValue::Calculate()
     }
     else if (getQualifier() == "another closest appropriate")
     {
-        //just get ANOTHER nearest appropriate for level (neutral or same team zone)
+        //just get ANOTHER nearest appropriate for level (neutral or same team zone) | 改为获取同阵营或中立且等级匹配的另一处最近墓地
         if (auto anotherAppropriate = GetAnotherAppropriateClosestGraveyard())
         {
             return GuidPosition(0, anotherAppropriate);
@@ -57,16 +59,17 @@ GuidPosition GraveyardValue::Calculate()
     return GuidPosition(0, ClosestGrave);
 }
 
+// 筛选同地图、中立或同阵营且非更高等级区域的最近备选墓地
 WorldSafeLocsEntry const* GraveyardValue::GetAnotherAppropriateClosestGraveyard() const
 {
-    // near
+    // near | 最近距离初始化
     float distNear = std::numeric_limits<float>::max();
     WorldSafeLocsEntry const* entryNear = nullptr;
 
-    // far
+    // far | 次优备选（较远）记录
     WorldSafeLocsEntry const* entryFar = nullptr;
 
-    Corpse* corpse = bot->GetCorpse(); //
+    Corpse* corpse = bot->GetCorpse(); // | 获取尸体位置作为参考
 
     if (!corpse)
         return nullptr;
@@ -79,27 +82,27 @@ WorldSafeLocsEntry const* GraveyardValue::GetAnotherAppropriateClosestGraveyard(
         uint32 locId = mapValues.first;
         GraveYardData const& graveyardData = mapValues.second;
 
-        //skip non-neutral or hostile graveyards
+        //skip non-neutral or hostile graveyards | 跳过非中立且非己方阵营的敌对墓地
         if (graveyardData.team != bot->GetTeam() && graveyardData.team != TEAM_BOTH_ALLOWED)
             continue;
 
         WorldSafeLocsEntry const* graveyardCoreEntry = sWorldSafeLocsStore.LookupEntry<WorldSafeLocsEntry>(graveyardData.safeLocId);
 
-        //skip different maps (no need for other continents)
+        //skip different maps (no need for other continents) | 跳过不同地图（无需跨大陆）
         if (graveyardCoreEntry->map_id != botMapId)
             continue;
 
         uint32 graveyardZoneId = sTerrainMgr.GetZoneId(graveyardCoreEntry->map_id, graveyardCoreEntry->x, graveyardCoreEntry->y, graveyardCoreEntry->z);
         auto graveyardAreaEntry = GetAreaEntryByAreaID(graveyardZoneId);
 
-        //skip same zone
+        //skip same zone | 跳过当前所在区域
         if (graveyardZoneId == botZoneId)
             continue;
 
         if (!graveyardAreaEntry)
             continue;
 
-        //skip higher level zones
+        //skip higher level zones | 跳过等级高于当前区域的危险地图
         if (bot->GetLevel() + 5 < (uint32)graveyardAreaEntry->area_level)
             continue;
 
@@ -118,6 +121,7 @@ WorldSafeLocsEntry const* GraveyardValue::GetAnotherAppropriateClosestGraveyard(
     return entryFar;
 }
 
+// 结合死亡次数、跟随主控位置及旅行目标距离计算最优复活墓地
 GuidPosition BestGraveyardValue::Calculate()
 {
     Corpse* corpse = bot->GetCorpse();
@@ -135,7 +139,7 @@ GuidPosition BestGraveyardValue::Calculate()
 
     uint32 deathCount = AI_VALUE(uint32, "death count");
 
-    //attempt to revive at other same map graveyards which are not enemy territory
+    //attempt to revive at other same map graveyards which are not enemy territory | 死亡次数过多时尝试到同地图其他非敌对区域墓地复活
     if (!ai->HasActivePlayerMaster() && deathCount >= DEATH_COUNT_BEFORE_TRYING_ANOTHER_GRAVEYARD)
     {
         GuidPosition anotherGraveyard = AI_VALUE2(GuidPosition, "graveyard", "another closest appropriate");
@@ -152,7 +156,7 @@ GuidPosition BestGraveyardValue::Calculate()
         );
     }
 
-    //Revive near master.
+    //Revive near master. | 跟随/漫游模式下优先在主控附近复活
     if ((ai->HasStrategy("follow", BotState::BOT_STATE_NON_COMBAT) ||
         ai->HasStrategy("wander", BotState::BOT_STATE_NON_COMBAT)) &&
         ai->GetGroupMaster() && ai->GetGroupMaster() != bot)
@@ -171,7 +175,7 @@ GuidPosition BestGraveyardValue::Calculate()
         );
     }
 
-    //Revive near travel target if it's far away from last death.
+    //Revive near travel target if it's far away from last death. | 若旅行目标远离上次死亡地点则在旅行目标附近复活
     if (AI_VALUE2(GuidPosition, "graveyard", "travel") && AI_VALUE2(GuidPosition, "graveyard", "travel").fDist(corpse) > sPlayerbotAIConfig.reactDistance)
     {
         GuidPosition travelGraveyard = AI_VALUE2(GuidPosition, "graveyard", "travel");
@@ -191,44 +195,45 @@ GuidPosition BestGraveyardValue::Calculate()
     return AI_VALUE2(GuidPosition, "graveyard", "self");
 }
 
+// 根据死亡次数、离线时间、尸体附近敌情及修理作弊状态决定是否使用灵魂医者
 bool ShouldSpiritHealerValue::Calculate()
 {
     uint32 deathCount = AI_VALUE(uint32, "death count");
     uint8 durability = AI_VALUE(uint8, "durability");
 
-    if (ai->HasActivePlayerMaster()) //Only use spirit healers with direct command with active master.
+    if (ai->HasActivePlayerMaster()) //Only use spirit healers with direct command with active master. | 有活跃真人主控时仅听从直接指令使用灵魂医者
         return false;
 
-    //Nothing to lose
+    //Nothing to lose | 低等级（10 级以下）无复活虚弱惩罚，可直接灵魂医者复活
     if (ai->HasAura(SPELL_ID_PASSIVE_RESURRECTION_SICKNESS, bot) || durability < 10)
         return true;
 
-    //Died too many times
+    //Died too many times | 死亡次数达到上限则直接在灵魂医者复活
     if (deathCount > DEATH_COUNT_BEFORE_REVIVING_AT_SPIRIT_HEALER)
         return true;
 
     Corpse* corpse = bot->GetCorpse();
     if (!corpse || !WorldPosition(corpse))
     {
-        //if no corpse (?) then definitely should revive at spirit healer
+        //if no corpse (?) then definitely should revive at spirit healer | 若找不到尸体则必须在灵魂医者处复活
         return true;
     }
 
     uint32 deadTime = time(nullptr) - corpse->GetGhostTime();
 
-    //Dead for a long time
+    //Dead for a long time | 死亡时间过久则使用灵魂医者
     if (deadTime > 10 * MINUTE && deathCount > 1)
         return true;
 
-    //Dead for a long time
+    //Dead for a long time | 无主控且死亡超过 10 分钟则使用灵魂医者
     if (deadTime > 20 * MINUTE)
         return true;
 
-    //If there are enemies near grave and corpse we go to corpse first.
+    //If there are enemies near grave and corpse we go to corpse first. | 若墓地与尸体附近均有敌人，优先跑回尸体
     if (AI_VALUE2(bool, "manual bool", "enemies near graveyard"))
         return false;
 
-    //Enemies near corpse so try grave first.
+    //Enemies near corpse so try grave first. | 若尸体附近有敌人而墓地安全，先尝试墓地
     if (AI_VALUE2(bool, "manual bool", "enemies near corpse"))
         return true;
 
@@ -254,10 +259,10 @@ bool ShouldSpiritHealerValue::Calculate()
         }
     }
 
-    //If grave is near and no ress sickness go there.
+    //If grave is near and no ress sickness go there. | 墓地近在眼前且开启自动修理作弊时直接找灵魂医者
     if (graveInSight && !corpseInSight && ai->HasCheat(BotCheatMask::repair))
         return true;
 
-    //Stick to corpse.
+    //Stick to corpse. | 默认坚持跑回尸体复活
     return false;
 }

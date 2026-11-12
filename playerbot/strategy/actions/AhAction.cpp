@@ -8,11 +8,13 @@
 
 using namespace ai;
 
+/// 执行动作主逻辑（拍卖行动作基类）
 bool AhAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
     std::string text = event.getParam();
 
+    // 遍历附近 NPC 列表
     std::list<ObjectGuid> npcs = AI_VALUE(std::list<ObjectGuid>, "nearest npcs");
     for (std::list<ObjectGuid>::iterator i = npcs.begin(); i != npcs.end(); i++)
     {
@@ -20,7 +22,7 @@ bool AhAction::Execute(Event& event)
         if (!npc)
             continue;
 
-        if (!sRandomPlayerbotMgr.m_ahActionMutex.try_lock()) //Another bot is using the Auction right now. Try again later.
+        if (!sRandomPlayerbotMgr.m_ahActionMutex.try_lock()) // Another bot is using the Auction right now. Try again later. (当前有其他机器人正在使用拍卖行，请稍后再试。)
             return false;
 
         bool doneAuction = ExecuteCommand(requester, text, npc);
@@ -34,6 +36,7 @@ bool AhAction::Execute(Event& event)
     return false;
 }
 
+/// 获取拍卖上架的默认持续时间配置
 uint32 AhAction::GetPostTime()
 {
 #ifdef MANGOSBOT_ZERO
@@ -43,6 +46,7 @@ uint32 AhAction::GetPostTime()
 #endif
 }
 
+/// 解析并执行聊天指令子命令（拍卖行动作基类）
 bool AhAction::ExecuteCommand(Player* requester, std::string text, Unit* auctioneer)
 {
     uint32 time = GetPostTime();
@@ -53,13 +57,14 @@ bool AhAction::ExecuteCommand(Player* requester, std::string text, Unit* auction
         if (!auctionHouseEntry)
             return false;
 
+        // 查找背包中匹配的物品
         std::list<Item*> items = AI_VALUE2(std::list<Item*>, "inventory items", "usage " + std::to_string((uint8)ItemUsage::ITEM_USAGE_AH));
 
         bool postedItem = false;
 
         std::map<uint32, uint32> pricePerItemCache;
 
-        //resulting undercut value for reporting
+        // resulting undercut value for reporting (用于汇报的压价后价格结果)
         uint32 resultingUndercut = 0;
         uint32 postedItems = 0;
 
@@ -126,6 +131,7 @@ bool AhAction::ExecuteCommand(Player* requester, std::string text, Unit* auction
     return PostItem(requester, item, price, auctioneer, time);
 }
 
+/// 将背包内物品发布到拍卖行挂单出售
 bool AhAction::PostItem(Player* requester, Item* item, uint32 price, Unit* auctioneer, uint32 time)
 {
     ObjectGuid itemGuid = item->GetObjectGuid();
@@ -144,8 +150,8 @@ bool AhAction::PostItem(Player* requester, Item* item, uint32 price, Unit* aucti
 #ifdef MANGOSBOT_TWO
     packet << cnt;
 #endif
-    packet << uint32(uint64(price) * 95 / 100); //bid price?
-    packet << price; //buyout price?
+    packet << uint32(uint64(price) * 95 / 100); // bid price? (竞拍出价？)
+    packet << price; // buyout price? (一口价？)
     packet << time;
 
     bot->GetSession()->HandleAuctionSellItem(packet);
@@ -161,13 +167,14 @@ bool AhAction::PostItem(Player* requester, Item* item, uint32 price, Unit* aucti
     return true;
 }
 
+/// 解析并执行聊天指令子命令（拍卖行竞拍动作）
 bool AhBidAction::ExecuteCommand(Player* requester, std::string text, Unit* auctioneer)
 {
     AuctionHouseEntry const* auctionHouseEntry = bot->GetSession()->GetCheckedAuctionHouseForAuctioneer(auctioneer->GetObjectGuid());
     if (!auctionHouseEntry)
         return false;
 
-    // always return pointer
+    // always return pointer (始终返回有效指针)
     AuctionHouseObject* auctionHouse = sAuctionMgr.GetAuctionsMap(auctionHouseEntry);
 
     if (!auctionHouse)
@@ -189,7 +196,7 @@ bool AhBidAction::ExecuteCommand(Player* requester, std::string text, Unit* auct
         uint32 count, totalcount = 0;
         auctionHouse->BuildListBidderItems(data, bot, 9999, count, totalcount);
 
-        if (totalcount > 10) //Already have 10 bids, stop.
+        if (totalcount > 10) // Already have 10 bids, stop. (已有 10 个竞拍出价，停止继续竞拍。)
             return false;
 
         std::unordered_map <ItemUsage, int32> freeMoney;
@@ -226,12 +233,12 @@ bool AhBidAction::ExecuteCommand(Player* requester, std::string text, Unit* auct
             if (auction->owner == bot->GetGUIDLow())
                 continue;
 
-            // Resolved once for the whole iteration, so every use below is
-            // visibly covered. itemCount is the load-bearing half: a malformed
-            // row carrying 0 reaches `totalCost / itemCount` in the vendor arm
-            // and the same division inside IsWorthBuyingFromAhToResellAtAH. The
-            // prototype can be null once the item leaves item_template while its
-            // auction lives on, and both arms dereference it.
+            // Resolved once for the whole iteration, so every use below is (在整次迭代开始时统一解析一次，下方各处直接使用该结果)
+            // visibly covered. itemCount is the load-bearing half: a malformed (已有显式覆盖。itemCount 是关键约束：畸形或异常的)
+            // row carrying 0 reaches `totalCost / itemCount` in the vendor arm (数量为 0 的行会在商人分支触发 `totalCost / itemCount` 除零)
+            // and the same division inside IsWorthBuyingFromAhToResellAtAH. The (以及 IsWorthBuyingFromAhToResellAtAH 中的相同除法计算。)
+            // prototype can be null once the item leaves item_template while its (物品从模板移除后指针可能为空，而其)
+            // auction lives on, and both arms dereference it. (拍卖对象依然存活，且两个分支均会解引用它。)
             ItemPrototype const* proto = sObjectMgr.GetItemPrototype(auction->itemTemplate);
             if (!proto || !auction->itemCount)
                 continue;
@@ -263,7 +270,7 @@ bool AhBidAction::ExecuteCommand(Player* requester, std::string text, Unit* auct
                 break;
             }
             case ItemUsage::ITEM_USAGE_VENDOR:
-                //basically if AH price is lower than vendor sell price then it's worth it
+                // basically if AH price is lower than vendor sell price then it's worth it (若拍卖行价格低于商店收购价，则绝对值得购入倒卖)
                 if (totalCost / auction->itemCount >= (int32)proto->SellPrice)
                     continue;
                 power = 1000;
@@ -303,12 +310,12 @@ bool AhBidAction::ExecuteCommand(Player* requester, std::string text, Unit* auct
 
             bool shouldBuyout = false;
 
-            //determine if should look at buyout or bid price depending on item usage
+            // determine if should look at buyout or bid price depending on item usage (根据物品用途决定参考一口价还是竞拍价)
             uint32 price = currentBuyoutPrice;
 
             if (usage == ItemUsage::ITEM_USAGE_VENDOR || usage == ItemUsage::ITEM_USAGE_FORCE_GREED || usage == ItemUsage::ITEM_USAGE_NONE)
             {
-                //do not care for buyout price for items that bot does not need
+                // do not care for buyout price for items that bot does not need (机器人不需要的物品不考虑一口价)
                 price = currentBidPrice;
             }
             else if (currentBidPrice < static_cast<uint32>(currentBuyoutPrice * 0.3f) && !urand(0,1))
@@ -317,14 +324,14 @@ bool AhBidAction::ExecuteCommand(Player* requester, std::string text, Unit* auct
                 price = currentBidPrice;
             }
 
-            //first check if has money for buyout price (if checking against buyout price)
+            // first check if has money for buyout price (if checking against buyout price) (若按一口价判断，先检查金币是否足够一口价)
             if (price == currentBuyoutPrice && (freeMoney.find(usage) == freeMoney.end() || price > AI_VALUE2(uint32, "free money for", freeMoney[usage])))
             {
-                //check for free money for bid price next if has no money for buyout
+                // check for free money for bid price next if has no money for buyout (若金币不足以支付一口价，则检查是否足够支付竞拍价)
                 price = currentBidPrice;
             }
 
-            //check if have money for bid price (if checking against bid price)
+            // check if have money for bid price (if checking against bid price) (若按竞拍价判断，检查金币是否足够出价)
             if (price != currentBuyoutPrice && (freeMoney.find(usage) == freeMoney.end() || price > AI_VALUE2(uint32, "free money for", freeMoney[usage])))
             {
                 if (!urand(0, 5))
@@ -405,13 +412,14 @@ bool AhBidAction::ExecuteCommand(Player* requester, std::string text, Unit* auct
     return BidItem(requester, auction, cost, auctioneer, cost == auction->buyout);
 }
 
+/// 对指定的拍卖行物品进行竞拍出价
 bool AhBidAction::BidItem(Player* requester, AuctionEntry* auction, uint32 price, Unit* auctioneer, bool isBuyout, std::string reason)
 {
     AuctionHouseEntry const* auctionHouseEntry = bot->GetSession()->GetCheckedAuctionHouseForAuctioneer(auctioneer->GetObjectGuid());
     if (!auctionHouseEntry)
         return false;
 
-    // always return pointer
+    // always return pointer (始终返回有效指针)
     AuctionHouseObject* auctionHouse = sAuctionMgr.GetAuctionsMap(auctionHouseEntry);
 
     if (!auctionHouse)
@@ -433,9 +441,9 @@ bool AhBidAction::BidItem(Player* requester, AuctionEntry* auction, uint32 price
 
     ItemPrototype const* proto = sObjectMgr.GetItemPrototype(auction->itemTemplate);
 
-    // Dereferenced unguarded below. Checked here rather than relying on the
-    // callers, because the auction is re-fetched from the auction house above
-    // and this is the frame that reads the prototype.
+    // Dereferenced unguarded below. Checked here rather than relying on the (下文将直接解引用，此处提前判空以避免依赖)
+    // callers, because the auction is re-fetched from the auction house above (调用方，因为上方已重新从拍卖行拉取该拍卖记录)
+    // and this is the frame that reads the prototype. (而当前帧正是在读取该物品原型。)
     if (!proto)
         return false;
 
@@ -461,6 +469,7 @@ bool AhBidAction::BidItem(Player* requester, AuctionEntry* auction, uint32 price
     return false;
 }
 
+/// 去除拍卖文本前后的空白字符
 static std::string TrimAuctionText(const std::string& text)
 {
     size_t begin = text.find_first_not_of(' ');
@@ -471,6 +480,7 @@ static std::string TrimAuctionText(const std::string& text)
     return text.substr(begin, end - begin + 1);
 }
 
+/// 从聊天文本中解析拍卖行金币/银币/铜币价格
 static uint32 ParseAuctionPrice(const std::string& text)
 {
     uint64 copper = 0;
@@ -514,6 +524,7 @@ static uint32 ParseAuctionPrice(const std::string& text)
     return uint32(std::min<uint64>(copper, MAX_MONEY_AMOUNT));
 }
 
+/// 执行动作主逻辑（拍卖管理指令动作）
 bool AuctionCommandAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -560,8 +571,10 @@ bool AuctionCommandAction::Execute(Event& event)
     return RemoveAuctions(requester, rest, auctioneer);
 }
 
+/// 在附近区域搜寻可用的拍卖师 NPC
 Unit* AuctionCommandAction::FindAuctioneer()
 {
+    // 遍历附近 NPC 列表
     std::list<ObjectGuid> npcs = AI_VALUE(std::list<ObjectGuid>, "nearest npcs");
     for (auto& guid : npcs)
     {
@@ -572,6 +585,7 @@ Unit* AuctionCommandAction::FindAuctioneer()
     return nullptr;
 }
 
+/// 列出机器人当前已挂出的拍卖行订单
 bool AuctionCommandAction::ListAuctions(Player* requester)
 {
     static const char* houseNames[MAX_AUCTION_HOUSE_TYPE] = { "Alliance", "Horde", "Neutral" };
@@ -648,6 +662,7 @@ bool AuctionCommandAction::ListAuctions(Player* requester)
     return true;
 }
 
+/// 在拍卖行创建并上架新的拍卖物品
 bool AuctionCommandAction::AddAuction(Player* requester, const std::string& param, Unit* auctioneer)
 {
     std::string itemText = param;
@@ -728,6 +743,7 @@ bool AuctionCommandAction::AddAuction(Player* requester, const std::string& para
     return false;
 }
 
+/// 取消并撤回满足条件的自身拍卖挂单
 bool AuctionCommandAction::RemoveAuctions(Player* requester, const std::string& param, Unit* auctioneer)
 {
     AuctionHouseEntry const* auctionHouseEntry = bot->GetSession()->GetCheckedAuctionHouseForAuctioneer(auctioneer->GetObjectGuid());

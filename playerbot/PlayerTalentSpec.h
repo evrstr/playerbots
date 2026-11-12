@@ -1,5 +1,6 @@
 #pragma once
 
+/// 职业天赋专精枚举
 enum class PlayerTalentSpec : uint8
 {
     TALENT_SPEC_INVALID = 0,

@@ -64,6 +64,7 @@ static std::string TranslateLegacyNeutralize(PlayerbotAI* ai)
     return spell ? std::string("cast ") + spell : "";
 }
 
+// 将旧版 PartyBot 指令格式（如 @dps/@tank/aoe 等）兼容转换为新版策略命令
 static std::string TranslateLegacyPartyBotCommand(const std::string& message, PlayerbotAI* ai)
 {
     if (!sPlayerbotAIConfig.IsPartyBotOnly())
@@ -145,6 +146,7 @@ static std::string TranslateLegacyPartyBotCommand(const std::string& message, Pl
     return message;
 }
 
+// 聊天过滤器基类默认实现：当消息包含目标过滤词时剥离之
 std::string ChatFilter::Filter(std::string message, std::string filter)
 {
     if (message.find("@") == std::string::npos)
@@ -157,6 +159,7 @@ std::string ChatFilter::Filter(std::string message, std::string filter)
 }
 
 
+// 按当前启用策略名（如 @co/@nc/@dps/@heal/@tank）筛选消息接收机器人
 class StrategyChatFilter : public ChatFilter
 {
 public:
@@ -285,6 +288,7 @@ public:
     }
 };
 
+// 按团队职责（坦克/治疗/输出）筛选机器人
 class RoleChatFilter : public ChatFilter
 {
 public:
@@ -356,6 +360,7 @@ public:
     }
 };
 
+// 按角色等级或等级区间筛选机器人
 class LevelChatFilter : public ChatFilter
 {
 public:
@@ -403,6 +408,7 @@ public:
     }
 };
 
+// 按装等或装备需求情况筛选机器人
 class GearChatFilter : public ChatFilter
 {
 public:
@@ -476,6 +482,7 @@ public:
     }
 };
 
+// 按近战/远程战斗类型筛选机器人
 class CombatTypeChatFilter : public ChatFilter
 {
 public:
@@ -544,6 +551,7 @@ public:
     }
 };
 
+// 按团队目标标记(RTI)筛选机器人
 class RtiChatFilter : public ChatFilter
 {
 public:
@@ -618,6 +626,7 @@ private:
     std::list<std::string> rtis;
 };
 
+// 按职业名称筛选机器人
 class ClassChatFilter : public ChatFilter
 {
 public:
@@ -680,6 +689,7 @@ private:
     std::map<std::string, uint8> classNames;
 };
 
+// 按种族名称筛选机器人
 class RaceChatFilter : public ChatFilter
 {
 public:
@@ -722,6 +732,7 @@ public:
     }
 };
 
+// 按队伍编号或小队成员身份筛选机器人
 class GroupChatFilter : public ChatFilter
 {
 public:
@@ -816,6 +827,7 @@ public:
     }
 };
 
+// 按公会成员身份筛选机器人
 class GuildChatFilter : public ChatFilter
 {
 public:
@@ -921,6 +933,7 @@ public:
     }
 };
 
+// 按死亡/战斗/离线等状态筛选机器人
 class StateChatFilter : public ChatFilter
 {
 public:
@@ -990,6 +1003,7 @@ public:
     }
 };
 
+// 按物品用途/背包需求筛选机器人
 class UsageChatFilter : public ChatFilter
 {
 public:
@@ -1116,6 +1130,7 @@ public:
     }
 };
 
+// 按天赋专精名称筛选机器人
 class TalentSpecChatFilter : public ChatFilter
 {
 public:
@@ -1152,6 +1167,7 @@ public:
     }
 };
 
+// 按所在地图/区域/距离筛选机器人
 class LocationChatFilter : public ChatFilter
 {
 public:
@@ -1219,6 +1235,7 @@ public:
     }
 };
 
+// 按随机概率或随机机器人身份筛选
 class RandomChatFilter : public ChatFilter
 {
 public:
@@ -1276,6 +1293,7 @@ public:
     }
 };
 
+// 按任务持有/完成状态筛选机器人
 class QuestChatFilter : public ChatFilter
 {
 public:
@@ -1359,6 +1377,7 @@ public:
     }
 };
 
+// 注册所有聊天子过滤器链
 CompositeChatFilter::CompositeChatFilter(PlayerbotAI* ai) : ChatFilter(ai)
 {
     filters.push_back(new StrategyChatFilter(ai));
@@ -1386,6 +1405,7 @@ CompositeChatFilter::~CompositeChatFilter()
         delete (*i);
 }
 
+// 依次通过全部子过滤器，若任意条件不匹配则返回空串中止执行
 std::string CompositeChatFilter::Filter(std::string message)
 {
     for (int j = 0; j < filters.size(); ++j)

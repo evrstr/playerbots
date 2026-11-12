@@ -1,3 +1,4 @@
+/// 施法时间控制策略与乘数实现
 
 #include "playerbot/playerbot.h"
 #include "CastTimeStrategy.h"
@@ -7,6 +8,7 @@
 
 using namespace ai;
 
+/// 乘数判定：当当前目标处于濒危血量时，压低或禁用长读条法术优先级以防溢出与浪费
 float CastTimeMultiplier::GetValue(Action* action)
 {
     if (action == NULL) return 1.0f;
@@ -42,6 +44,7 @@ float CastTimeMultiplier::GetValue(Action* action)
     return 1.0f;
 }
 
+/// 初始化战斗乘数：挂载 CastTimeMultiplier
 void CastTimeStrategy::InitCombatMultipliers(std::list<Multiplier*> &multipliers)
 {
     multipliers.push_back(new CastTimeMultiplier(ai));

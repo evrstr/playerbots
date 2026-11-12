@@ -20,6 +20,7 @@
 #include <sstream>
 #include "PlayerbotLoginMgr.h"
 
+// 读取配置文件中以指定前缀开头的所有键值对
 std::vector<std::string> ConfigAccess::GetValues(const std::string& name) const
 {
     std::vector<std::string> values;
@@ -70,6 +71,7 @@ void LoadListString(std::string value, T& list)
     }
 }
 
+// 解析 HTTP/HTTPS 接口 URL（拆分协议、主机名、端口与路径）
 inline ParsedUrl parseUrl(const std::string& url) {
     std::regex urlRegex(R"((http|https)://([^:/]+)(:([0-9]+))?(/.*)?)");
     std::smatch match;
@@ -85,6 +87,7 @@ inline ParsedUrl parseUrl(const std::string& url) {
     return parsed;
 }
 
+// 读取 aiplayerbot.conf 并初始化全部距离、延迟、随机机器人、天赋权重与 LLM 配置参数
 bool PlayerbotAIConfig::Initialize()
 {
     sLog.outString("Initializing AI Playerbot by ike3, based on the original Playerbot by blueboy");
@@ -197,10 +200,10 @@ bool PlayerbotAIConfig::Initialize()
     LoadList<std::vector<uint32> >(randomBotMapsAsString, randomBotMaps);
     LoadList<std::list<uint32> >(config.GetStringDefault("AiPlayerbot.RandomBotQuestItems", "6948,5175,5176,5177,5178,16309,12382,13704,11000,22754"), randomBotQuestItems);
     LoadList<std::list<uint32> >(config.GetStringDefault("AiPlayerbot.RandomBotSpellIds", "54197"), randomBotSpellIds);
-	LoadList<std::list<uint32> >(config.GetStringDefault("AiPlayerbot.PvpProhibitedZoneIds", "2255,656,2361,2362,2363,976,35,2268,3425,392,541,1446,3828,3712,3738,3565,3539,3623,4152,3988,4658,4284,4418,4436,4275,4323"), pvpProhibitedZoneIds);
+    LoadList<std::list<uint32> >(config.GetStringDefault("AiPlayerbot.PvpProhibitedZoneIds", "2255,656,2361,2362,2363,976,35,2268,3425,392,541,1446,3828,3712,3738,3565,3539,3623,4152,3988,4658,4284,4418,4436,4275,4323"), pvpProhibitedZoneIds);
 
 #ifndef MANGOSBOT_ZERO
-    // disable pvp near dark portal if event is active
+    // disable pvp near dark portal if event is active (黑暗之门事件开启时禁止周边 PvP)
     if (sWorldState.GetExpansion() == EXPANSION_NONE)
         pvpProhibitedZoneIds.insert(pvpProhibitedZoneIds.begin(), 72);
 #endif
@@ -429,7 +432,7 @@ bool PlayerbotAIConfig::Initialize()
     if (useFixedClassRaceCounts)
     {
 
-        // Warn about unsupported config keys
+        // Warn about unsupported config keys (对不再支持的旧配置键输出警告)
         for (uint32 race = 1; race < MAX_RACES; ++race)
         {
             std::string raceKey = "AiPlayerbot.ClassRaceProb.0." + std::to_string(race);
@@ -446,21 +449,21 @@ bool PlayerbotAIConfig::Initialize()
                 sLog.outError("Fixed class/race counts does not yet support '%s' (class-only). This config entry will be ignored.", classKey.c_str());
         }
 
-        //Parse and build fixedClassRacesCounts
+        //Parse and build fixedClassRacesCounts (解析固定职业/种族数量配额配置)
         {
             for (uint32 cls = 1; cls < MAX_CLASSES; ++cls)
-	    {
-	        for (uint32 race = 1; race < MAX_RACES; ++race)
-	        {
-		    std::string key = "AiPlayerbot.ClassRaceProb." + std::to_string(cls) + "." + std::to_string(race);
-		    int count = config.GetIntDefault(key, -1);
+        {
+            for (uint32 race = 1; race < MAX_RACES; ++race)
+            {
+            std::string key = "AiPlayerbot.ClassRaceProb." + std::to_string(cls) + "." + std::to_string(race);
+            int count = config.GetIntDefault(key, -1);
 
-		    if (count >= 0 && factory.isAvailableRace(cls, race))
-		    {
-		        fixedClassRaceCounts[{cls, race}] = count;
-		    }
-	        }
-	    }
+            if (count >= 0 && factory.isAvailableRace(cls, race))
+            {
+                fixedClassRaceCounts[{cls, race}] = count;
+            }
+            }
+        }
         }
     }
 
@@ -473,7 +476,7 @@ bool PlayerbotAIConfig::Initialize()
 
     worldBuffs.clear();
 
-    //Get all config values starting with AiPlayerbot.WorldBuff
+    //Get all config values starting with AiPlayerbot.WorldBuff (加载世界增益 WorldBuff 配置规则)
     std::vector<std::string> values = configA->GetValues("AiPlayerbot.WorldBuff");
 
     if (values.size())
@@ -520,9 +523,9 @@ bool PlayerbotAIConfig::Initialize()
     randomBotShowCloak = config.GetBoolDefault("AiPlayerbot.RandomBotShowCloak", false);
     randomBotShowHelmet = config.GetBoolDefault("AiPlayerbot.RandomBotShowHelmet", false);
 
-	//SPP switches
+    //SPP switches
     enableGreet = config.GetBoolDefault("AiPlayerbot.EnableGreet", false);
-	disableRandomLevels = config.GetBoolDefault("AiPlayerbot.DisableRandomLevels", false);
+    disableRandomLevels = config.GetBoolDefault("AiPlayerbot.DisableRandomLevels", false);
     instantRandomize = config.GetBoolDefault("AiPlayerbot.InstantRandomize", true);
     randomBotRandomPassword = config.GetBoolDefault("AiPlayerbot.RandomBotRandomPassword", true);
     playerbotsXPrate = config.GetFloatDefault("AiPlayerbot.XPRate", 1.0f);
@@ -540,7 +543,7 @@ bool PlayerbotAIConfig::Initialize()
     randombotStartingLevel = config.GetIntDefault("AiPlayerbot.randombotStartingLevel", 5);
     gearscorecheck = config.GetBoolDefault("AiPlayerbot.GearScoreCheck", false);
     levelCheck = config.GetIntDefault("AiPlayerbot.LevelCheck", 30);
-	randomBotPreQuests = config.GetBoolDefault("AiPlayerbot.PreQuests", true);
+    randomBotPreQuests = config.GetBoolDefault("AiPlayerbot.PreQuests", true);
     randomBotSayWithoutMaster = config.GetBoolDefault("AiPlayerbot.RandomBotSayWithoutMaster", false);
     randomBotInvitePlayer = config.GetBoolDefault("AiPlayerbot.RandomBotInvitePlayer", true);
     randomBotGroupNearby = config.GetBoolDefault("AiPlayerbot.RandomBotGroupNearby", true);
@@ -841,11 +844,13 @@ bool PlayerbotAIConfig::Initialize()
     return true;
 }
 
+// 判断账号 ID 是否属于随机机器人账号池
 bool PlayerbotAIConfig::IsInRandomAccountList(uint32 id)
 {
     return find(randomBotAccounts.begin(), randomBotAccounts.end(), id) != randomBotAccounts.end();
 }
 
+// 判断角色 GUID 是否为免消耗召唤的自由小号机器人
 bool PlayerbotAIConfig::IsFreeAltBot(uint32 guid)
 {
     for (auto bot : freeAltBots)
@@ -867,6 +872,7 @@ bool PlayerbotAIConfig::IsPartyBotBannedStrategy(const std::string& name)
     return name.compare(0, 3, "rpg") == 0 && name != "rpg jump";
 }
 
+// 在 PartyBotOnly 模式下过滤掉不适合随从机器人的自主策略
 std::string PlayerbotAIConfig::FilterPartyBotStrategies(const std::string& strategies)
 {
     std::string result;
@@ -900,9 +906,10 @@ bool PlayerbotAIConfig::IsInRandomQuestItemList(uint32 id)
 
 bool PlayerbotAIConfig::IsInPvpProhibitedZone(uint32 id)
 {
-	return find(pvpProhibitedZoneIds.begin(), pvpProhibitedZoneIds.end(), id) != pvpProhibitedZoneIds.end();
+    return find(pvpProhibitedZoneIds.begin(), pvpProhibitedZoneIds.end(), id) != pvpProhibitedZoneIds.end();
 }
 
+// 根据配置名称动态查询当前配置值字符串
 std::string PlayerbotAIConfig::GetValue(std::string name)
 {
     std::ostringstream out;
@@ -942,6 +949,7 @@ std::string PlayerbotAIConfig::GetValue(std::string name)
     return out.str();
 }
 
+// 运行时动态修改指定配置项的值
 void PlayerbotAIConfig::SetValue(std::string name, std::string value)
 {
     std::istringstream out(value, std::istringstream::in);
@@ -979,6 +987,7 @@ void PlayerbotAIConfig::SetValue(std::string name, std::string value)
         out >> iterationsPerTick;
 }
 
+// 从配置加载自由小号机器人账号列表
 void PlayerbotAIConfig::loadFreeAltBotAccounts()
 {
     bool allCharsOnline = (selfBotLevel == BotSelfBotLevel::ALWAYS_ACTIVE);
@@ -1088,6 +1097,7 @@ bool PlayerbotAIConfig::openLog(std::string fileName, char const* mode, bool has
     return true;
 }
 
+// 线程安全地向指定诊断日志文件写入格式化日志
 void PlayerbotAIConfig::log(std::string fileName, const char* str, ...)
 {
     if (!str)
@@ -1173,6 +1183,7 @@ bool PlayerbotAIConfig::CanLogAction(PlayerbotAI* ai, std::string actionName, bo
     return std::find(debugFilter.begin(), debugFilter.end(), actionName) == debugFilter.end();
 }
 
+// 从配置加载各职业各专精的预置天赋加点路径与雕文优先级
 void PlayerbotAIConfig::LoadTalentSpecs()
 {
     sLog.outString("Loading TalentSpecs");
@@ -1295,6 +1306,7 @@ void PlayerbotAIConfig::LoadTalentSpecs()
     }
 }
 
+// 加载或生成默认大语言模型(LLM)提示词配置
 void PlayerbotAIConfig::LoadLLMDefaultPrompts(const std::string& fileName)
 {
     std::ifstream file(fileName);

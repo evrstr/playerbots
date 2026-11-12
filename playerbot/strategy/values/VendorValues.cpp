@@ -1,3 +1,4 @@
+// 策略值实现：VendorValues（全局商人商品表构建与购买需求判定）
 #include "VendorValues.h"
 #include "ItemUsageValue.h"
 #include "BudgetValues.h"
@@ -6,6 +7,7 @@
 
 using namespace ai;
 
+// 扫描所有带商人标志的生物模板，收集其非限量商品及关联商人模板商品映射
 VendorMap* VendorMapValue::Calculate()
 {
     VendorMap* vendorpMap = new VendorMap;
@@ -23,7 +25,7 @@ VendorMap* VendorMapValue::Calculate()
 
         if (vItems)
             for (auto vItem : vItems->m_items)
-                if (!vItem->maxcount) //Ignore limited amount items.
+                if (!vItem->maxcount) //Ignore limited amount items. | 忽略限量刷新商品
                     vendorpMap->insert(std::make_pair(vItem->item, entry));
 
         uint32 vendorId = cInfo->VendorTemplateId;
@@ -32,7 +34,7 @@ VendorMap* VendorMapValue::Calculate()
             vItems = sObjectMgr.GetNpcVendorTemplateItemList(vendorId);
             if (vItems)
                 for (auto vItem : vItems->m_items)
-                    if (!vItem->maxcount) //Ignore limited amount items.
+                    if (!vItem->maxcount) //Ignore limited amount items. | 忽略限量刷新商品
                         vendorpMap->insert(std::make_pair(vItem->item, entry));
         }
     }
@@ -40,7 +42,8 @@ VendorMap* VendorMapValue::Calculate()
     return vendorpMap;
 }
 
-//What items does this entry have in its loot list?
+//What items does this entry have in its loot list? | 查询出售指定物品的商人列表
+// 从全局 VendorMap 中查询出售指定物品的全部商人 Entry
 std::list<int32> ItemVendorListValue::Calculate()
 {
     uint32 itemId = stoi(getQualifier());
@@ -57,6 +60,7 @@ std::list<int32> ItemVendorListValue::Calculate()
     return entries;
 }
 
+// 检查指定商人出售的物品中是否存在机器人可买得起且当前急需的装备/补给/弹药/材料
 bool VendorHasUsefulItemValue::Calculate()
 {
     uint32 entry = stoi(this->getQualifier());
@@ -95,7 +99,7 @@ bool VendorHasUsefulItemValue::Calculate()
     {
         ItemPrototype const* proto = sObjectMgr.GetItemPrototype(vendorItem->item);
 #ifndef MANGOSBOT_ZERO
-        if (vendorItem->ExtendedCost) //Needs to be replaced with check if bot has (free) currency for this item.
+        if (vendorItem->ExtendedCost) //Needs to be replaced with check if bot has (free) currency for this item. | 待办：需改为检查机器人是否拥有兑换所需的特殊代币/荣誉
             continue;
 #endif
 

@@ -1,3 +1,4 @@
+/// 机器人状态反应（Reaction）核心切换策略实现
 
 #include "playerbot/playerbot.h"
 #include "playerbot/ServerFacade.h"
@@ -5,6 +6,7 @@
 
 using namespace ai;
 
+/// 初始化反应触发器：在进战、脱战、死亡和复活时立即切换 BotState 状态
 void ReactionStrategy::InitReactionTriggers(std::list<TriggerNode*> &triggers)
 {
     triggers.push_back(new TriggerNode(

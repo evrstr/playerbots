@@ -1,21 +1,25 @@
+/// 黑翼之巢（BWL）团队副本触发器定义
 #pragma once
 #include "DungeonTriggers.h"
 #include "GenericTriggers.h"
 
 namespace ai
 {
+    /// 触发器：进入黑翼之巢副本
     class BlackwingLairEnterDungeonTrigger : public EnterDungeonTrigger
     {
     public:
         BlackwingLairEnterDungeonTrigger(PlayerbotAI* ai) : EnterDungeonTrigger(ai, "enter blackwing lair", "blackwing lair", 469) {}
     };
 
+    /// 触发器：离开黑翼之巢副本
     class BlackwingLairLeaveDungeonTrigger : public LeaveDungeonTrigger
     {
     public:
         BlackwingLairLeaveDungeonTrigger(PlayerbotAI* ai) : LeaveDungeonTrigger(ai, "leave blackwing lair", "blackwing lair", 469) {}
     };
 
+    /// 触发器：发现压制装置时潜行职业（盗贼）需进入潜行状态
     class SuppressionDeviceNeedStealthTrigger : public Trigger
     {
     public:
@@ -34,6 +38,7 @@ namespace ai
         }
     };
 
+    /// 触发器：视野内存在未失效的压制装置（盗贼，且未贴近）
     class SuppressionDeviceInSightTrigger : public Trigger
     {
     public:
@@ -51,6 +56,7 @@ namespace ai
         }
     };
 
+    /// 触发器：盗贼已接近可交互的压制装置
     class SuppressionDeviceCloseTrigger : public Trigger
     {
     public:

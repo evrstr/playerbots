@@ -24,6 +24,7 @@
 
 using namespace ahbot;
 
+// 处理游戏内或控制台输入的 ahbot 管理指令
 bool AhBot::HandleAhBotCommand(ChatHandler* handler, char const* args)
 {
     auctionbot.HandleCommand(args);
@@ -34,6 +35,7 @@ uint32 AhBot::auctionIds[MAX_AUCTIONS] = {1,6,7};
 uint32 AhBot::auctioneers[MAX_AUCTIONS] = {79707,4656,23442};
 std::map<uint32, uint32> AhBot::factions;
 
+// 初始化拍卖行机器人配置、阵营映射及可拍卖物品列表
 void AhBot::Init()
 {
     sLog.outString("Initializing AhBot by ike3");
@@ -77,6 +79,7 @@ void AhbotThread()
 }
 #endif
 
+// 启动异步线程执行拍卖行后台扫描更新
 void activateAhbotThread()
 {
 #ifdef MANGOS
@@ -89,6 +92,7 @@ void activateAhbotThread()
 #endif
 }
 
+// 世界主循环调用：检查开关、停服状态及冷却时间后触发后台更新并清理过期议价邮件
 void AhBot::Update()
 {
     if (!sAhBotConfig.enabled)
@@ -113,64 +117,66 @@ void AhBot::Update()
     CleanupPropositions();
 }
 
+// 后台线程主任务：加载机器人竞拍者、刷新分类倍率、逐拍卖行应答玩家拍卖并补货上架
 void AhBot::ForceUpdate()
 {
-	if (!sAhBotConfig.enabled)
-		return;
+    if (!sAhBotConfig.enabled)
+        return;
 
-	if (updating)
-		return;
+    if (updating)
+        return;
 
     std::string msg = "AhBot is now checking auctions in the background";
-	sLog.outString("%s", msg.c_str());
-	//ostringstream out1; out1 << "|c070cc700 " << msg << " |r";
-	//sWorld.SendWorldText(3, out1.str().c_str());
-	updating = true;
+    sLog.outString("%s", msg.c_str());
+    //ostringstream out1; out1 << "|c070cc700 " << msg << " |r"; (已禁用世界频道广播)
+    //sWorld.SendWorldText(3, out1.str().c_str());
+    updating = true;
 
-	if (!allBidders.size())
-		LoadRandomBots();
+    if (!allBidders.size())
+        LoadRandomBots();
 
-	if (!allBidders.size())
-	{
-		sLog.outError("Ahbot is enabled but there are no bidders available");
-		return;
-	}
+    if (!allBidders.size())
+    {
+        sLog.outError("Ahbot is enabled but there are no bidders available");
+        return;
+    }
 
-	CheckCategoryMultipliers();
+    CheckCategoryMultipliers();
 
-	int answered = 0, added = 0;
-	for (int i = 0; i < MAX_AUCTIONS; i++)
-	{
-		InAuctionItemsBag inAuctionItems(auctionIds[i]);
-		inAuctionItems.Init(true);
+    int answered = 0, added = 0;
+    for (int i = 0; i < MAX_AUCTIONS; i++)
+    {
+        InAuctionItemsBag inAuctionItems(auctionIds[i]);
+        inAuctionItems.Init(true);
 
-		for (int j = 0; j < CategoryList::instance.size(); j++)
-		{
-			Category* category = CategoryList::instance[j];
-			answered += Answer(i, category, &inAuctionItems);
-			added += AddAuctions(i, category, &inAuctionItems);
-		}
-	}
+        for (int j = 0; j < CategoryList::instance.size(); j++)
+        {
+            Category* category = CategoryList::instance[j];
+            answered += Answer(i, category, &inAuctionItems);
+            added += AddAuctions(i, category, &inAuctionItems);
+        }
+    }
 
-	CleanupHistory();
+    CleanupHistory();
 
-	sLog.outString("AhBot auction check finished. %d auctions answered, %d new auctions added. Next check in %d seconds",
-		answered, added, sAhBotConfig.updateInterval);
-	/*ostringstream out; out << "|c070cc700 AhBot auction check finished. Next check in " << sAhBotConfig.updateInterval << " seconds |r";
-	sWorld.SendWorldText(3, out.str().c_str());
-	if (added > 0)
-	{
-		ostringstream out; out << "|c070cc700 There " << (added == 1 ? "is " : "are ") << added << (added == 1 ? " new item" : " new items") << " in the auction. |r";
-		sWorld.SendWorldText(3, out.str().c_str());
-	}
-	if (answered > 0)
-	{
-		ostringstream out; out << "|c070cc700 "  << answered << (answered == 1 ? " auction has been" : " auctions have been") << " answered.|r";
-		sWorld.SendWorldText(3, out.str().c_str());
-	}*/ // disable in game ahbot spam
+    sLog.outString("AhBot auction check finished. %d auctions answered, %d new auctions added. Next check in %d seconds",
+        answered, added, sAhBotConfig.updateInterval);
+    /*ostringstream out; out << "|c070cc700 AhBot auction check finished. Next check in " << sAhBotConfig.updateInterval << " seconds |r";
+    sWorld.SendWorldText(3, out.str().c_str());
+    if (added > 0)
+    {
+        ostringstream out; out << "|c070cc700 There " << (added == 1 ? "is " : "are ") << added << (added == 1 ? " new item" : " new items") << " in the auction. |r";
+        sWorld.SendWorldText(3, out.str().c_str());
+    }
+    if (answered > 0)
+    {
+        ostringstream out; out << "|c070cc700 "  << answered << (answered == 1 ? " auction has been" : " auctions have been") << " answered.|r";
+        sWorld.SendWorldText(3, out.str().c_str());
+    }*/ // disable in game ahbot spam (屏蔽游戏内拍卖行机器人刷屏广播)
     updating = false;
 }
 
+// 按起拍价升序（起拍价相同时按一口价升序）排列拍卖条目的比较谓词
 struct SortByPricePredicate
 {
     bool operator()(AuctionEntry* const & a, AuctionEntry* const & b) const
@@ -182,6 +188,7 @@ struct SortByPricePredicate
     }
 };
 
+// 读取指定拍卖行中玩家挂出的指定分类拍卖并按价格排序
 std::vector<AuctionEntry*> AhBot::LoadAuctions(const AuctionHouseObject::AuctionEntryMap& auctionEntryMap,
         Category*& category, int& auction)
 {
@@ -214,6 +221,7 @@ std::vector<AuctionEntry*> AhBot::LoadAuctions(const AuctionHouseObject::Auction
     return entries;
 }
 
+// 检索拍卖行中同模板物品其他卖家的最低竞标价与最低一口价
 void AhBot::FindMinPrice(const AuctionHouseObject::AuctionEntryMap& auctionEntryMap, AuctionEntry*& entry, Item*& item, uint32* minBid,
         uint32* minBuyout)
 {
@@ -245,6 +253,7 @@ void AhBot::FindMinPrice(const AuctionHouseObject::AuctionEntryMap& auctionEntry
     }
 }
 
+// 评估玩家挂出的拍卖：校验等级/数量/预算/最低价/延时后执行竞标或一口价拍下，高价物品则发送议价邮件
 int AhBot::Answer(int auction, Category* category, ItemBag* inAuctionItems)
 {
     const AuctionHouseEntry* ahEntry = sAuctionHouseStore.LookupEntry(auctionIds[auction]);
@@ -420,6 +429,7 @@ void AhBot::SetTime(std::string category, uint32 id, uint32 auctionHouse, uint32
         category.c_str(), type, factions[auctionHouse]);
 }
 
+// 基于分类与单品冷却及价格水平计算随机延迟竞拍时间戳
 uint32 AhBot::GetBuyTime(uint32 entry, uint32 itemId, uint32 auctionHouse, Category*& category, double priceLevel)
 {
     uint32 entryTime = GetTime("entry", entry, auctionHouse, AHBOT_WON_DELAY);
@@ -447,6 +457,7 @@ uint32 AhBot::GetBuyTime(uint32 entry, uint32 itemId, uint32 auctionHouse, Categ
     return result ? result : entryTime;
 }
 
+// 计算机器人允许再次上架指定物品的目标时间戳
 uint32 AhBot::GetSellTime(uint32 itemId, uint32 auctionHouse, Category*& category)
 {
     uint32 itemSellTime = GetTime("item", itemId, auctionHouse, AHBOT_SELL_DELAY);
@@ -477,6 +488,7 @@ uint32 AhBot::GetSellTime(uint32 itemId, uint32 auctionHouse, Category*& categor
     return result ? result : itemTime;
 }
 
+// 检查分类上架配额并在可用物品池中随机抽取符合冷却条件的物品上架
 int AhBot::AddAuctions(int auction, Category* category, ItemBag* inAuctionItems)
 {
     std::vector<uint32>& inAuction = inAuctionItems->Get(category);
@@ -530,6 +542,7 @@ int AhBot::AddAuctions(int auction, Category* category, ItemBag* inAuctionItems)
     return added;
 }
 
+// 构造单条新拍卖记录（计算定价、堆叠数、随机附魔及有效时间）并存入数据库与拍卖行
 int AhBot::AddAuction(int auction, Category* category, ItemPrototype const* proto)
 {
     uint32 owner = GetRandomBidder(auctionIds[auction]);
@@ -611,6 +624,7 @@ int AhBot::AddAuction(int auction, Category* category, ItemPrototype const* prot
     return 1;
 }
 
+// 执行 ahbot 控制台命令（expire/stats/update/dump 或查询指定物品 ID 价格明细）
 void AhBot::HandleCommand(std::string command)
 {
     if (!sAhBotConfig.enabled)
@@ -697,6 +711,7 @@ void AhBot::HandleCommand(std::string command)
     }
 }
 
+// 强制使指定拍卖行中机器人名下的在售物品立即到期
 void AhBot::Expire(int auction)
 {
     if (!sAhBotConfig.enabled)
@@ -726,6 +741,7 @@ void AhBot::Expire(int auction)
     sLog.outString("%d auctions marked as expired in auction %d", count, auctionIds[auction]);
 }
 
+// 打印指定拍卖行当前在售物品总数
 void AhBot::PrintStats(int auction)
 {
     if (!sAhBotConfig.enabled)
@@ -741,6 +757,7 @@ void AhBot::PrintStats(int auction)
     sLog.outString("%lu auctions available on auction house %d", auctions.size(), auctionIds[auction]);
 }
 
+// 将成交或竞价事件记录到 ahbot_history 并更新市场参考价格
 void AhBot::AddToHistory(AuctionEntry* entry, uint32 won)
 {
     if (!sAhBotConfig.enabled || !entry)
@@ -781,6 +798,7 @@ void AhBot::AddToHistory(AuctionEntry* entry, uint32 won)
         category.c_str(), won, factions[entry->auctionHouseEntry->houseId]);
 }
 
+// 查询指定时间段内机器人对该物品的应答竞拍次数
 uint32 AhBot::GetAnswerCount(uint32 itemId, uint32 auctionHouse, uint32 withinTime)
 {
     uint32 count = 0;
@@ -800,12 +818,14 @@ uint32 AhBot::GetAnswerCount(uint32 itemId, uint32 auctionHouse, uint32 withinTi
     return count;
 }
 
+// 删除超出配置保留天数的旧拍卖历史记录
 void AhBot::CleanupHistory()
 {
     uint32 when = time(0) - 3600 * 24 * sAhBotConfig.historyDays;
     CharacterDatabase.PExecute("DELETE FROM ahbot_history WHERE buytime < '%u'", when);
 }
 
+// 汇总每日基础预算、历史盈亏及当前挂单占用资金，计算可用收购余额
 uint32 AhBot::GetAvailableMoney(uint32 auctionHouse)
 {
     int64 result = sAhBotConfig.alwaysAvailableMoney;
@@ -854,6 +874,7 @@ uint32 AhBot::GetAvailableMoney(uint32 auctionHouse)
     return result < 0 ? 0 : (uint32)result;
 }
 
+// 从数据库读取或周期性随机刷新各分类的价格倍率与上架上限
 void AhBot::CheckCategoryMultipliers()
 {
     auto results = CharacterDatabase.PQuery("SELECT category, multiplier, max_auction_count, expire_time FROM ahbot_category");
@@ -885,10 +906,10 @@ void AhBot::CheckCategoryMultipliers()
             uint32 k = urand(1, 100);
             double m = 1.0;
             double r = (double)urand(100, 200) / 100.0;
-            if (k < 50) m = r; // 1..2
-            else if (k < 80) m = 1 + r; // 2..3
-            else if (k < 90) m = 2 + r; // 3..4
-            else m = 3 + r; // 4..5
+            if (k < 50) m = r; // 1..2 (约50%概率落在1~2倍)
+            else if (k < 80) m = 1 + r; // 2..3 (约30%概率落在2~3倍)
+            else if (k < 90) m = 2 + r; // 3..4 (约10%概率落在3~4倍)
+            else m = 3 + r; // 4..5 (约10%概率落在4~5倍)
             categoryMultipliers[name] = m;
             categoryMultiplierExpireTimes[name] = time(0) + urand(4, 7) * 3600 * 24;
         }
@@ -902,6 +923,7 @@ void AhBot::CheckCategoryMultipliers()
 }
 
 
+// 采用算术平均平滑更新物品在特定拍卖行的市场价格
 void AhBot::updateMarketPrice(uint32 itemId, double price, uint32 auctionHouse)
 {
     double marketPrice = 0;
@@ -921,11 +943,13 @@ void AhBot::updateMarketPrice(uint32 itemId, double price, uint32 auctionHouse)
     CharacterDatabase.PExecute("INSERT INTO ahbot_price (item, price, auction_house) VALUES ('%u', '%lf', '%u')", itemId, marketPrice, auctionHouse);
 }
 
+// 判断 GUID 是否属于已加载的拍卖行机器人账号角色
 bool AhBot::IsBotAuction(uint32 bidder)
 {
     return allBidders.find(bidder) != allBidders.end();
 }
 
+// 从指定阵营的有效机器人角色中随机抽取一名竞拍者/卖家
 uint32 AhBot::GetRandomBidder(uint32 auctionHouse)
 {
     std::vector<uint32> guids = bidders[factions[auctionHouse]];
@@ -950,6 +974,7 @@ uint32 AhBot::GetRandomBidder(uint32 auctionHouse)
     return online[index];
 }
 
+// 从随机机器人账号加载角色 GUID 并按阵营分配到联盟/部落/中立拍卖行池
 void AhBot::LoadRandomBots()
 {
     for (std::list<uint32>::iterator i = sPlayerbotAIConfig.randomBotAccounts.begin(); i != sPlayerbotAIConfig.randomBotAccounts.end(); i++)
@@ -988,6 +1013,7 @@ void AhBot::LoadRandomBots()
     sLog.outDetail( "{A=%zu,H=%zu,N=%zu} bidders loaded", bidders[1].size(), bidders[2].size(), bidders[3].size());
 }
 
+// 计算并返回物品在各拍卖行中的最高建议出售价
 int32 AhBot::GetSellPrice(ItemPrototype const* proto)
 {
     if (!sAhBotConfig.enabled)
@@ -1018,6 +1044,7 @@ int32 AhBot::GetSellPrice(ItemPrototype const* proto)
     return maxPrice;
 }
 
+// 计算并返回物品在各拍卖行中的最高建议收购价
 int32 AhBot::GetBuyPrice(ItemPrototype const* proto)
 {
     if (!sAhBotConfig.enabled)
@@ -1048,6 +1075,7 @@ int32 AhBot::GetBuyPrice(ItemPrototype const* proto)
     return maxPrice;
 }
 
+// 获取指定物品的稀有度价格乘数
 double AhBot::GetRarityPriceMultiplier(const ItemPrototype* proto)
 {
     if (!sAhBotConfig.enabled)
@@ -1066,6 +1094,7 @@ double AhBot::GetRarityPriceMultiplier(const ItemPrototype* proto)
 
 }
 
+// 检查物品是否归属于指定商业技能 ID
 bool AhBot::IsUsedBySkill(const ItemPrototype* proto, uint32 skillId)
 {
     if (!sAhBotConfig.enabled)
@@ -1081,6 +1110,7 @@ bool AhBot::IsUsedBySkill(const ItemPrototype* proto, uint32 skillId)
     return false;
 }
 
+// 对价格高于心理上限的玩家拍卖发送友好议价邮件（含防重复发送冷却）
 void AhBot::CheckSendMail(uint32 bidder, uint32 price, AuctionEntry *entry)
 {
     if (!sAhBotConfig.sendmail)
@@ -1133,6 +1163,7 @@ void AhBot::CheckSendMail(uint32 bidder, uint32 price, AuctionEntry *entry)
     SetTime("entry", entry->Id, entry->auctionHouseEntry->houseId, AHBOT_SENDMAIL, entry->expireTime);
 }
 
+// 遍历全物品表并将可拍卖物品的估算买卖价格输出到日志
 void AhBot::Dump()
 {
     for (uint32 itemId = 0; itemId < sItemStorage.GetMaxEntry(); ++itemId)
@@ -1171,6 +1202,7 @@ void AhBot::Dump()
     }
 }
 
+// 清理投递超过 2 天的过期 AH Proposition 议价邮件
 void AhBot::CleanupPropositions()
 {
     uint32 deliverTime = time(0) - 3600 * 24 * 2;
@@ -1196,6 +1228,7 @@ void AhBot::CleanupPropositions()
     }
 }
 
+// 构造 SQL IN 语句批量删除指定 ID 列表的邮件
 void AhBot::DeleteMail(std::list<uint32> buffer)
 {
     std::ostringstream sql;

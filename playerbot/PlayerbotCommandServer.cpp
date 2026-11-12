@@ -16,6 +16,7 @@ INSTANTIATE_SINGLETON_1(PlayerbotCommandServer);
 using boost::asio::ip::tcp;
 typedef boost::shared_ptr<tcp::socket> socket_ptr;
 
+// 从 TCP 套接字缓冲按行读取远程命令
 bool ReadLine(socket_ptr sock, std::string* buffer, std::string* line)
 {
     // Do the real reading from fd until buffer has '\n'.
@@ -39,6 +40,7 @@ bool ReadLine(socket_ptr sock, std::string* buffer, std::string* line)
     return true;
 }
 
+// 处理单个远程客户端 TCP 会话请求并回写执行结果
 void session(socket_ptr sock)
 {
     try
@@ -56,6 +58,7 @@ void session(socket_ptr sock)
     }
 }
 
+// 启动 TCP 监听循环并为每个连接分派工作线程
 void server(boost::asio::io_context& io_context, short port)
 {
     tcp::acceptor a(io_context, tcp::endpoint(tcp::v4(), port));
@@ -87,6 +90,7 @@ void Run()
     }
 }
 
+// 在后台分离线程中启动远程指令监听服务
 void PlayerbotCommandServer::Start()
 {
     std::thread serverThread(Run);

@@ -1,12 +1,15 @@
+/// 聊天指令触发器上下文注册表
 #pragma once
 
 #include "ChatCommandTrigger.h"
 
 namespace ai
 {
+    /// 聊天指令触发器工厂上下文，负责注册所有支持的聊天命令触发器
     class ChatTriggerContext : public NamedObjectContext<Trigger>
     {
     public:
+        /// 注册各类聊天指令触发器映射
         ChatTriggerContext()
         {
             creators["quests"] = [](PlayerbotAI* ai) { return new ChatCommandTrigger(ai, "quests"); };

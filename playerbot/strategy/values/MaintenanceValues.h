@@ -1,3 +1,4 @@
+// 策略值头文件：MaintenanceValues（移动许可、修理/买卖/拍卖/收信条件、战斗准备度与吃喝判断）
 #pragma once
 #include "playerbot/strategy/Value.h"
 #include "ItemUsageValue.h"
@@ -5,6 +6,7 @@
 
 namespace ai
 {
+    // 布尔值计算器：检查机器人是否未在交易、引导施法或等待队友，可自由移动执行非战斗任务
     class CanMoveAroundValue : public BoolCalculatedValue
     {
     public:
@@ -33,13 +35,14 @@ namespace ai
         }
 
 #ifdef GenerateBotHelp
-        virtual std::string GetHelpName() { return "can move around"; } //Must equal iternal name
+        virtual std::string GetHelpName() { return "can move around"; } //Must equal iternal name | 必须与内部名称一致
         virtual std::string GetHelpTypeName() { return "movement"; }
         virtual std::string GetHelpDescription() { return "This value indicates whether the bot should wait for a trade to complete, a crafting cast or for the group to have enough health/mana before moving to rpg, grind or travel targets."; }
         virtual std::vector<std::string> GetUsedValues() { return {"group ready", "trigger active"}; }
 #endif 
     };
 
+    // 布尔值计算器：判断距离炉石绑定点是否过远（超过 1000 码），需要重新绑定
     class ShouldHomeBindValue : public BoolCalculatedValue
     {
     public:
@@ -48,13 +51,15 @@ namespace ai
     };
 
 
+    // 布尔值计算器：判断装备耐久度是否过低（平均低于 30% 或最低件低于 10%）需要修理
     class ShouldRepairValue : public BoolCalculatedValue
-	{
-	public:
+    {
+    public:
         ShouldRepairValue(PlayerbotAI* ai) : BoolCalculatedValue(ai,"should repair",2) {}
         virtual bool Calculate() override { return AI_VALUE(uint8, "durability") < 30 || AI_VALUE(uint8, "lowest durability") < 10; };
     };
 
+    // 布尔值计算器：判断是否具备修理条件（开启维护策略、存在受损且资金足够最低修理费）
     class CanRepairValue : public BoolCalculatedValue
     {
     public:
@@ -62,6 +67,7 @@ namespace ai
         virtual bool Calculate() override { return  ai->HasStrategy("rpg maintenance", BotState::BOT_STATE_NON_COMBAT) && AI_VALUE(uint8, "durability inventory") < 100 && AI_VALUE(uint32, "min repair cost") < AI_VALUE2(uint32, "free money for", (uint32)NeedMoneyFor::repair); };
     };
 
+    // 布尔值计算器：判断背包占用率是否超过 80% 需要清理出售
     class ShouldSellValue : public BoolCalculatedValue
     {
     public:
@@ -69,6 +75,7 @@ namespace ai
         virtual bool Calculate() override { return AI_VALUE(uint8, "bag space") > 80; };
     };
 
+    // 布尔值计算器：判断是否开启商人策略且背包内存在可卖店的物品
     class CanSellValue : public BoolCalculatedValue
     {
     public:
@@ -76,6 +83,7 @@ namespace ai
         virtual bool Calculate() override { return ai->HasStrategy("rpg vendor", BotState::BOT_STATE_NON_COMBAT) && AI_VALUE2(uint32, "item count", "usage " + std::to_string((uint8)ItemUsage::ITEM_USAGE_VENDOR)) > 0; };
     };
 
+    // 布尔值计算器：判断是否满足前往商人购买补给/弹药/装备/材料的前置条件
     class CanBuyValue : public BoolCalculatedValue
     {
     public:
@@ -83,6 +91,7 @@ namespace ai
         virtual bool Calculate() override { return ai->HasStrategy("rpg vendor", BotState::BOT_STATE_NON_COMBAT) && !AI_VALUE(bool, "should repair") && AI_VALUE(uint8, "bag space") < 90 && !AI_VALUE(bool, "can get mail") && (AI_VALUE2(uint32, "free money for", (uint32)NeedMoneyFor::ammo) || AI_VALUE2(uint32, "free money for", (uint32)NeedMoneyFor::consumables) || AI_VALUE2(uint32, "free money for", (uint32)NeedMoneyFor::gear) || AI_VALUE2(uint32, "free money for", (uint32)NeedMoneyFor::tradeskill)); };
     };
 
+    // 布尔值计算器：判断背包是否拥挤或存在高修理费破损拍卖品，应尽快挂入拍卖行
     class ShouldAHSellValue : public ShouldSellValue
     {
     public:
@@ -90,6 +99,7 @@ namespace ai
         virtual bool Calculate() override;
     };
 
+    // 布尔值计算器：判断是否开启商人策略、有足够多拍卖品且携带足够保证金
     class CanAHSellValue : public BoolCalculatedValue
     {
     public:
@@ -111,6 +121,7 @@ namespace ai
         }
     };
 
+    // 布尔值计算器：判断是否具备前往拍卖行竞拍/采购物品的条件
     class CanAHBuyValue : public BoolCalculatedValue
     {
     public:
@@ -119,6 +130,7 @@ namespace ai
     };
 
 
+    // 布尔值计算器：判断邮箱中是否存在满足领取条件的邮件
     class CanGetMailValue : public BoolCalculatedValue
     {
     public:
@@ -126,6 +138,7 @@ namespace ai
         virtual bool Calculate() override;
     };
 
+    // 布尔值计算器：判断邮件是否达到可收取时间阈值或含所需金币/公会拍卖物资
     class ShouldGetMailValue : public BoolCalculatedValue
     {
     public:
@@ -133,6 +146,7 @@ namespace ai
         virtual bool Calculate() override;
     };
 
+    // 布尔值计算器：判断装备耐久高于 20% 且无复活虚弱减益，可正常作战
     class CanFightEqualValue: public BoolCalculatedValue
     {
     public:
@@ -140,6 +154,7 @@ namespace ai
         virtual bool Calculate() override { return AI_VALUE(uint8, "durability") > 20 && !ai->HasAura(SPELL_ID_PASSIVE_RESURRECTION_SICKNESS,bot); };
     };
 
+    // 布尔值计算器：判断小队全体成员是否均就绪且跟随，适合挑战精英怪
     class CanFightEliteValue : public BoolCalculatedValue
     {
     public:
@@ -147,6 +162,7 @@ namespace ai
         virtual bool Calculate() override { return bot->GetGroup() && AI_VALUE2(bool, "group and", "can fight equal") && AI_VALUE2(bool, "group and", "following party") && !AI_VALUE2(bool, "group or", "should sell,can sell"); };
     };
 
+    // 布尔值计算器：判断超过 3 人的队伍是否全员就绪，适合挑战首领
     class CanFightBossValue : public BoolCalculatedValue
     {
     public:
@@ -154,6 +170,7 @@ namespace ai
         virtual bool Calculate() override { return bot->GetGroup() && bot->GetGroup()->GetMembersCount() > 3 && AI_VALUE2(bool, "group and", "can fight equal") && AI_VALUE2(bool, "group and", "following party") && !AI_VALUE2(bool, "group or", "should sell,can sell"); };
     };        
 
+    // 布尔值计算器：综合法力百分比与队友平均水平判断脱战后是否应当坐下喝水
     class ShouldDrinkValue : public BoolCalculatedValue
     {
     public:
@@ -196,6 +213,7 @@ namespace ai
         }
     };
 
+    // 布尔值计算器：综合生命百分比与队友平均水平判断脱战后是否应当坐下进食
     class ShouldEatValue : public BoolCalculatedValue
     {
     public:
@@ -235,6 +253,7 @@ namespace ai
         }
     };
 
+    // 浮点值计算器：计算机器人本次喝水回蓝需要持续的时间
     class DrinkDurationValue : public FloatCalculatedValue
     {
     public:
@@ -280,6 +299,7 @@ namespace ai
         }
     };
 
+    // 浮点值计算器：计算机器人本次进食回血需要持续的时间
     class EatDurationValue : public FloatCalculatedValue
     {
     public:

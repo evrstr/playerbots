@@ -15,6 +15,7 @@ class Unit;
 class Object;
 class Item;
 
+/// 机器人定时缓存事件条目（记录触发时间与有效期）
 class CachedEvent
 {
 public:
@@ -35,6 +36,7 @@ class PerformanceMonitorOperation;
 //https://gist.github.com/bradley219/5373998
 
 class botPIDImpl;
+/// 用于根据服务器 Tick 延迟动态调节随机机器人活跃度的 PID 控制器
 class botPID
 {
 public:
@@ -55,6 +57,7 @@ private:
     botPIDImpl* pimpl;
 };
 
+/// 随机机器人全局调度管理器，负责自动登录缩放、战场/副本队列、随机传送、位置监控及控制台统计命令
 class RandomPlayerbotMgr : public PlayerbotHolder
 {
     public:
@@ -201,7 +204,7 @@ public:
         std::list<std::string> HandleHelp(std::string param);
         std::list<std::string> HandleConsoleReset(std::string param);
 
-        // Aggregated view over all online bots (populated once per GatherBotStats pass).
+        // Aggregated view over all online bots (populated once per GatherBotStats pass). | 在线机器人聚合统计视图
         struct BotStats
         {
             uint32 total = 0;
@@ -221,7 +224,7 @@ public:
         BotStats GatherBotStats();
         std::list<std::string> FormatBotStats(const BotStats& stats, bool includeAllZones = false);
 
-        // Shared per-bot classification (used by stats, sample and find so they cannot drift)
+        // Shared per-bot classification (used by stats, sample and find so they cannot drift) | 共享的单机器人活跃度与卡死判定
         std::string GetBotActivity(Player* bot);
         bool GetBotStuck(Player* bot);
 
@@ -275,7 +278,7 @@ public:
         std::unordered_map<std::string, WorldLocation> namedLocations;
         std::map<uint8, std::vector<WorldLocation> > locsPerLevelCache;
         std::map<uint32, std::vector<WorldLocation> > rpgLocsCache;
-		std::map<uint32, std::map<uint32, std::vector<WorldLocation> > > rpgLocsCacheLevel;
+        std::map<uint32, std::map<uint32, std::vector<WorldLocation> > > rpgLocsCacheLevel;
         std::map<uint32, std::map<uint32, std::vector<std::pair<ObjectGuid, WorldLocation>> > > innCacheLevel;
         std::map<Team, std::map<BattleGroundTypeId, std::list<uint32> > > BattleMastersCache;
         std::map<uint32, std::map<std::string, CachedEvent> > eventCache;

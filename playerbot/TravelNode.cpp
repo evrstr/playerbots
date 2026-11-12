@@ -35,6 +35,7 @@ std::string TravelNodePath::print()
 }
 
 //Gets the extra information needed to properly calculate the cost.
+// 遍历路径点计算步行总距离、涉水距离及沿途敌对生物最高等级
 void TravelNodePath::calculateCost(bool distanceOnly)
 {
     std::unordered_map<FactionTemplateEntry const*, bool> aReact, hReact;
@@ -101,6 +102,7 @@ void TravelNodePath::calculateCost(bool distanceOnly)
 }
 
 //The cost to travel this path. 
+// 结合单位移动速度、飞行点费用及沿途威胁等级估算通过该路径的时间代价
 float TravelNodePath::getCost(Unit* unit, uint32 cGold)
 {
     float modifier = 1.0f; //Global modifier
@@ -278,6 +280,7 @@ bool TravelNode::isAreaTriggerTarget(uint32 areaTriggerId)
 }
 
 //Creates or appends the path from one node to another. Returns if the path.
+// 使用 NavMesh 寻路构建两节点之间的路径（支持水上行走/飞行路径与后处理）
 TravelNodePath* TravelNode::buildPath(TravelNode* endNode, Unit* bot, bool postProcess)
 {
     if (getMapId() != endNode->getMapId())
@@ -447,6 +450,7 @@ std::vector<TravelNode*> TravelNode::getNodeMap(bool importantOnly, std::vector<
     return closeList;
 }
 
+// 判断直连路径是否完全可被经过邻近中转节点的组合路径替代
 bool TravelNode::isUselessLink(TravelNode* farNode)
 {
     if (getPathTo(farNode)->getPathType() != TravelNodePathType::walk)
@@ -535,6 +539,7 @@ bool TravelNode::isUselessLink(TravelNode* farNode)
     return false;
 }
 
+// 裁剪冗余的直连边以精简路网图规模
 bool TravelNode::cropUselessLinks()
 {
     bool hasRemoved = false;
@@ -818,6 +823,7 @@ bool TravelPath::cutTo(PathNodePoint point, bool including)
 }
 
 //Attempts to move ahead of the path.
+// 检查路径前方节点是否可直接直线可达，跳过多余折点
 void TravelPath::makeShortCut(WorldPosition startPos, float maxDist, Unit* bot)
 {
     if (getPath().empty())
@@ -1119,6 +1125,7 @@ bool TravelPath::UpcommingSpecialMovement(WorldPosition startPos, float maxDist,
     return false;
 }
 
+// 在路径上避开敌对怪物警戒区进行局部避险裁剪
 void TravelPath::ClipPath(PlayerbotAI* ai, Unit* mover, bool ignoreEnemyTargets)
 {
     auto startP = getNextPoint(mover, 0.0f, false);
@@ -1502,6 +1509,7 @@ TravelNode* TravelNodeMap::getNode(WorldPosition pos, std::vector<WorldPosition>
     return NULL;
 }
 
+// 基于 A* 算法在路网图中搜索两节点间代价最低的节点路由
 TravelNodeRoute TravelNodeMap::getRoute(TravelNode* start, TravelNode* goal, Unit* unit)
 {
     float unitSpeed = unit ? unit->GetSpeed(MOVE_RUN) : 7.0f;
@@ -1722,6 +1730,7 @@ TravelNodeRoute TravelNodeMap::getRoute(TravelNode* start, TravelNode* goal, Uni
     return TravelNodeRoute();
 }
 
+// 搜索任意两个世界坐标之间的最佳节点路由（自动接驳起点与终点临时路径）
 TravelNodeRoute TravelNodeMap::getRoute(WorldPosition startPos, WorldPosition endPos, std::vector<WorldPosition>& startPath, std::vector<WorldPosition>& endPath, Unit* unit)
 {
     if (m_nodes.empty())
@@ -2123,6 +2132,7 @@ void TravelNodeMap::LoadMaps()
 #endif
 }
 
+// 在旅店老板、飞行管理员、灵魂医者与首领位置生成核心路网节点
 void TravelNodeMap::generateNpcNodes()
 {
     std::unordered_map<uint32, GuidPosition> bossMap;
@@ -2222,6 +2232,7 @@ void TravelNodeMap::generateStartNodes()
     }
 }
 
+// 在副本/传送门区域触发器处生成节点并建立双向传送连接
 void TravelNodeMap::generateAreaTriggerNodes()
 {
     //Entrance nodes
@@ -2388,6 +2399,7 @@ void TravelNodeMap::makeDockNode(TravelNode* node, WorldPosition pos, std::strin
     }
 }
 
+// 为船只、飞艇与电梯交通工具生成登乘码头与移动路径节点
 void TravelNodeMap::generateTransportNodes()
 {
     for (uint32 entry = 1; entry <= sGOStorage.GetMaxEntry(); ++entry)
@@ -2768,6 +2780,7 @@ void TravelNodeMap::generateWalkPathMap(uint32 mapId, BarGoLink* bar)
     }
 }
 
+// 并发计算各地图节点间的步行连通路径
 void TravelNodeMap::generateWalkPaths()
 {
     //Pathfinder
@@ -3179,6 +3192,7 @@ void TravelNodeMap::generatePaths(bool helpers)
     generateTaxiPaths();
 }
 
+// 按需自动生成或加载完整旅行节点路网、路径代价、飞行航线并持久化
 void TravelNodeMap::generateAll()
 {
     if (hasToGen || hasToFullGen)
@@ -3316,6 +3330,7 @@ void TravelNodeMap::printNodeStore()
     fflush(stdout);
 }
 
+// 将生成的节点与连接路径批量写入数据库持久化存储
 void TravelNodeMap::saveNodeStore(bool force)
 {
     if (!hasToSave && !force)
@@ -3421,6 +3436,7 @@ void TravelNodeMap::saveNodeStore(bool force)
     }
 }
 
+// 从数据库加载旅行节点、连接边与路点缓存
 void TravelNodeMap::loadNodeStore()
 {    
     std::string query = "SELECT id, name, map_id, x, y, z, linked FROM ai_playerbot_travelnode";

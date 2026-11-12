@@ -1,11 +1,13 @@
+/// 通用职业基础策略、子模块与占位策略跨版本（Vanilla / TBC / WOTLK）实现
 
 #include "playerbot/playerbot.h"
 #include "ClassStrategy.h"
 
 using namespace ai;
 
-#ifdef MANGOSBOT_ZERO // Vanilla
+#ifdef MANGOSBOT_ZERO // Vanilla | 经典旧世（60级）分支
 
+/// [Vanilla] 初始化职业通用战斗触发器（重选目标、坐骑、光束泉、脱困/僵持处理）
 void ClassStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     triggers.push_back(new TriggerNode(
@@ -37,6 +39,7 @@ void ClassStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
         NextAction::array(0, new NextAction("release stuck movement", 101.0f), NULL)));
 }
 
+/// [Vanilla] 初始化职业通用非战斗触发器
 void ClassStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     /*
@@ -66,6 +69,7 @@ void ClassStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
         NextAction::array(0, new NextAction("move from dark portal", ACTION_IDLE), NULL)));
 }
 
+/// [Vanilla] 初始化职业通用状态切换反应触发器（进战/脱战/死亡/复活）
 void ClassStrategy::InitReactionTriggers(std::list<TriggerNode*>& triggers)
 {
     triggers.push_back(new TriggerNode(
@@ -85,6 +89,7 @@ void ClassStrategy::InitReactionTriggers(std::list<TriggerNode*>& triggers)
         NextAction::array(0, new NextAction("set non combat state", ACTION_PASSTROUGH + 10), NULL)));
 }
 
+/// [Vanilla] 初始化职业通用死亡触发器
 void ClassStrategy::InitDeadTriggers(std::list<TriggerNode*>& triggers)
 {
 
@@ -152,6 +157,7 @@ void ClassRaidStrategy::InitDeadTriggers(std::list<TriggerNode*>& triggers)
 
 }
 
+/// [Vanilla] 初始化通用 AoE 战斗触发器（如使用工程炸弹/饰品等）
 void AoeStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     triggers.push_back(new TriggerNode(
@@ -318,6 +324,7 @@ void BuffRaidStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 
 }
 
+/// [Vanilla] 初始化通用爆发策略战斗触发器（主动饰品）
 void BoostStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     triggers.push_back(new TriggerNode(
@@ -482,8 +489,9 @@ void OffdpsRaidStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers
 
 
 #endif
-#ifdef MANGOSBOT_ONE // TBC
+#ifdef MANGOSBOT_ONE // TBC | 燃烧的远征（70级）分支
 
+/// [TBC] 初始化职业通用战斗触发器（重选目标、坐骑、光束泉、脱困/僵持处理）
 void ClassStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     triggers.push_back(new TriggerNode(
@@ -515,6 +523,7 @@ void ClassStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
         NextAction::array(0, new NextAction("release stuck movement", 101.0f), NULL)));
 }
 
+/// [TBC] 初始化职业通用非战斗触发器
 void ClassStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     /*
@@ -544,6 +553,7 @@ void ClassStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
         NextAction::array(0, new NextAction("move from dark portal", ACTION_IDLE), NULL)));
 }
 
+/// [TBC] 初始化职业通用状态切换反应触发器（进战/脱战/死亡/复活）
 void ClassStrategy::InitReactionTriggers(std::list<TriggerNode*>& triggers)
 {
     triggers.push_back(new TriggerNode(
@@ -563,6 +573,7 @@ void ClassStrategy::InitReactionTriggers(std::list<TriggerNode*>& triggers)
         NextAction::array(0, new NextAction("set non combat state", ACTION_PASSTROUGH + 10), NULL)));
 }
 
+/// [TBC] 初始化职业通用死亡触发器
 void ClassStrategy::InitDeadTriggers(std::list<TriggerNode*>& triggers)
 {
 
@@ -628,6 +639,7 @@ void ClassRaidStrategy::InitDeadTriggers(std::list<TriggerNode*>& triggers)
 
 }
 
+/// [TBC] 初始化通用 AoE 战斗触发器
 void AoeStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     triggers.push_back(new TriggerNode(
@@ -794,6 +806,7 @@ void BuffRaidStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 
 }
 
+/// [TBC] 初始化通用爆发策略战斗触发器
 void BoostStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     triggers.push_back(new TriggerNode(
@@ -957,8 +970,9 @@ void OffdpsRaidStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers
 }
 
 #endif
-#ifdef MANGOSBOT_TWO // WOTLK
+#ifdef MANGOSBOT_TWO // WOTLK | 巫妖王之怒（80级）分支
 
+/// [WOTLK] 初始化职业通用战斗触发器（重选目标、坐骑、光束泉、脱困/僵持处理）
 void ClassStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     triggers.push_back(new TriggerNode(
@@ -994,6 +1008,7 @@ void ClassStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
         NextAction::array(0, new NextAction("release stuck movement", 101.0f), NULL)));
 }
 
+/// [WOTLK] 初始化职业通用非战斗触发器
 void ClassStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     /*
@@ -1023,6 +1038,7 @@ void ClassStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
         NextAction::array(0, new NextAction("move from dark portal", ACTION_IDLE), NULL)));
 }
 
+/// [WOTLK] 初始化职业通用状态切换反应触发器（进战/脱战/死亡/复活）
 void ClassStrategy::InitReactionTriggers(std::list<TriggerNode*>& triggers)
 {
     triggers.push_back(new TriggerNode(
@@ -1042,6 +1058,7 @@ void ClassStrategy::InitReactionTriggers(std::list<TriggerNode*>& triggers)
         NextAction::array(0, new NextAction("set non combat state", ACTION_PASSTROUGH + 10), NULL)));
 }
 
+/// [WOTLK] 初始化职业通用死亡触发器
 void ClassStrategy::InitDeadTriggers(std::list<TriggerNode*>& triggers)
 {
 
@@ -1107,6 +1124,7 @@ void ClassRaidStrategy::InitDeadTriggers(std::list<TriggerNode*>& triggers)
 
 }
 
+/// [WOTLK] 初始化通用 AoE 战斗触发器
 void AoeStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     triggers.push_back(new TriggerNode(
@@ -1273,6 +1291,7 @@ void BuffRaidStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 
 }
 
+/// [WOTLK] 初始化通用爆发策略战斗触发器
 void BoostStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     triggers.push_back(new TriggerNode(
@@ -1438,6 +1457,7 @@ void OffdpsRaidStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers
 
 #endif
 
+/// 初始化专精占位策略战斗触发器：按当前场景动态更新 PvE/PvP/Raid 子策略
 void SpecPlaceholderStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     triggers.push_back(new TriggerNode(
@@ -1453,6 +1473,7 @@ void SpecPlaceholderStrategy::InitCombatTriggers(std::list<TriggerNode*>& trigge
         NextAction::array(0, new NextAction("update raid strats", ACTION_PASSTROUGH), NULL)));
 }
 
+/// 初始化专精占位策略非战斗触发器：按当前场景动态更新 PvE/PvP/Raid 子策略
 void SpecPlaceholderStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     triggers.push_back(new TriggerNode(

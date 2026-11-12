@@ -14,6 +14,7 @@
 
 using namespace ai;
 
+/// 执行动作主逻辑（拾取动作）
 bool LootAction::Execute(Event& event)
 {
     if (!AI_VALUE(bool, "has available loot"))
@@ -33,6 +34,7 @@ bool LootAction::Execute(Event& event)
     return true;
 }
 
+/// 采集专业法术 ID 枚举：定义草药学、采矿与剥皮对应的交互法术 ID
 enum ProfessionSpells
 {
     ALCHEMY                      = 2259,
@@ -50,6 +52,7 @@ enum ProfessionSpells
     TAILORING                    = 3908
 };
 
+/// 执行动作主逻辑（打开拾取动作）
 bool OpenLootAction::Execute(Event& event)
 {
     LootObject lootObject = AI_VALUE(LootObject, "loot target");
@@ -62,6 +65,7 @@ bool OpenLootAction::Execute(Event& event)
     return result;
 }
 
+/// 执行打开尸体、拾取全部物品或触发采集的具体操作
 bool OpenLootAction::DoLoot(LootObject& lootObject)
 {
     if (lootObject.IsEmpty())
@@ -73,7 +77,7 @@ bool OpenLootAction::DoLoot(LootObject& lootObject)
 
     if (creature && creature->HasFlag(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_LOOTABLE) && !creature->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_SKINNABLE))
     {
-        if (!lootObject.IsLootPossible(bot)) //Clear loot if bot can't loot it.
+        if (!lootObject.IsLootPossible(bot)) // Clear loot if bot can't loot it. (若机器人无法拾取该战利品则清除。)
             return true;
 
         WorldPacket packet(CMSG_LOOT, 8);
@@ -123,7 +127,7 @@ bool OpenLootAction::DoLoot(LootObject& lootObject)
 
     if (lootObject.skillId == SKILL_HERBALISM)
     {
-        // herb-like quest objects
+        // herb-like quest objects (草药类可采集任务物品)
         bool isForQuest = false;
         if (go && sObjectMgr.IsGameObjectForQuests(lootObject.guid.GetEntry()))
         {
@@ -144,10 +148,10 @@ bool OpenLootAction::DoLoot(LootObject& lootObject)
     if (!spellId)
         return false;
 
-    if (!lootObject.IsLootPossible(bot)) //Clear loot if bot can't loot it.
+    if (!lootObject.IsLootPossible(bot)) // Clear loot if bot can't loot it. (若机器人无法拾取该战利品则清除。)
         return true;
 
-    //Keys need to use the key 
+    // Keys need to use the key (需要钥匙开启的锁具须持有对应钥匙)
     if (spellId == sPlayerbotAIConfig.openGoSpell && go && lootObject.reqItem && bot->HasItemCount(lootObject.reqItem,1,false))
     {
         return ai->DoSpecificAction("use", Event("do loot", chat->formatQItem(lootObject.reqItem) + " " + chat->formatGameobject(go)));
@@ -159,6 +163,7 @@ bool OpenLootAction::DoLoot(LootObject& lootObject)
 static const time_t FETCH_TIMEOUT_SECONDS = 90;
 static const time_t FETCH_PAUSE_SECONDS = 5;
 
+/// 更新基于时间推移的对话或状态同步时钟
 void FetchObjectAction::UpdateClock()
 {
     time_t now = time(0);
@@ -169,11 +174,13 @@ void FetchObjectAction::UpdateClock()
     SET_AI_VALUE2(time_t, "manual time", "fetch tick", now);
 }
 
+/// 判断当前动作或等待状态是否已经超时
 bool FetchObjectAction::IsTimedOut()
 {
     return time(0) - AI_VALUE2(time_t, "manual time", "fetch start") > FETCH_TIMEOUT_SECONDS;
 }
 
+/// 判断当前目标点是否为支持多次重复交互的任务或世界增益节点
 bool FetchObjectAction::IsMultiUseNode(GameObject* go)
 {
     if (!go || go->GetGoType() != GAMEOBJECT_TYPE_CHEST || go->GetGOInfo()->chest.minSuccessOpens == 0)
@@ -183,6 +190,7 @@ bool FetchObjectAction::IsMultiUseNode(GameObject* go)
     return loot.skillId == SKILL_MINING || loot.skillId == SKILL_HERBALISM;
 }
 
+/// 获取触发当前动作的玩家请求者指针
 Player* FetchObjectAction::GetRequester()
 {
     ObjectGuid requesterGuid = AI_VALUE(ObjectGuid, "fetch requester");
@@ -190,6 +198,7 @@ Player* FetchObjectAction::GetRequester()
     return requester ? requester : GetMaster();
 }
 
+/// 判断当前状态下该动作是否可用/有效（获取对象动作）
 bool FetchObjectAction::isUseful()
 {
     UpdateClock();
@@ -206,6 +215,7 @@ bool FetchObjectAction::isUseful()
     return true;
 }
 
+/// 执行动作主逻辑（获取对象动作）
 bool FetchObjectAction::Execute(Event& event)
 {
     if (ai->HasStrategy("follow", BotState::BOT_STATE_NON_COMBAT) ||
@@ -271,6 +281,7 @@ bool FetchObjectAction::Execute(Event& event)
     return ai->DoSpecificAction("open loot", event, true);
 }
 
+/// 完成当前操作流程并清理临时状态
 void FetchObjectAction::Finish(bool restoreMode)
 {
     std::string mode = AI_VALUE2(std::string, "manual string", "fetch mode");
@@ -294,6 +305,7 @@ void FetchObjectAction::Finish(bool restoreMode)
         ai->ChangeStrategy("+follow", BotState::BOT_STATE_NON_COMBAT);
 }
 
+/// 获取开启指定带锁宝箱或门所需使用的开锁或专业技能 ID
 uint32 OpenLootAction::GetOpeningSpell(LootObject& lootObject)
 {
     GameObject* go = ai->GetGameObject(lootObject.guid);
@@ -303,21 +315,22 @@ uint32 OpenLootAction::GetOpeningSpell(LootObject& lootObject)
     return 0;
 }
 
+/// 获取开启指定带锁宝箱或门所需使用的开锁或专业技能 ID
 uint32 OpenLootAction::GetOpeningSpell(LootObject& lootObject, GameObject* go)
 {
     for (PlayerSpellMap::iterator itr = bot->GetSpellMap().begin(); itr != bot->GetSpellMap().end(); ++itr)
     {
         uint32 spellId = itr->first;
 
-		if (itr->second.state == PLAYERSPELL_REMOVED || itr->second.disabled || IsPassiveSpell(spellId))
-			continue;
+        if (itr->second.state == PLAYERSPELL_REMOVED || itr->second.disabled || IsPassiveSpell(spellId))
+            continue;
 
-		if (spellId == MINING || spellId == HERB_GATHERING)
-			continue;
+        if (spellId == MINING || spellId == HERB_GATHERING)
+            continue;
 
-		const SpellEntry* pSpellInfo = sServerFacade.LookupSpellInfo(spellId);
-		if (!pSpellInfo)
-			continue;
+        const SpellEntry* pSpellInfo = sServerFacade.LookupSpellInfo(spellId);
+        if (!pSpellInfo)
+            continue;
 
         if (CanOpenLock(lootObject, pSpellInfo, go))
             return spellId;
@@ -328,8 +341,8 @@ uint32 OpenLootAction::GetOpeningSpell(LootObject& lootObject, GameObject* go)
         if (spellId == MINING || spellId == HERB_GATHERING)
             continue;
 
-		const SpellEntry* pSpellInfo = sServerFacade.LookupSpellInfo(spellId);
-		if (!pSpellInfo)
+        const SpellEntry* pSpellInfo = sServerFacade.LookupSpellInfo(spellId);
+        if (!pSpellInfo)
             continue;
 
         if (CanOpenLock(lootObject, pSpellInfo, go))
@@ -339,6 +352,7 @@ uint32 OpenLootAction::GetOpeningSpell(LootObject& lootObject, GameObject* go)
     return sPlayerbotAIConfig.openGoSpell;
 }
 
+/// 判断机器人能否打开指定的带锁游戏对象或物品
 bool OpenLootAction::CanOpenLock(LootObject& lootObject, const SpellEntry* pSpellInfo, GameObject* go)
 {
     for (int effIndex = 0; effIndex <= EFFECT_INDEX_2; effIndex++)
@@ -354,7 +368,7 @@ bool OpenLootAction::CanOpenLock(LootObject& lootObject, const SpellEntry* pSpel
         if (!lockInfo)
             return false;
 
-        bool reqKey = false;                                    // some locks not have reqs
+        bool reqKey = false;                                    // some locks not have reqs (部分锁具没有前置技能要求)
 
         for(int j = 0; j < 8; ++j)
         {
@@ -383,15 +397,18 @@ bool OpenLootAction::CanOpenLock(LootObject& lootObject, const SpellEntry* pSpel
     return false;
 }
 
+/// 判断机器人能否打开指定的带锁游戏对象或物品
 bool OpenLootAction::CanOpenLock(uint32 skillId, uint32 reqSkillValue)
 {
     uint32 skillValue = bot->GetSkillValue(skillId);
     return skillValue >= reqSkillValue || !reqSkillValue;
 }
 
+/// 执行动作主逻辑（存储战利品动作）
 bool StoreLootAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
+    // 解析事件携带的网络封包数据
     WorldPacket p(event.getPacket()); // (8+1+4+1+1+4+4+4+4+4+1)
     ObjectGuid guid;
     uint8 loot_type;
@@ -399,13 +416,13 @@ bool StoreLootAction::Execute(Event& event)
     uint8 items = 0;
 
     p.rpos(0);
-    p >> guid;      // 8 corpse guid
-    p >> loot_type; // 1 loot type
+    p >> guid;      // 8 corpse guid (8 字节：尸体 GUID)
+    p >> loot_type; // 1 loot type (1 字节：拾取类型)
 
     if (p.size() > 10)
     {
-        p >> gold;      // 4 money on corpse
-        p >> items;     // 1 number of items on corpse
+        p >> gold;      // 4 money on corpse (4 字节：尸体上的金币数量)
+        p >> items;     // 1 number of items on corpse (1 字节：尸体上的物品数量)
     }
 
     bot->SetLootGuid(guid);
@@ -433,19 +450,19 @@ bool StoreLootAction::Execute(Event& event)
         p >> itemindex;
         p >> itemid;
         p >> itemcount;
-        p.read_skip<uint32>();  // display id
+        p.read_skip<uint32>();  // display id (模型显示 ID)
         p.read_skip<uint32>();  // randomSuffix
         p >> randomPropertyId;  // randomPropertyId
-        p >> lootslot_type;     // 0 = can get, 1 = look only, 2 = master get
+        p >> lootslot_type;     // 0 = can get, 1 = look only, 2 = master get (0 = 可获取，1 = 仅查看，2 = 仅主人获取)
 
         ItemQualifier itemQualifier(itemid, ((int32)randomPropertyId));
 
-		if (lootslot_type != LOOT_SLOT_NORMAL
+        if (lootslot_type != LOOT_SLOT_NORMAL
 #ifndef MANGOSBOT_ZERO
-		        && lootslot_type != LOOT_SLOT_OWNER
+                && lootslot_type != LOOT_SLOT_OWNER
 #endif
             )
-			continue;
+            continue;
 
         if (loot_type != LOOT_SKINNING && !IsLootAllowed(itemQualifier, ai))
             continue;
@@ -462,7 +479,7 @@ bool StoreLootAction::Execute(Event& event)
         if (!lootItem)
             continue;
 
-        //have no right to loot
+        // have no right to loot (没有拾取权限)
         if (lootItem->isBlocked || lootItem->GetSlotTypeForSharedLoot(bot, loot) == MAX_LOOT_SLOT_TYPE)
             continue;
 
@@ -497,7 +514,7 @@ bool StoreLootAction::Execute(Event& event)
     RESET_AI_VALUE(LootObject, "loot target");
     RESET_AI_VALUE2(bool, "should loot object", std::to_string(guid.GetRawValue()));
 
-    // release loot
+    // release loot (释放拾取)
     WorldPacket packet(CMSG_LOOT_RELEASE, 8);
     packet << guid;
     bot->GetSession()->HandleLootReleaseOpcode(packet);
@@ -507,6 +524,7 @@ bool StoreLootAction::Execute(Event& event)
     return true;
 }
 
+/// 校验指定物品或目标是否允许机器人拾取
 bool StoreLootAction::IsLootAllowed(ItemQualifier& itemQualifier, PlayerbotAI *ai)
 {
     AiObjectContext *context = ai->GetAiObjectContext();
@@ -530,7 +548,7 @@ bool StoreLootAction::IsLootAllowed(ItemQualifier& itemQualifier, PlayerbotAI *a
     if (proto->StartQuest)
     {
         if (sPlayerbotAIConfig.syncQuestWithPlayer)
-            return false; //Quest is autocomplete for the bot so no item needed.
+            return false; // Quest is autocomplete for the bot so no item needed. (该任务对机器人可自动完成，无需收集物品。)
         else
             return true;
     }
@@ -547,7 +565,7 @@ bool StoreLootAction::IsLootAllowed(ItemQualifier& itemQualifier, PlayerbotAI *a
             if (quest->ReqItemId[i] == itemQualifier.GetId())
             {
                 if (ai->GetMaster() && sPlayerbotAIConfig.syncQuestWithPlayer)
-                    return false; //Quest is autocomplete for the bot so no item needed.
+                    return false; // Quest is autocomplete for the bot so no item needed. (该任务对机器人可自动完成，无需收集物品。)
 
                 if (AI_VALUE2(uint32, "item count", proto->Name1) >= quest->ReqItemCount[i])
                     return false;
@@ -556,7 +574,7 @@ bool StoreLootAction::IsLootAllowed(ItemQualifier& itemQualifier, PlayerbotAI *a
     }
 
     //if (proto->Bonding == BIND_QUEST_ITEM ||  //Still testing if it works ok without these lines.
-    //    proto->Bonding == BIND_QUEST_ITEM1 || //Eventually this has to be removed.
+    //    proto->Bonding == BIND_QUEST_ITEM1 || //Eventually this has to be removed. (绑定类型为任务物品（最终需移除此处临时判断）)
     //    proto->Class == ITEM_CLASS_QUEST)
     //{
 
@@ -568,6 +586,7 @@ bool StoreLootAction::IsLootAllowed(ItemQualifier& itemQualifier, PlayerbotAI *a
     return canLoot;
 }
 
+/// 执行动作主逻辑（释放拾取动作）
 bool ReleaseLootAction::Execute(Event& event)
 {
     std::list<ObjectGuid> gos = context->GetValue<std::list<ObjectGuid> >("nearest game objects no los")->Get();

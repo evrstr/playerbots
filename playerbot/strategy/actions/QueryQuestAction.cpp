@@ -5,6 +5,7 @@
 
 using namespace ai;
 
+/// 执行动作主逻辑（查询任务指令动作）
 bool QueryQuestAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -71,11 +72,12 @@ bool QueryQuestAction::Execute(Event& event)
     return false;
 }
 
+/// 输出任务全部目标的详细进度清单
 void QueryQuestAction::TellObjectives(Player* requester, uint32 questId)
 {
     Quest const* questTemplate = sObjectMgr.GetQuestTemplate(questId);
     if (!questTemplate)
-        return; // no template: no objectives to read off it
+        return; // no template: no objectives to read off it (无任务模板：没有可读取的任务目标)
 
     QuestStatusData questStatus = bot->getQuestStatusMap()[questId];
 
@@ -113,6 +115,7 @@ void QueryQuestAction::TellObjectives(Player* requester, uint32 questId)
     }
 }
 
+/// 输出单个任务目标或战术目标的完成进度
 void QueryQuestAction::TellObjective(Player* requester, const std::string& name, int available, int required)
 {
     ai->TellPlayer(requester, chat->formatQuestObjective(name, available, required), PlayerbotSecurityLevel::PLAYERBOT_SECURITY_ALLOW_ALL, false);

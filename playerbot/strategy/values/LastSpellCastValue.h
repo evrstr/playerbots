@@ -1,8 +1,10 @@
+// 策略值头文件：LastSpellCastValue（上一次施放的法术 ID、目标与时间记录）
 #pragma once
 #include "playerbot/strategy/Value.h"
 
 namespace ai
 {
+    // 法术施放记录结构：保存法术 ID、施法目标 GUID 及施放时间戳
     class LastSpellCast 
     {
     public:
@@ -28,9 +30,10 @@ namespace ai
         time_t time;
     };
    
+    // 手动设置值：存储机器人最近一次成功施放的法术信息
     class LastSpellCastValue : public ManualSetValue<LastSpellCast&>
-	{
-	public:
+    {
+    public:
         LastSpellCastValue(PlayerbotAI* ai, std::string name = "last spell cast") : ManualSetValue<LastSpellCast&>(ai, data, name) {}
 
     private:

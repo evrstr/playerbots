@@ -1,3 +1,4 @@
+/// 大世界智能旅行（Travel）策略与乘数实现
 
 #include "playerbot/playerbot.h"
 #include "TravelStrategy.h"
@@ -5,6 +6,7 @@
 
 using namespace ai;
 
+/// 乘数判定：已有激活旅行目标时屏蔽大部分新的目标请求，仅放行公会聚会/施法材料商/公会订单
 float TravelActionMultiplier::GetValue(Action* action)
 {
     if (action == NULL) return 1.0f;
@@ -27,27 +29,30 @@ float TravelActionMultiplier::GetValue(Action* action)
     return 1.0f;
 }
 
+/// 初始化旅行非战斗乘数
 void TravelStrategy::InitNonCombatMultipliers(std::list<Multiplier*>& multipliers)
 {
     multipliers.push_back(new TravelActionMultiplier(ai));
 }
 
+/// 获取非战斗默认动作：执行旅行状态推进
 NextAction** TravelStrategy::GetDefaultNonCombatActions()
 {
     return NextAction::array(0, new NextAction("travel", 1.0f), NULL);
 }
 
+/// 初始化旅行非战斗触发器：按优先级队列依次请求各目的旅行点、选择目标并赶路
 void TravelStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
-    //The way these actions work:
-    //One of these request target actions will trigger and start fetching destinations. 
-    //While fetching no other travel action will be usefull except choose travel target.
+    //The way these actions work: | 动作调度流程：
+    //One of these request target actions will trigger and start fetching destinations. | 先触发请求目标动作异步/检索目的地；检索期间仅选择目标动作可用；
+    //While fetching no other travel action will be usefull except choose travel target. | 若未找到目标则标记跳过并顺延至下一个请求动作；全部失败则重置从头开始。
     //Choose travel target will wait for the fetching to complete and then set a new target.
     //If no target was found the request action is marked as no targets found and can no longer trigger until reset.
     //The next request action will then trigger until a good target is found.
     //If no targets are found reset will clear all actions and start from the top.
 
-    //All the standard choose travel target actions using either a specific val trigger or a generic purpose trigger.
+    //All the standard choose travel target actions using either a specific val trigger or a generic purpose trigger. | 按旅行目的枚举组织的常规旅行目标请求表
     const std::vector<std::tuple<std::string, TravelDestinationPurpose, float>> PurposeActions =
     {        
         {"",TravelDestinationPurpose::AH, 6.95f},                                                //See isAllowed  90%
@@ -75,7 +80,7 @@ void TravelStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
             NextAction::array(0, new NextAction("request travel target::" + std::to_string((uint32)purpose), relevance), NULL)));
     }
 
-    //Specific named exceptions
+    //Specific named exceptions | 特定命名旅行目标（职业/骑术/商业训练师、主城、任务、公会活动等）
     const std::vector<std::tuple<std::string, std::string, float>> StringActions =
     {
         {"val::should travel named::trainer class","request named travel target::trainer class", 6.89f},      // See isAllowed   25%
@@ -127,6 +132,7 @@ void TravelStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
         NextAction::array(0, new NextAction("travel", 1), NULL)));
 }
 
+/// 初始化单次旅行策略触发器：仅沿既定旅行目标移动一次
 void TravelOnceStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {   
     triggers.push_back(new TriggerNode(

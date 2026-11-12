@@ -8,14 +8,16 @@
 
 using namespace ai;
 
+/// 执行动作主逻辑（进入载具动作）
 bool EnterVehicleAction::Execute(Event& event)
 {
 #ifdef MANGOSBOT_TWO
-    // do not switch vehicles yet
+    // do not switch vehicles yet (暂不切换载具)
     TransportInfo* transportInfo = bot->GetTransportInfo();
     if (transportInfo && transportInfo->IsOnVehicle())
         return false;
 
+    // 遍历附近 NPC 列表
     std::list<ObjectGuid> npcs = AI_VALUE(std::list<ObjectGuid>, "nearest vehicles");
     for (std::list<ObjectGuid>::iterator i = npcs.begin(); i != npcs.end(); i++)
     {
@@ -61,12 +63,12 @@ bool EnterVehicleAction::Execute(Event& event)
         else
         {
             seat = transportCheck->GetTransportSeat();
-            // dismount because bots can enter vehicle on mount
+            // dismount because bots can enter vehicle on mount (上载具前先下马（防止骑乘状态卡住）)
             ai->Unmount();
             return true;
         }
 
-        // check if bot is on vehicle
+        // check if bot is on vehicle (检查机器人是否正处于载具上)
         if (Unit* passenger = vehicle->GetVehicleInfo()->GetPassenger(seat))
         {
             if (passenger->GetObjectGuid() == bot->GetObjectGuid())
@@ -75,9 +77,10 @@ bool EnterVehicleAction::Execute(Event& event)
     }
 #endif
 
-	return false;
+    return false;
 }
 
+/// 执行动作主逻辑（离开载具动作）
 bool LeaveVehicleAction::Execute(Event& event)
 {
 #ifdef MANGOSBOT_TWO

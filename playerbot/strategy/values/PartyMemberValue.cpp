@@ -1,3 +1,4 @@
+// 策略值实现：PartyMemberValue（按角色优先级查找队友与正在施法检测）
 
 #include "playerbot/playerbot.h"
 #include "PartyMemberValue.h"
@@ -8,6 +9,7 @@
 
 using namespace ai;
 
+// 在给定玩家子列表中查找符合谓词且满足自由移动范围要求的目标
 Unit* PartyMemberValue::FindPartyMember(std::list<Player*>* party, FindPlayerPredicate &predicate, bool ignoreTanks)
 {
     for (std::list<Player*>::iterator i = party->begin(); i != party->end(); ++i)
@@ -34,6 +36,7 @@ Unit* PartyMemberValue::FindPartyMember(std::list<Player*>* party, FindPlayerPre
     return NULL;
 }
 
+// 按治疗、坦克、主控、其他成员的优先级顺序筛选队伍及附近友军
 Unit* PartyMemberValue::FindPartyMember(FindPlayerPredicate &predicate, bool ignoreOutOfGroup, bool ignoreTanks)
 {
     Player* master = GetMaster();
@@ -140,12 +143,14 @@ Unit* PartyMemberValue::FindPartyMember(FindPlayerPredicate &predicate, bool ign
     return NULL;
 }
 
+// 基础队友状态校验：存活、在线且当前未在飞艇或传送中
 bool PartyMemberValue::Check(Unit* player)
 {
     return player && player != bot && player->GetMapId() == bot->GetMapId() &&
         bot->IsWithinDistInMap(player, sPlayerbotAIConfig.sightDistance, false);
 }
 
+// 检查附近友军是否正在向目标施放满足指定谓词的法术（防止多人重复治疗/复活）
 bool PartyMemberValue::IsTargetOfSpellCast(Player* target, SpellEntryPredicate &predicate)
 {
     std::list<ObjectGuid> nearestPlayers = AI_VALUE(std::list<ObjectGuid>, "nearest friendly players");

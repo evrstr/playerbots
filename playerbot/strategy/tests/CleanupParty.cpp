@@ -1,15 +1,17 @@
+/// 测试命令：清理测试小队与生成机器人实现
 #include "playerbot/playerbot.h"
 #include "CleanupParty.h"
 
 using namespace ai;
 
 // =====================================================
-// CleanupParty implementation
+// CleanupParty implementation | CleanupParty 实现
 // =====================================================
+/// 执行清理：下线所有在 TestContext 中登记的生成机器人并清空列表
 TestResult CleanupParty::Execute(const std::string& params, Player* bot,
                     PlayerbotAI* ai, TestContext& ctx, std::string& message)
 {
-    // Default cleanup: despawn all spawned bots
+    // Default cleanup: despawn all spawned bots | 默认清理行为：销毁所有已生成的测试机器人
     for (auto& guid : ctx.spawnedBots)
     {
         if (guid.IsPlayer())

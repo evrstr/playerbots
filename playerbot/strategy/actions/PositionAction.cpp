@@ -6,6 +6,7 @@
 
 using namespace ai;
 
+/// 输出机器人当前坐标位置与移动状态调试信息
 void TellPosition(PlayerbotAI* ai, Player* requester, std::string name, ai::PositionEntry pos)
 {
     std::ostringstream out; out << "Position " << name;
@@ -20,12 +21,13 @@ void TellPosition(PlayerbotAI* ai, Player* requester, std::string name, ai::Posi
     ai->TellPlayer(requester, out);
 }
 
+/// 执行动作主逻辑（位置控制指令动作）
 bool PositionAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
     std::string param = event.getParam();
-	if (param.empty())
-		return false;
+    if (param.empty())
+        return false;
 
     if (!requester)
         return false;
@@ -50,12 +52,12 @@ bool PositionAction::Execute(Event& event)
 
     std::string name = params[0];
     std::string action = params[1];
-	ai::PositionEntry pos = posMap[name];
-	if (action == "?")
-	{
-	    TellPosition(ai, requester, name, pos);
-	    return true;
-	}
+    ai::PositionEntry pos = posMap[name];
+    if (action == "?")
+    {
+        TellPosition(ai, requester, name, pos);
+        return true;
+    }
 
     std::vector<std::string> coords = split(action, ',');
     if (coords.size() == 3)
@@ -68,33 +70,34 @@ bool PositionAction::Execute(Event& event)
         return true;
     }
 
-	if (action == "set")
-	{
+    if (action == "set")
+    {
         pos.Set(bot->GetPositionX(), bot->GetPositionY(), bot->GetPositionZ(), ai->GetBot()->GetMapId());
-	    posMap[name] = pos;
+        posMap[name] = pos;
 
-	    std::ostringstream out; out << "Position " << name << " is set";
-	    ai->TellPlayer(requester, out);
-	    return true;
-	}
+        std::ostringstream out; out << "Position " << name << " is set";
+        ai->TellPlayer(requester, out);
+        return true;
+    }
 
-	if (action == "reset")
-	{
-	    pos.Reset();
-	    posMap[name] = pos;
+    if (action == "reset")
+    {
+        pos.Reset();
+        posMap[name] = pos;
 
-	    std::ostringstream out; out << "Position " << name << " is reset";
-	    ai->TellPlayer(requester, out);
-	    return true;
-	}
+        std::ostringstream out; out << "Position " << name << " is reset";
+        ai->TellPlayer(requester, out);
+        return true;
+    }
 
     return false;
 }
 
+/// 执行动作主逻辑（移动到指定位置动作）
 bool MoveToPositionAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
-	ai::PositionEntry pos = context->GetValue<ai::PositionMap&>("position")->Get()[qualifier];
+    ai::PositionEntry pos = context->GetValue<ai::PositionMap&>("position")->Get()[qualifier];
     if (!pos.isSet())
     {
         std::ostringstream out; out << "Position " << qualifier << " is not set";
@@ -105,6 +108,7 @@ bool MoveToPositionAction::Execute(Event& event)
     return MoveTo(bot->GetMapId(), pos.x, pos.y, pos.z, idle);
 }
 
+/// 判断当前状态下该动作是否可用/有效（移动到指定位置动作）
 bool MoveToPositionAction::isUseful()
 {
     ai::PositionEntry pos = context->GetValue<ai::PositionMap&>("position")->Get()[qualifier];
@@ -112,6 +116,7 @@ bool MoveToPositionAction::isUseful()
     return pos.isSet() && distance > ai->GetRange("follow") && ai->CanMove();
 }
 
+/// 判断当前状态下该动作是否可用/有效（警戒守卫位置动作）
 bool GuardAction::isUseful()
 {
     if (ai->IsStateActive(BotState::BOT_STATE_COMBAT))
@@ -121,15 +126,15 @@ bool GuardAction::isUseful()
         if (!target)
             return true;
 
-        if (target->GetTarget() == bot) //Try pulling target to guard position
+        if (target->GetTarget() == bot) // Try pulling target to guard position (尝试将目标拉回警戒守卫点)
             return true;
 
-        if (!ai->IsRanged(bot)) //Melee bots stay in melee.
+        if (!ai->IsRanged(bot)) // Melee bots stay in melee. (近战机器人保持在近战范围内。)
             return false;
 
         WorldPosition formationPosition = AI_VALUE(WorldPosition, "formation position");
 
-        if (formationPosition.sqDistance2d(target) > ai->GetRange("spell")) //Do not move to guard if we can't attack from that position.
+        if (formationPosition.sqDistance2d(target) > ai->GetRange("spell")) // Do not move to guard if we can't attack from that position. (若在警戒位置无法攻击目标，则不要移回警戒点。)
             return false;
     }
     else
@@ -143,6 +148,7 @@ bool GuardAction::isUseful()
     return true;
 }
 
+/// 执行动作主逻辑（设置返回点动作）
 bool SetReturnPositionAction::Execute(Event& event)
 {
     ai::PositionMap& posMap = context->GetValue<ai::PositionMap&>("position")->Get();
@@ -167,6 +173,7 @@ bool SetReturnPositionAction::Execute(Event& event)
     return false;
 }
 
+/// 判断当前状态下该动作是否可用/有效（设置返回点动作）
 bool SetReturnPositionAction::isUseful()
 {
     ai::PositionMap& posMap = context->GetValue<ai::PositionMap&>("position")->Get();
@@ -174,12 +181,14 @@ bool SetReturnPositionAction::isUseful()
 }
 
 
+/// 判断当前状态下该动作是否可用/有效（返回基准点动作）
 bool ReturnAction::isUseful()
 {
     ai::PositionEntry pos = context->GetValue<ai::PositionMap&>("position")->Get()[qualifier];
     return pos.isSet() && AI_VALUE2(float, "distance", "position_random") > ai->GetRange("follow");
 }
 
+/// 判断执行该动作的前置条件是否满足（返回停留点动作）
 bool ReturnToStayPositionAction::isPossible()
 {
     PositionMap& posMap = AI_VALUE(PositionMap&, "position");
@@ -191,7 +200,7 @@ bool ReturnToStayPositionAction::isPossible()
         {
             ai->TellError(GetMaster(), "The stay position is too far to return. I am going to stay where I am now");
             
-            // Set the stay position to current position
+            // Set the stay position to current position (将原地停留基准点设为当前坐标)
             stayPosition.Set(bot->GetPositionX(), bot->GetPositionY(), bot->GetPositionZ(), bot->GetMapId());
             posMap["stay"] = stayPosition;
         }
@@ -202,6 +211,7 @@ bool ReturnToStayPositionAction::isPossible()
     return false;
 }
 
+/// 判断执行该动作的前置条件是否满足（返回拉怪点动作）
 bool ReturnToPullPositionAction::isPossible()
 {
     PositionMap& posMap = AI_VALUE(PositionMap&, "position");
@@ -221,7 +231,7 @@ bool ReturnToPullPositionAction::isPossible()
                     {
                         ai->TellError(GetMaster(), "The pull position is too far to return. I am going to pull where I am now");
 
-                        // Set the stay position to current position
+                        // Set the stay position to current position (将原地停留基准点设为当前坐标)
                         stayPosition.Set(bot->GetPositionX(), bot->GetPositionY(), bot->GetPositionZ(), bot->GetMapId());
                         posMap["pull"] = stayPosition;
                     }

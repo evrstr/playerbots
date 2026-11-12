@@ -12,6 +12,7 @@ using namespace MaNGOS;
 
 uint64 extractGuid(WorldPacket& packet);
 
+/// 范围内游戏对象检测器：用于网格搜索指定半径内符合条件的游戏对象
 class AnyGameObjectInObjectRangeCheck
 {
 public:
@@ -30,6 +31,7 @@ private:
     float i_range;
 };
 
+/// 执行动作主逻辑（揭示采集物动作）
 bool RevealGatheringItemAction::Execute(Event& event)
 {
     if (!bot->GetGroup())
@@ -90,7 +92,7 @@ bool RevealGatheringItemAction::Execute(Event& event)
           msg << "Should we go nearer?";
     }
 
-    // everything is fine, do it
+    // everything is fine, do it (一切就绪，开始执行)
     ai->Ping(go->GetPositionX(), go->GetPositionY());
     bot->Say(msg.str(), LANG_UNIVERSAL);
     return true;

@@ -6,6 +6,7 @@
 
 using namespace ai;
 
+/// 执行动作主逻辑（世界增益施加动作）
 bool WorldBuffAction::Execute(Event& event)
 {    
     std::string text = event.getParam();
@@ -18,6 +19,7 @@ bool WorldBuffAction::Execute(Event& event)
     return false;
 }
 
+/// 判断机器人当前是否仍缺少并需要收集世界增益
 std::vector<uint32> WorldBuffAction::NeedWorldBuffs(Unit* unit)
 {
     std::vector<uint32> retVec;

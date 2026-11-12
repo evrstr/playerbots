@@ -1,3 +1,4 @@
+// 策略值实现：PartyMemberToHeal（治疗优先级排序、保护及解定身队友筛选）
 
 #include "playerbot/playerbot.h"
 #include "PartyMemberToHeal.h"
@@ -8,6 +9,7 @@
 
 using namespace ai;
 
+// 法术谓词：判断其他治疗者当前正在读条的是否为治疗法术
 class IsTargetOfHealingSpell : public SpellEntryPredicate
 {
 public:
@@ -41,6 +43,7 @@ bool compareByMissingHealth(const Unit* u1, const Unit* u2, bool incomingDamage 
     return (hpmax1 - hp1) > (hpmax2 - hp2);
 }
 
+// 遍历小队成员及宠物，过滤决斗/禁疗/虚空幽龙光环目标，按血量缺失排序选出最优治疗对象
 ObjectGuid PartyMemberToHeal::Calculate()
 {
     std::vector<Unit*> needHeals;
@@ -91,13 +94,13 @@ ObjectGuid PartyMemberToHeal::Calculate()
 
             bool isTank = ai->IsTank(player);
 
-            // do not heal dueling members
+            // do not heal dueling members | 不治疗正在决斗中的队友
             if (player->duel && player->duel->opponent)
             {
                 continue;
             }
 
-            // do not heal if they will not receive healing due to debuff
+            // do not heal if they will not receive healing due to debuff | 目标身上带有阻止治疗生效的减益时不进行治疗
             if (player->GetMaxNegativeAuraModifier(SPELL_AURA_MOD_HEALING_PCT) <= -100)
                 continue;
 
@@ -174,11 +177,13 @@ ObjectGuid PartyMemberToHeal::Calculate()
     return unit ? unit->GetObjectGuid() : ObjectGuid();
 }
 
+// 判断宠物是否允许作为治疗目标（距离、存活及满血检查）
 bool PartyMemberToHeal::CanHealPet(Pet* pet)
 {
     return MINI_PET != pet->getPetType();
 }
 
+// 校验目标玩家是否存活、在视距内且未携带虚空幽龙特殊禁疗状态
 bool PartyMemberToHeal::Check(Unit* player)
 {
     bool isBg = bot->InBattleGround();
@@ -204,7 +209,7 @@ bool PartyMemberToHeal::Check(Unit* player)
     if (sServerFacade.GetDistance2d(bot, player) > maxDist)
         return false;
     
-    // Ignore players who have netherspite tank aura to avoid heal canceling
+    // Ignore players who have netherspite tank aura to avoid heal canceling | 忽略带有虚空幽龙坦克射线光环的玩家，以免浪费或打断治疗
     NetherspiteFightStrategy* strategy = NetherspiteFightStrategy::Get(ai);
     if (strategy && player->HasAura(30421))
         return false;
@@ -212,6 +217,7 @@ bool PartyMemberToHeal::Check(Unit* player)
     return true;
 }
 
+// 获取待治疗的队友名单（支持仅治疗 focus heal targets 策略）
 std::vector<Player*> PartyMemberToHeal::GetPartyMembers()
 {
     std::vector<Player*> partyMembers;
@@ -247,6 +253,7 @@ std::vector<Player*> PartyMemberToHeal::GetPartyMembers()
     return partyMembers;
 }
 
+// 查找正在被敌人攻击的非坦克或低血量队友，返回最需保护者
 ObjectGuid PartyMemberToProtect::Calculate()
 {
     Group* group = bot->GetGroup();
@@ -301,6 +308,7 @@ ObjectGuid PartyMemberToProtect::Calculate()
     return unit ? unit->GetObjectGuid() : ObjectGuid();
 }
 
+// 查找射程内处于定身（Root）状态的存活队友
 ObjectGuid PartyMemberToRemoveRoots::Calculate()
 {
     Unit* target = nullptr;

@@ -1,8 +1,10 @@
+// 战士 - 武器战士策略头文件 (ArmsWarriorStrategy.h)
 #pragma once
 #include "WarriorStrategy.h"
 
 namespace ai
 {
+    // 武器战士专精占位策略：用于专精识别与占位的策略类
     class ArmsWarriorPlaceholderStrategy : public SpecPlaceholderStrategy
     {
     public:
@@ -11,6 +13,7 @@ namespace ai
         std::string getName() override { return "arms"; }
     };
 
+    // 武器战士策略：定义该专精/场景下的触发器与默认行为
     class ArmsWarriorStrategy : public WarriorStrategy
     {
     public:
@@ -25,6 +28,7 @@ namespace ai
         virtual NextAction** GetDefaultCombatActions() override;
     };
 
+    // 武器战士PVE策略：定义该专精/场景下的触发器与默认行为
     class ArmsWarriorPveStrategy : public ArmsWarriorStrategy
     {
     public:
@@ -38,6 +42,7 @@ namespace ai
         void InitDeadTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 武器战士PVP策略：定义该专精/场景下的触发器与默认行为
     class ArmsWarriorPvpStrategy : public ArmsWarriorStrategy
     {
     public:
@@ -51,6 +56,7 @@ namespace ai
         void InitDeadTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 武器战士团队副本策略：定义该专精/场景下的触发器与默认行为
     class ArmsWarriorRaidStrategy : public ArmsWarriorStrategy
     {
     public:
@@ -64,6 +70,7 @@ namespace ai
         void InitDeadTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 武器战士AOE群体策略：定义该专精/场景下的触发器与默认行为
     class ArmsWarriorAoeStrategy : public WarriorAoeStrategy
     {
     public:
@@ -75,6 +82,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 武器战士AOE群体PVE策略：定义该专精/场景下的触发器与默认行为
     class ArmsWarriorAoePveStrategy : public ArmsWarriorAoeStrategy
     {
     public:
@@ -86,6 +94,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 武器战士AOE群体PVP策略：定义该专精/场景下的触发器与默认行为
     class ArmsWarriorAoePvpStrategy : public ArmsWarriorAoeStrategy
     {
     public:
@@ -97,6 +106,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 武器战士AOE群体团队副本策略：定义该专精/场景下的触发器与默认行为
     class ArmsWarriorAoeRaidStrategy : public ArmsWarriorAoeStrategy
     {
     public:
@@ -108,6 +118,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 武器战士增益Buff策略：定义该专精/场景下的触发器与默认行为
     class ArmsWarriorBuffStrategy : public WarriorBuffStrategy
     {
     public:
@@ -118,6 +129,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 武器战士增益BuffPVE策略：定义该专精/场景下的触发器与默认行为
     class ArmsWarriorBuffPveStrategy : public ArmsWarriorBuffStrategy
     {
     public:
@@ -129,6 +141,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 武器战士增益BuffPVP策略：定义该专精/场景下的触发器与默认行为
     class ArmsWarriorBuffPvpStrategy : public ArmsWarriorBuffStrategy
     {
     public:
@@ -140,6 +153,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 武器战士增益Buff团队副本策略：定义该专精/场景下的触发器与默认行为
     class ArmsWarriorBuffRaidStrategy : public ArmsWarriorBuffStrategy
     {
     public:
@@ -151,6 +165,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 武器战士爆发增益策略：定义该专精/场景下的触发器与默认行为
     class ArmsWarriorBoostStrategy : public WarriorBoostStrategy
     {
     public:
@@ -161,6 +176,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 武器战士爆发增益PVE策略：定义该专精/场景下的触发器与默认行为
     class ArmsWarriorBoostPveStrategy : public ArmsWarriorBoostStrategy
     {
     public:
@@ -172,6 +188,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 武器战士爆发增益PVP策略：定义该专精/场景下的触发器与默认行为
     class ArmsWarriorBoostPvpStrategy : public ArmsWarriorBoostStrategy
     {
     public:
@@ -183,6 +200,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 武器战士爆发增益团队副本策略：定义该专精/场景下的触发器与默认行为
     class ArmsWarriorBoostRaidStrategy : public ArmsWarriorBoostStrategy
     {
     public:
@@ -194,6 +212,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 武器战士控制(CC)策略：定义该专精/场景下的触发器与默认行为
     class ArmsWarriorCcStrategy : public WarriorCcStrategy
     {
     public:
@@ -204,6 +223,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 武器战士控制(CC)PVE策略：定义该专精/场景下的触发器与默认行为
     class ArmsWarriorCcPveStrategy : public ArmsWarriorCcStrategy
     {
     public:
@@ -215,6 +235,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 武器战士控制(CC)PVP策略：定义该专精/场景下的触发器与默认行为
     class ArmsWarriorCcPvpStrategy : public ArmsWarriorCcStrategy
     {
     public:
@@ -226,6 +247,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 武器战士控制(CC)团队副本策略：定义该专精/场景下的触发器与默认行为
     class ArmsWarriorCcRaidStrategy : public ArmsWarriorCcStrategy
     {
     public:

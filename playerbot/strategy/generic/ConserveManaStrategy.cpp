@@ -1,3 +1,4 @@
+/// 省蓝（Conserve / Save Mana）策略与乘数实现
 
 #include "playerbot/playerbot.h"
 #include "ConserveManaStrategy.h"
@@ -8,6 +9,7 @@
 
 using namespace ai;
 
+/// 乘数判定：法力值偏低时在战斗中抑制消耗法力的额外增益法术施放
 float ConserveManaMultiplier::GetValue(Action* action)
 {
     if (action == NULL) return 1.0f;
@@ -49,6 +51,7 @@ float ConserveManaMultiplier::GetValue(Action* action)
     return 1.0f;
 }
 
+/// 乘数判定：根据 mana save level 限制同一耗蓝法术的连续施放间隔
 float SaveManaMultiplier::GetValue(Action* action)
 {
     if (action == NULL)
@@ -86,6 +89,7 @@ float SaveManaMultiplier::GetValue(Action* action)
     return 1.0f;
 }
 
+/// 初始化省蓝策略战斗乘数
 void ConserveManaStrategy::InitCombatMultipliers(std::list<Multiplier*> &multipliers)
 {
     multipliers.push_back(new ConserveManaMultiplier(ai));

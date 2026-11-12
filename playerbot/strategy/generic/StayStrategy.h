@@ -1,8 +1,10 @@
+/// 原地停留（Stay）与坐下休息（Sit）策略头文件
 #pragma once
 #include "NonCombatStrategy.h"
 
 namespace ai
 {
+    /// 策略：使机器人停留在指定位置并在偏离后自动归位
     class StayStrategy : public Strategy
     {
     public:
@@ -17,6 +19,7 @@ namespace ai
         virtual void OnStrategyAdded(BotState state) override;
     };
 
+    /// 策略：脱战原地停留超时后自动坐下休息
     class SitStrategy : public NonCombatStrategy
     {
     public:

@@ -12,9 +12,11 @@
 
 using namespace ai;
 
+/// 执行动作主逻辑（接受竞技场战队邀请动作）
 bool ArenaTeamAcceptAction::Execute(Event& event)
 {
 #ifndef MANGOSBOT_ZERO
+    // 解析事件携带的网络封包数据
     WorldPacket p(event.getPacket());
     p.rpos(0);
     Player* inviter = nullptr;
@@ -35,7 +37,7 @@ bool ArenaTeamAcceptAction::Execute(Event& event)
 
     if (bot->GetArenaTeamId(at->GetSlot()))
     {
-        // bot is already in an arena team
+        // bot is already in an arena team (机器人已经处于竞技场战队中)
         bot->Say("Sorry, I am already in such team", LANG_UNIVERSAL);
         accept = false;
     }

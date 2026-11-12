@@ -5,6 +5,7 @@
 
 namespace ahbot
 {
+    /// 炼金消耗品子类（药水、药剂、合剂）
     class Alchemy : public Consumable
     {
     public:
@@ -23,6 +24,7 @@ namespace ahbot
         virtual std::string GetLabel() override { return "elixirs and potions"; }
     };
 
+    /// 卷轴与物品临时强化子类
     class Scroll : public Consumable
     {
     public:
@@ -40,6 +42,7 @@ namespace ahbot
         virtual std::string GetLabel() override { return "scrolls"; }
     };
 
+    /// 食物与饮料子类
     class Food : public Consumable
     {
     public:
@@ -60,6 +63,7 @@ namespace ahbot
         virtual std::string GetLabel() override { return "food and drink"; }
     };
 
+    /// 急救绷带子类
     class Bandage : public Consumable
     {
     public:
@@ -76,6 +80,7 @@ namespace ahbot
         virtual std::string GetLabel() override { return "bandages"; }
     };
 
+    /// 其他附魔消耗品类子类
     class ItemEnchant : public Consumable
     {
     public:

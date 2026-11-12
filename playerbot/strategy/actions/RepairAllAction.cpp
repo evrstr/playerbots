@@ -6,9 +6,11 @@
 
 using namespace ai;
 
+/// 执行动作主逻辑（全部修理指令动作）
 bool RepairAllAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
+    // 遍历附近 NPC 列表
     std::list<ObjectGuid> npcs = AI_VALUE(std::list<ObjectGuid>, "nearest npcs");
     for (std::list<ObjectGuid>::iterator i = npcs.begin(); i != npcs.end(); i++)
     {
@@ -35,7 +37,7 @@ bool RepairAllAction::Execute(Event& event)
             bot->SetMoney(10000000);
         }
 
-        //Repair weapons first.
+        // Repair weapons first. (优先修理武器装备。)
         uint32 totalCost = bot->DurabilityRepair((INVENTORY_SLOT_BAG_0 << 8) | EQUIPMENT_SLOT_MAINHAND, true, discountMod
 #ifndef MANGOSBOT_ZERO
             , false
@@ -65,7 +67,7 @@ bool RepairAllAction::Execute(Event& event)
             bot->SetMoney(botMoney);
         }
 
-        //Totalcost is bugged in core. For now we use this work-around.
+        // Totalcost is bugged in core. For now we use this work-around. (核心中 totalCost 计算存在异常，此处暂用变通计算方式。)
         totalCost = botMoney - bot->GetMoney();
 
         if (totalCost > 0)

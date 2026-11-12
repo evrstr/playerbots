@@ -17,6 +17,7 @@ class Item;
 typedef std::map<uint32, Player*> PlayerBotMap;
 typedef std::map<std::string, std::set<std::string> > PlayerBotErrorMap;
 
+/// 玩家机器人容器基类，管理旗下机器人登录/登出、AI 轮询、命令分发及创建/删除流程
 class PlayerbotHolder : public PlayerbotAIBase
 {
 public:
@@ -24,7 +25,7 @@ public:
     virtual ~PlayerbotHolder();
 
     void AddPlayerBot(uint32 guid, uint32 masterAccountId);
-	void HandlePlayerBotLoginCallback(QueryResult * dummy, SqlQueryHolder * holder);
+    void HandlePlayerBotLoginCallback(QueryResult * dummy, SqlQueryHolder * holder);
 
     void LogoutPlayerBot(uint32 guid, bool allowInstant = true, bool forDelete = false);
     void DisablePlayerBot(uint32 guid, bool logOutPlayer = true);
@@ -158,6 +159,7 @@ private:
     ObjectGuid m_spoofGuid;
 };
 
+/// 隶属于特定真实主人玩家的个人/小号机器人管理器，负责转发主人数据包与聊天指令
 class PlayerbotMgr : public PlayerbotHolder
 {
 public:

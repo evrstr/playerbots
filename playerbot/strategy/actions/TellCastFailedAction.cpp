@@ -5,9 +5,11 @@
 
 using namespace ai;
 
+/// 执行动作主逻辑（施法失败通知动作）
 bool TellCastFailedAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
+    // 解析事件携带的网络封包数据
     WorldPacket p(event.getPacket());
     p.rpos(0);
     uint8 castCount, result;
@@ -54,6 +56,7 @@ bool TellCastFailedAction::Execute(Event& event)
     return true;
 }
 
+/// 执行动作主逻辑（法术信息查询指令动作）
 bool TellSpellAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();

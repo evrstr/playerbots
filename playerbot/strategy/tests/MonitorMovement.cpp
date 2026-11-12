@@ -1,3 +1,4 @@
+/// 测试监听器：移动、距离与寻路断言实现
 #include "playerbot/playerbot.h"
 #include "MonitorMovement.h"
 #include "playerbot/WorldPosition.h"
@@ -11,6 +12,7 @@
 
 using namespace ai;
 
+/// 检查机器人与命名位置/目的地或起点之间的距离是否满足比较表达式
 bool MonitorMovementDistance::IsConditionMet(const std::string& monitorStr, Player* bot, TestContext& ctx) const
 {
     std::string locPart;
@@ -62,6 +64,7 @@ bool MonitorMovementDistance::IsConditionMet(const std::string& monitorStr, Play
     return dist > threshold;
 
 }
+/// 检查机器人当前是否已不在指定名称或 ID 的地图上
 bool MonitorNotOnMap::IsConditionMet(const std::string& monitorStr, Player* bot, TestContext& ctx) const
 {
     std::string wantMapName, rightSide, parseMessage;
@@ -135,6 +138,7 @@ bool MonitorNotOnMap::IsConditionMet(const std::string& monitorStr, Player* bot,
     return false;
 }
 
+/// 连续多帧检测机器人 Z 轴是否低于地形高度（穿地检测）
 bool MonitorMovementUnderground::IsConditionMet(const std::string& monitorStr, Player* bot, TestContext& ctx) const
 {
     if (!bot->IsInWorld())
@@ -162,6 +166,7 @@ bool MonitorMovementUnderground::IsConditionMet(const std::string& monitorStr, P
     return ctx.undergroundCount > 10;
 }
 
+/// 检测机器人连续多帧无法寻路至任意旅行节点（忽略交通工具乘坐期间）
 bool MonitorMovementCanNotReachNodes::IsConditionMet(const std::string& monitorStr, Player* bot, TestContext& ctx) const
 {
     if (!bot->IsInWorld())
@@ -169,8 +174,8 @@ bool MonitorMovementCanNotReachNodes::IsConditionMet(const std::string& monitorS
 
     WorldPosition pos = WorldPosition(bot);
 
-    // On a transport (elevator platform, boat, zeppelin) the bot is off the navmesh by
-    // definition - pathfinding from there is meaningless. Don't count those ticks.
+    // On a transport (elevator platform, boat, zeppelin) the bot is off the navmesh by | 在电梯/船/飞艇等交通工具上机器人天然脱离导航网格，
+    // definition - pathfinding from there is meaningless. Don't count those ticks. | 此期间寻路无意义，不计入不可达计数；同时通过几何高度辅助判定。
     // Bots that walk onto a GO transport are not always registered passengers, so also
     // check the geometry directly (isOnTransport ray-tests the vmaps) and treat "well
     // above the static ground" (elevator mid-shaft) as riding.
@@ -208,7 +213,7 @@ bool MonitorMovementCanNotReachNodes::IsConditionMet(const std::string& monitorS
     for (const WorldPosition& nodePos : startNodePositions)
     {
         std::vector<WorldPosition> path = pos.getPathTo(nodePos, bot);
-        // 3 yd, not 1: dock/entry nodes sit on pier and platform edges where the mesh thins
+        // 3 yd, not 1: dock/entry nodes sit on pier and platform edges where the mesh thins | 码头/入口节点位于网格边缘（寻路通常停在 1~3 码处），因此放宽至 3 码内视为可达
         // out, and pathfinding stops 1-3 yd short of them. Within 3 yd the bot can walk the
         // rest, and the node-link structure takes over.
         if (nodePos.isPathTo(path, 3.0f))
@@ -220,7 +225,7 @@ bool MonitorMovementCanNotReachNodes::IsConditionMet(const std::string& monitorS
     }
 
 
-    // Grace period: right after a teleport the grid/mmaps for the destination may not be
+    // Grace period: right after a teleport the grid/mmaps for the destination may not be | 宽限期：传送刚落地时网格/寻路数据尚未加载完毕，仅在持续阻塞时才判定失败
     // loaded yet and pathfinding comes back empty; fail only when it persists.
     ctx.cannotReachCount++;
     // Transient blocks are normal around transports: the platform occupies the pier, the bot
@@ -229,6 +234,7 @@ bool MonitorMovementCanNotReachNodes::IsConditionMet(const std::string& monitorS
     return ctx.cannotReachCount > 120;
 }
 
+/// 检测机器人帧间瞬时移动速度是否超出合法阈值（异常瞬移/飞天检测）
 bool MonitorMovementSpeed::IsConditionMet(const std::string& monitorStr, Player* bot, TestContext& ctx) const
 {
     static std::map<ObjectGuid, WorldPosition> lastPositions;
@@ -301,6 +307,7 @@ bool MonitorMovementSpeed::IsConditionMet(const std::string& monitorStr, Player*
     return false;
 }
 
+/// 检查第一个生成机器人与主控机器人之间的距离是否满足条件
 bool MonitorMovementSpawnDistance::IsConditionMet(const std::string& monitorStr, Player* bot, TestContext& ctx) const
 {
     if (ctx.spawnedBots.empty())

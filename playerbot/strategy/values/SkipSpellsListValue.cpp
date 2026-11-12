@@ -1,9 +1,11 @@
+// 策略值实现：SkipSpellsListValue（屏蔽法术列表存取序列化）
 
 #include "playerbot/playerbot.h"
 #include "SkipSpellsListValue.h"
 
 using namespace ai;
 
+// 将屏蔽法术 ID 集合序列化为逗号分隔字符串
 std::string SkipSpellsListValue::Save()
 {
     std::ostringstream out;
@@ -17,6 +19,7 @@ std::string SkipSpellsListValue::Save()
     return out.str();
 }
 
+// 解析逗号分隔字符串并重建屏蔽法术 ID 集合
 bool SkipSpellsListValue::Load(std::string text)
 {
     value.clear();

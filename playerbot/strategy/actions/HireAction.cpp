@@ -4,6 +4,7 @@
 
 using namespace ai;
 
+/// 执行动作主逻辑（雇佣机器人指令动作）
 bool HireAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();

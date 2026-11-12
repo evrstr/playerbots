@@ -12,9 +12,11 @@
 
 using namespace ai;
 
+/// 执行动作主逻辑（签署公会登记表动作）
 bool PetitionSignAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
+    // 解析事件携带的网络封包数据
     WorldPacket p(event.getPacket());
     p.rpos(0);
     ObjectGuid petitionGuid;
@@ -44,7 +46,7 @@ bool PetitionSignAction::Execute(Event& event)
         uint8 slot = ArenaTeam::GetSlotByType(ArenaType(type));
         if (bot->GetArenaTeamId(slot))
         {
-            // player is already in an arena team
+            // player is already in an arena team (玩家已经加入了竞技场战队)
             ai->TellError(requester, "Sorry, I am already in such team");
             accept = false;
         }
@@ -64,7 +66,7 @@ bool PetitionSignAction::Execute(Event& event)
             accept = false;
         }
 
-        // check for same acc id
+        // check for same acc id (检查是否为同一账号 ID)
         /*QueryResult* result = CharacterDatabase.PQuery("SELECT playerguid FROM petition_sign WHERE player_account = '%u' AND petitionguid = '%u'", bot->GetSession()->GetAccountId(), petitionGuid.GetCounter());
 
         if (result)

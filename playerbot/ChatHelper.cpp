@@ -10,6 +10,7 @@
 
 using namespace ai;
 
+// 规范化聊天关键字（移除方括号、全转小写并去除首尾空格）
 static std::string NormalizeChatToken(const std::string& text)
 {
     std::string normalized = text;
@@ -46,6 +47,7 @@ static bool substrContainsInMap(const std::string& searchTerm, const std::map<st
     return false;
 }
 
+// 初始化聊天关键字映射表（消耗品、材料、品质、装备槽位、技能、职业、种族与专精）
 ChatHelper::ChatHelper(PlayerbotAI* ai) : PlayerbotAIAware(ai)
 {
     itemQualities["poor"] = ITEM_QUALITY_POOR;
@@ -222,14 +224,15 @@ ChatHelper::ChatHelper(PlayerbotAI* ai) : PlayerbotAIAware(ai)
 #endif
 }
 
+// 将铜币数值格式化为金/银/铜可读字符串
 std::string ChatHelper::formatMoney(uint32 copper)
 {
     std::ostringstream out;
-	if (!copper)
-	{
-		out << "0";
-		return out.str();
-	}
+    if (!copper)
+    {
+        out << "0";
+        return out.str();
+    }
 
     uint32 gold = uint32(copper / 10000);
     copper -= (gold * 10000);
@@ -250,15 +253,16 @@ std::string ChatHelper::formatMoney(uint32 copper)
         space = true;
     }
 
-	if (copper > 0 && gold < 10)
-	{
+    if (copper > 0 && gold < 10)
+    {
         if (space) out << " ";
-		out << copper <<  "c";
-	}
+        out << copper <<  "c";
+    }
 
     return out.str();
 }
 
+// 将含 g/s/c 单位的金币文本解析为铜币总数
 uint32 ChatHelper::parseMoney(const std::string& text)
 {
     // if user specified money in ##g##s##c format
@@ -294,6 +298,7 @@ uint32 ChatHelper::parseMoney(const std::string& text)
     return copper;
 }
 
+// 从聊天文本提取所有任务链接中的任务 ID
 std::set<uint32> ChatHelper::ExtractAllQuestIds(const std::string& text)
 {
     std::set<uint32> ids;
@@ -310,6 +315,7 @@ std::set<uint32> ChatHelper::ExtractAllQuestIds(const std::string& text)
     return ids;
 }
 
+// 从聊天文本提取所有物品链接中的物品 ID
 std::set<uint32> ChatHelper::ExtractAllItemIds(const std::string& text)
 {
     std::set<uint32> ids;
@@ -364,6 +370,7 @@ ItemIds ChatHelper::parseItems(const std::string& text, bool validate)
     return ItemIds(itemIDsUnordered.begin(), itemIDsUnordered.end());
 }
 
+// 从聊天文本或物品链接中解析物品 ID 列表（支持物品名称模糊匹配）
 std::vector<uint32> ChatHelper::parseItemsUnordered(const std::string& text, bool validate)
 {
     std::string textCpy = text;
@@ -442,6 +449,7 @@ std::set<std::string> ChatHelper::parseItemQualifiers(const std::string& text)
     return qualifiers;
 }
 
+// 将任务模板格式化为客户端可点击任务链接
 std::string ChatHelper::formatQuest(Quest const* quest)
 {
     std::ostringstream out;
@@ -537,6 +545,7 @@ std::string ChatHelper::formatWorldEntry(int32 entry)
     return out.str();
 }
 
+// 将法术条目格式化为可点击法术链接
 std::string ChatHelper::formatSpell(SpellEntry const *sInfo)
 {
     std::ostringstream out;
@@ -544,6 +553,7 @@ std::string ChatHelper::formatSpell(SpellEntry const *sInfo)
     return out.str();
 }
 
+// 将物品限定符格式化为带品质颜色、数量及随机附魔的可点击物品链接
 std::string ChatHelper::formatItem(ItemQualifier& itemQualifier, int count, int total)
 {
     char color[32];
@@ -1153,6 +1163,7 @@ std::string ChatHelper::formatAngle(float angle)
     return headings[int32(round(headingAngle / 45)) % 8];
 }
 
+// 将世界坐标格式化为含方位与距离的描述文本
 std::string ChatHelper::formatWorldPosition(const WorldPosition& pos, const WorldPosition refPos)
 {
     std::ostringstream out;
@@ -1237,6 +1248,7 @@ inline std::string toInitCap(const std::string& str) {
     return result;
 }
 
+// 构建法术名称到法术 ID 列表的全局小写索引缓存
 void ChatHelper::PopulateSpellNameList()
 {
     spellIds.clear();

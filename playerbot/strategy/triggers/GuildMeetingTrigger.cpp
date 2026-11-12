@@ -1,3 +1,4 @@
+/// 公会集结活动触发器实现
 #include "playerbot/playerbot.h"
 #include "GuildMeetingTrigger.h"
 #include "Guilds/GuildMgr.h"
@@ -5,11 +6,12 @@
 
 using namespace ai;
 
+/// 将 HH:MM（支持 AM/PM）时间字符串解析为 24 小时制时分
 static bool ParseTimeTokenToHM(const std::string& token, int& outHour, int& outMin)
 {
-    // Parse Guild MOTD
-    // Format 24h: Meeting: <location> <start HH:MM> <end HH:MM>
-    // Format 12h: Meeting: <location> <start HH:MM AM/PM> <end HH:MM AM/PM>
+    // Parse Guild MOTD | 解析公会今日信息（MOTD）
+    // Format 24h: Meeting: <location> <start HH:MM> <end HH:MM> | 24小时制格式：Meeting: <地点> <开始 HH:MM> <结束 HH:MM>
+    // Format 12h: Meeting: <location> <start HH:MM AM/PM> <end HH:MM AM/PM> | 12小时制格式：Meeting: <地点> <开始 HH:MM AM/PM> <结束 HH:MM AM/PM>
     std::smatch m;
     std::regex re(R"((\d{1,2}):(\d{2})([AaPp][Mm])?)");
     if (!std::regex_match(token, m, re))
@@ -44,6 +46,7 @@ static bool ParseTimeTokenToHM(const std::string& token, int& outHour, int& outM
     return true;
 }
 
+/// 从公会今日信息（MOTD）解析聚会地点及起止时间戳
 bool GuildMeetingTrigger::ParseMotd(const std::string& motd, std::string& outLocation, time_t& outStartTime, time_t& outEndTime) const
 {
     if (motd.empty())
@@ -127,6 +130,7 @@ bool GuildMeetingTrigger::ParseMotd(const std::string& motd, std::string& outLoc
     return true;
 }
 
+/// 判断当前时间是否处于公会聚会前 30 分钟至结束的窗口内
 bool GuildMeetingTrigger::IsActive()
 {
     if (!bot->GetGuildId())

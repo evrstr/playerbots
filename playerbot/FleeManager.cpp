@@ -8,25 +8,26 @@
 
 using namespace ai;
 
+// 计算候选点到周边所有可见敌对单位的最近距离与距离总和
 void FleeManager::calculateDistanceToCreatures(FleePoint *point)
 {
     point->minDistance = -1.0f;
     point->sumDistance = 0.0f;
     std::list<ObjectGuid> units = *bot->GetPlayerbotAI()->GetAiObjectContext()->GetValue<std::list<ObjectGuid> >("possible targets no los");
-	for (std::list<ObjectGuid>::iterator i = units.begin(); i != units.end(); ++i)
+    for (std::list<ObjectGuid>::iterator i = units.begin(); i != units.end(); ++i)
     {
-		Unit* unit = bot->GetPlayerbotAI()->GetUnit(*i);
-		if (!unit)
-		    continue;
+        Unit* unit = bot->GetPlayerbotAI()->GetUnit(*i);
+        if (!unit)
+            continue;
 
-        // do not count non-LOS mobs
+        // do not count non-LOS mobs (忽略视野外的怪物)
         if (!unit->IsWithinLOS(point->x, point->y, point->z + unit->GetCollisionHeight(), true))
             continue;
 
-		float d = sServerFacade.GetDistance2d(unit, point->x, point->y);
+        float d = sServerFacade.GetDistance2d(unit, point->x, point->y);
         point->sumDistance += d;
         if (point->minDistance < 0 || point->minDistance > d) point->minDistance = d;
-	}
+    }
 }
 
 bool intersectsOri(float angle, std::list<float>& angles, float angleIncrement)
@@ -40,6 +41,7 @@ bool intersectsOri(float angle, std::list<float>& angles, float angleIncrement)
     return false;
 }
 
+// 在允许距离范围内按角度与距离步进采样避开敌人朝向的可用逃跑点
 void FleeManager::calculatePossibleDestinations(std::list<FleePoint*> &points)
 {
     PlayerbotAI* ai = bot->GetPlayerbotAI();
@@ -98,9 +100,10 @@ void FleeManager::calculatePossibleDestinations(std::list<FleePoint*> &points)
                     delete point;
             }
         }
-	}
+    }
 }
 
+// 检测目标点周围是否存在水域或视线遮挡等地形边缘风险
 bool FleeManager::isTooCloseToEdge(float x, float y, float z, float angle)
 {
     Map* map = bot->GetMap();
@@ -125,12 +128,12 @@ bool FleeManager::isTooCloseToEdge(float x, float y, float z, float angle)
 
 void FleeManager::cleanup(std::list<FleePoint*> &points)
 {
-	for (std::list<FleePoint*>::iterator i = points.begin(); i != points.end(); i++)
+    for (std::list<FleePoint*>::iterator i = points.begin(); i != points.end(); i++)
     {
-		FleePoint* point = *i;
-		delete point;
-	}
-	points.clear();
+        FleePoint* point = *i;
+        delete point;
+    }
+    points.clear();
 }
 
 bool FleeManager::isBetterThan(FleePoint* point, FleePoint* other)
@@ -138,23 +141,25 @@ bool FleeManager::isBetterThan(FleePoint* point, FleePoint* other)
     return point->sumDistance - other->sumDistance > 0;
 }
 
+// 从候选逃跑点中选出综合距离最大的最优点
 FleePoint* FleeManager::selectOptimalDestination(std::list<FleePoint*> &points)
 {
-	FleePoint* best = NULL;
-	for (std::list<FleePoint*>::iterator i = points.begin(); i != points.end(); i++)
+    FleePoint* best = NULL;
+    for (std::list<FleePoint*>::iterator i = points.begin(); i != points.end(); i++)
     {
-		FleePoint* point = *i;
+        FleePoint* point = *i;
         if (!best || isBetterThan(point, best))
             best = point;
-	}
+    }
 
-	return best;
+    return best;
 }
 
+// 计算并输出最佳逃跑目标坐标
 bool FleeManager::CalculateDestination(float* rx, float* ry, float* rz)
 {
     std::list<FleePoint*> points;
-	calculatePossibleDestinations(points);
+    calculatePossibleDestinations(points);
 
     FleePoint* point = selectOptimalDestination(points);
     if (!point)
@@ -163,17 +168,18 @@ bool FleeManager::CalculateDestination(float* rx, float* ry, float* rz)
         return false;
     }
 
-	*rx = point->x;
-	*ry = point->y;
-	*rz = point->z;
+    *rx = point->x;
+    *ry = point->y;
+    *rz = point->z;
 
     cleanup(points);
-	return true;
+    return true;
 }
 
+// 判断当前是否受区域减益或处于敌人攻击范围内，决定是否需要逃跑
 bool FleeManager::isUseful()
 {
-    // It the bot is a victim of an aoe attack it should move no matter the target attack distance
+    // It the bot is a victim of an aoe attack it should move no matter the target attack distance | 若正处于范围伤害中则无视距离立即需要移动
     bool const inAoe = bot->GetPlayerbotAI()->GetAiObjectContext()->GetValue<bool>("has area debuff", "self target")->Get();
     if (!inAoe)
     {

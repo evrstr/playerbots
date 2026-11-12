@@ -1,9 +1,11 @@
+// 策略值实现：GlyphValues（雕文查询、天赋配置匹配与升级比较）
 #include "GlyphValues.h"
 #include "playerbot/RandomPlayerbotMgr.h"
 #include "playerbot/RandomItemMgr.h"
 
 using namespace ai;
 
+// 遍历物品模板中的雕文物品，筛选符合职业且背包中拥有（或开启雕文作弊）的列表
 std::vector<uint32> AvailableGlyphsValue::Calculate()
 {
     std::vector<uint32> glyphList;
@@ -23,6 +25,7 @@ std::vector<uint32> AvailableGlyphsValue::Calculate()
     return glyphList;
 }
 
+// 从雕文物品原型的触发法术属性中解析对应的 Glyph ID
 uint32 AvailableGlyphsValue::GetGlyphIdFromProto(const ItemPrototype* glyphProto)
 {
     if (glyphProto->Class != 16)
@@ -36,6 +39,7 @@ uint32 AvailableGlyphsValue::GetGlyphIdFromProto(const ItemPrototype* glyphProto
     return spellInfo->EffectMiscValue[0];
 }
 
+// 根据 Glyph ID 与职业掩码反查对应的雕文物品原型
 const ItemPrototype* AvailableGlyphsValue::GetGlyphProtoFromGlyphId(uint32 glyphId, uint32 classMask)
 {
     for (auto& itemId : sRandomItemMgr.GetGlyphs(classMask))
@@ -52,6 +56,7 @@ const ItemPrototype* AvailableGlyphsValue::GetGlyphProtoFromGlyphId(uint32 glyph
     return nullptr;
 }
 
+// 根据雕文物品 ID 判断其属于大雕文还是小雕文槽位
 GlyphSlotType AvailableGlyphsValue::GetGlyphSlotTypeFromItemId(uint32 itemId)
 {
 #ifdef MANGOSBOT_TWO
@@ -79,6 +84,7 @@ GlyphSlotType AvailableGlyphsValue::GetGlyphSlotTypeFromItemId(uint32 itemId)
     return GlyphSlotType::NO_SLOT;
 }
 
+// 根据插槽编号与角色等级判断该雕文槽位的类型及解锁状态
 GlyphSlotType AvailableGlyphsValue::GetGlyphSlotTypeFromSlot(uint8 slotId, uint32 level)
 {
 #ifdef MANGOSBOT_TWO
@@ -112,13 +118,14 @@ GlyphSlotType AvailableGlyphsValue::GetGlyphSlotTypeFromSlot(uint8 slotId, uint3
     return GlyphSlotType::LOCKED_SLOT;
 }
 
+// 匹配机器人当前主天赋树和等级对应的预设雕文列表
 std::vector<uint32> WantedGlyphsValue::Calculate()
 {
     uint32 specNo = sRandomPlayerbotMgr.GetValue(bot->GetGUIDLow(), "specNo");
 
     if (!specNo)
     {
-        //Pick the premade spec of the same tree as the bot's tree.
+        //Pick the premade spec of the same tree as the bot's tree. | 选择与机器人当前主天赋树一致的预设雕文配置
         TalentSpec oldSpec(bot);
         int currentTree = oldSpec.highestTree();
         for (auto& path : sPlayerbotAIConfig.classSpecs[bot->getClass()].talentPath)
@@ -141,7 +148,7 @@ std::vector<uint32> WantedGlyphsValue::Calculate()
 
     for (auto& [level, glyphList] : sPlayerbotAIConfig.glyphPriorityMap[bot->getClass()][specId])
     {
-        if (level < listLevel && level >= bot->GetLevel()) //Find the lowest level list that is above the bots current level.
+        if (level < listLevel && level >= bot->GetLevel()) //Find the lowest level list that is above the bots current level. | 查找大于等于机器人当前等级的最低等级预设配置
         {
             glyphPriorityList = glyphList;
             listLevel = level;
@@ -161,6 +168,7 @@ std::vector<uint32> WantedGlyphsValue::Calculate()
     return glyphList;
 }
 
+// 读取机器人各雕文槽位当前已安装的雕文物品 ID
 std::vector<uint32> EquipedGlyphsValue::Calculate()
 {
     std::vector<uint32> glyphList;
@@ -181,6 +189,7 @@ std::vector<uint32> EquipedGlyphsValue::Calculate()
     return glyphList;
 }
 
+// 比较待评估雕文在期望列表中的顺位是否高于空槽或当前已装同类型雕文
 bool GlyphIsUpgradeValue::Calculate()
 {
     uint32 itemId = stoi(qualifier);
@@ -215,6 +224,7 @@ bool GlyphIsUpgradeValue::Calculate()
     return false;
 }
 
+// 获取指定雕文在期望雕文列表中的优先级下标
 size_t GlyphIsUpgradeValue::GetWantedRank(uint32 itemId, const std::vector<uint32>& wantedGlyphs)
 {
     auto it = std::find(wantedGlyphs.begin(), wantedGlyphs.end(), itemId);

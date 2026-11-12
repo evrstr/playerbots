@@ -8,6 +8,7 @@
 
 using namespace ai;
 
+/// 处理单个任务发布对象的任务接取或交付逻辑（与任务发布者对话动作）
 bool TalkToQuestGiverAction::ProcessQuest(Player* requester, Quest const* quest, WorldObject* questGiver)
 {
     bool isCompleted = false;
@@ -71,6 +72,7 @@ bool TalkToQuestGiverAction::ProcessQuest(Player* requester, Quest const* quest,
     return isCompleted;
 }
 
+/// 前往或与 NPC 交互完成指定任务的交付
 bool TalkToQuestGiverAction::TurnInQuest(Player* requester, Quest const* quest, WorldObject* questGiver, std::string& out)
 {
     uint32 questID = quest->GetQuestId();
@@ -105,6 +107,7 @@ bool TalkToQuestGiverAction::TurnInQuest(Player* requester, Quest const* quest, 
     return true;
 }
 
+/// 处理无物品奖励的纯经验/声望/金币任务交付
 void TalkToQuestGiverAction::RewardNoItem(Quest const* quest, WorldObject* questGiver, std::string& out) 
 {
     std::map<std::string, std::string> args;
@@ -123,6 +126,7 @@ void TalkToQuestGiverAction::RewardNoItem(Quest const* quest, WorldObject* quest
     }
 }
 
+/// 处理只有一个奖励或直接领取单一物品奖励的逻辑
 void TalkToQuestGiverAction::RewardSingleItem(Quest const* quest, WorldObject* questGiver, std::string& out)
 {
     int index = 0;
@@ -145,6 +149,7 @@ void TalkToQuestGiverAction::RewardSingleItem(Quest const* quest, WorldObject* q
     }
 }
 
+/// 评估任务可选奖励物品并筛选评分最高的选项
 ItemIds TalkToQuestGiverAction::BestRewards(Quest const* quest)
 {
     ItemIds returnIds;
@@ -199,6 +204,7 @@ ItemIds TalkToQuestGiverAction::BestRewards(Quest const* quest)
     }
 }
 
+/// 处理包含多个可选奖励的任务交付逻辑
 void TalkToQuestGiverAction::RewardMultipleItem(Player* requester, Quest const* quest, WorldObject* questGiver, std::string& out)
 {
     std::map<std::string, std::string> args;
@@ -211,11 +217,11 @@ void TalkToQuestGiverAction::RewardMultipleItem(Player* requester, Quest const* 
         (questRewardOption == QuestRewardOptionType::QUEST_REWARD_CONFIG_DRIVEN && sPlayerbotAIConfig.autoPickReward == "yes") ||
         questRewardOption == QuestRewardOptionType::QUEST_REWARD_OPTION_AUTO
     ) {
-        //Pick the first item of the best rewards.
+        // Pick the first item of the best rewards. (选取最优奖励列表中的第一件物品。)
         bestIds = BestRewards(quest);
-        // BestRewards() returns an empty set when the quest has no reward choices, so this cannot
-        // dereference begin() unconditionally - that was an access violation here. Fall back to
-        // index 0 exactly like the branch below already does.
+        // BestRewards() returns an empty set when the quest has no reward choices, so this cannot (当任务没有可选奖励时 BestRewards() 返回空集，因此此处不会)
+        // dereference begin() unconditionally - that was an access violation here. Fall back to (无条件解引用 begin() 会导致越界访问崩溃，此处回退为)
+        // index 0 exactly like the branch below already does. (索引 0，与下方分支逻辑保持一致。)
         uint32 rewardIndex = bestIds.empty() ? 0 : *bestIds.begin();
         ItemPrototype const* proto = sObjectMgr.GetItemPrototype(quest->RewChoiceItemId[rewardIndex]);
         if(proto)
@@ -231,12 +237,12 @@ void TalkToQuestGiverAction::RewardMultipleItem(Player* requester, Quest const* 
     else if ((questRewardOption == QuestRewardOptionType::QUEST_REWARD_CONFIG_DRIVEN && sPlayerbotAIConfig.autoPickReward == "no") ||
              questRewardOption == QuestRewardOptionType::QUEST_REWARD_OPTION_LIST
     ) {
-        // Old functionality, list rewards.
+        // Old functionality, list rewards. (旧版功能：列出任务奖励。)
         AskToSelectReward(requester, quest, out, false);
     }
     else
     {
-        // Try to pick the usable item. If multiple, list usable rewards.
+        // Try to pick the usable item. If multiple, list usable rewards. (尝试挑选可用的物品；若存在多个则列出所有可用奖励。)
         bestIds = BestRewards(quest);
         if (bestIds.size() > 1)
         {
@@ -259,6 +265,7 @@ void TalkToQuestGiverAction::RewardMultipleItem(Player* requester, Quest const* 
     }
 }
 
+/// 当存在多个可选奖励时向主人发送奖励选择询问
 void TalkToQuestGiverAction::AskToSelectReward(Player* requester, Quest const* quest, std::string& out, bool forEquip)
 {
     std::ostringstream msg;

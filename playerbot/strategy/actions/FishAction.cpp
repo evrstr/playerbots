@@ -7,6 +7,7 @@
 
 using namespace ai;
 
+/// 判断当前状态下该动作是否可用/有效（前往钓鱼点动作）
 bool MoveToFishAction::isUseful()
 {
     if (qualifier == "travel")
@@ -23,22 +24,23 @@ bool MoveToFishAction::isUseful()
     return true;
 }
 
+/// 执行动作主逻辑（前往钓鱼点动作）
 bool MoveToFishAction::Execute(Event& event)
 {    
     WorldPosition fishSpot;
 
     fishSpot = AI_VALUE2(WorldPosition, "custom position", "fish spot");
 
-    if (!fishSpot && qualifier == "travel") //Get travel fish spot if available.
+    if (!fishSpot && qualifier == "travel") // Get travel fish spot if available. (若有可用旅行钓鱼点则获取。)
     {
         TravelTarget* target = AI_VALUE(TravelTarget*, "leader travel target");
         fishSpot = *target->GetPosition();
 
-        if (AI_VALUE(TravelTarget*, "travel target") != target) //Do not fish ontop of master.
+        if (AI_VALUE(TravelTarget*, "travel target") != target) // Do not fish ontop of master. (不要站在主人正上方或重合位置钓鱼。)
             fishSpot = *sTravelMgr.GetFishSpot(bot, true);
     }
     
-    if (!fishSpot) //Get any fish spot.
+    if (!fishSpot) // Get any fish spot. (获取任意可用钓鱼点。)
     {
         fishSpot = *sTravelMgr.GetFishSpot(bot);
 
@@ -59,6 +61,7 @@ bool MoveToFishAction::Execute(Event& event)
     return MoveTo(fishSpot);
 }
 
+/// 判断当前状态下该动作是否可用/有效（钓鱼动作）
 bool FishAction::isUseful()
 {
     if (qualifier == "travel")
@@ -89,6 +92,7 @@ bool FishAction::isUseful()
     return true;
 }
 
+/// 执行动作主逻辑（钓鱼动作）
 bool FishAction::Execute(Event& event)
 {
     if (qualifier == "travel")
@@ -125,6 +129,7 @@ bool FishAction::Execute(Event& event)
     uint8 slot = pole->GetSlot();
 
     if (slot != EQUIPMENT_SLOT_MAINHAND)
+        /// 将背包中的指定物品穿戴到合适的装备栏位
         EquipAction::EquipItem(ai, GetMaster(), pole);
 
     Event fishCastEvent = Event("fish", "7731 " + chat->formatWorldobject(bot));
@@ -135,6 +140,7 @@ bool FishAction::Execute(Event& event)
     return didCast;
 }
 
+/// 执行动作主逻辑（收杆拾取鱼漂动作）
 bool UseFishingBobberAction::Execute(Event& event)
 {
     std::list<GameObject*> objects = TellLosAction::GoGuidListToObjList(ai, AI_VALUE(std::list<ObjectGuid>, "nearest game objects no los"));

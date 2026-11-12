@@ -1,5 +1,6 @@
 #pragma once
 
+/// 机器人行为状态枚举（战斗、非战斗、死亡、反应、全状态）
 enum class BotState : uint8
 {
     BOT_STATE_COMBAT = 0,

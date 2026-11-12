@@ -1,3 +1,4 @@
+// 死亡骑士 - 动作实现文件 (DKActions.cpp)：定义死亡骑士专用技能施放与战斗动作
 
 #include "playerbot/playerbot.h"
 #include "DKActions.h"
@@ -5,58 +6,60 @@
 
 using namespace ai;
 
+// 检查动作当前是否满足施放条件 (CastRaiseDeadAction)
 bool CastRaiseDeadAction::isPossible()
 {
-	if (!CastBuffSpellAction::isPossible())
-		return false;
-	if (AI_VALUE2(uint32, "item count", "corpse dust") > 0)
-		return true;
-		
-	for (auto guid : AI_VALUE(std::list<ObjectGuid>, "nearest corpses"))
-	{
-		Creature* creature = ai->GetCreature(guid);
+    if (!CastBuffSpellAction::isPossible())
+        return false;
+    if (AI_VALUE2(uint32, "item count", "corpse dust") > 0)
+        return true;
+        
+    for (auto guid : AI_VALUE(std::list<ObjectGuid>, "nearest corpses"))
+    {
+        Creature* creature = ai->GetCreature(guid);
 
-		if (!creature)
-			continue;
+        if (!creature)
+            continue;
 
-		if (creature->GetCreatureType() != CREATURE_TYPE_HUMANOID)
-			continue;
+        if (creature->GetCreatureType() != CREATURE_TYPE_HUMANOID)
+            continue;
 
-		if (!bot->isHonorOrXPTarget(creature))
-			continue;
+        if (!bot->isHonorOrXPTarget(creature))
+            continue;
 
-		return true;
-	}
+        return true;
+    }
 
-	for (auto guid : AI_VALUE(std::list<ObjectGuid>, "nearest friendly players"))
-	{
-		Player* player = dynamic_cast<Player*>(ai->GetUnit(guid));
+    for (auto guid : AI_VALUE(std::list<ObjectGuid>, "nearest friendly players"))
+    {
+        Player* player = dynamic_cast<Player*>(ai->GetUnit(guid));
 
-		if (!player)
-			continue;
+        if (!player)
+            continue;
 
-		if (!player->IsDead())
-			continue;
+        if (!player->IsDead())
+            continue;
 
-		return true;
-	}
+        return true;
+    }
 
-	for (auto guid : AI_VALUE(std::list<ObjectGuid>, "enemy player targets"))
-	{
-		Player* player = dynamic_cast<Player*>(ai->GetUnit(guid));
+    for (auto guid : AI_VALUE(std::list<ObjectGuid>, "enemy player targets"))
+    {
+        Player* player = dynamic_cast<Player*>(ai->GetUnit(guid));
 
-		if (!player)
-			continue;
+        if (!player)
+            continue;
 
-		if (!player->IsDead())
-			continue;
+        if (!player->IsDead())
+            continue;
 
-		return true;
-	}
+        return true;
+    }
 
-	return false;
+    return false;
 }
 
+// 执行动作逻辑 (RuneforgeAction)
 bool RuneforgeAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -148,6 +151,7 @@ bool RuneforgeAction::Execute(Event& event)
     return false;
 }
 
+// 检查动作当前是否有效/可用 (RuneforgeAction)
 bool RuneforgeAction::isUseful()
 {
     Item* weapon = bot->GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_MAINHAND);

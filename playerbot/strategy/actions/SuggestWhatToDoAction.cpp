@@ -12,6 +12,7 @@ using namespace ai;
 std::map<std::string, int> SuggestWhatToDoAction::instances;
 std::map<std::string, int> SuggestWhatToDoAction::factions;
 
+/// 构造函数：初始化行动建议播报动作
 SuggestWhatToDoAction::SuggestWhatToDoAction(PlayerbotAI* ai, std::string name)
     : Action{ ai, name }
     , _locale{ sConfig.GetIntDefault("DBC.Locale", 0 /*LocaleConstant::LOCALE_enUS*/) }
@@ -30,6 +31,7 @@ SuggestWhatToDoAction::SuggestWhatToDoAction(PlayerbotAI* ai, std::string name)
     suggestions.push_back(&SuggestWhatToDoAction::thunderfury);
 }
 
+/// 判断当前状态下该动作是否可用/有效（行动建议播报动作）
 bool SuggestWhatToDoAction::isUseful()
 {
     if (!sRandomPlayerbotMgr.IsRandomBot(bot) || bot->GetGroup() || bot->GetInstanceId())
@@ -40,6 +42,7 @@ bool SuggestWhatToDoAction::isUseful()
     return (time(0) - lastSaid) > 30;
 }
 
+/// 执行动作主逻辑（行动建议播报动作）
 bool SuggestWhatToDoAction::Execute(Event& event)
 {
     int index = rand() % suggestions.size();
@@ -52,6 +55,7 @@ bool SuggestWhatToDoAction::Execute(Event& event)
     return true;
 }
 
+/// 生成建议前往某个地下城副本的行动建议文本
 void SuggestWhatToDoAction::instance()
 {
     if (instances.empty())
@@ -111,6 +115,7 @@ void SuggestWhatToDoAction::instance()
     BroadcastHelper::BroadcastSuggestInstance(ai, allowedInstances, bot);
 }
 
+/// 获取机器人当前尚未完成的任务列表
 std::vector<uint32> SuggestWhatToDoAction::GetIncompletedQuests()
 {
     std::vector<uint32> result;
@@ -122,8 +127,8 @@ std::vector<uint32> SuggestWhatToDoAction::GetIncompletedQuests()
             continue;
 
         QuestStatus status = bot->GetQuestStatus(questId);
-        // Skip ids with no template: the consumer picks one at random and formats
-        // it, so an orphan collected here silently costs a suggestion.
+        // Skip ids with no template: the consumer picks one at random and formats (跳过缺少模板的 ID：后续消费者会随机选取并格式化)
+        // it, so an orphan collected here silently costs a suggestion. (它，因此此处收集到的孤立项会悄悄消耗一条建议。)
         if ((status == QUEST_STATUS_INCOMPLETE || status == QUEST_STATUS_NONE)
             && sObjectMgr.GetQuestTemplate(questId))
             result.push_back(questId);
@@ -132,6 +137,7 @@ std::vector<uint32> SuggestWhatToDoAction::GetIncompletedQuests()
     return result;
 }
 
+/// 生成针对特定活跃任务的建议喊话文本
 void SuggestWhatToDoAction::specificQuest()
 {
     std::vector<uint32> quests = GetIncompletedQuests();
@@ -141,6 +147,7 @@ void SuggestWhatToDoAction::specificQuest()
     BroadcastHelper::BroadcastSuggestQuest(ai, quests, bot);
 }
 
+/// 生成刷取专业材料相关的行动建议文本
 void SuggestWhatToDoAction::grindMaterials()
 {
     if (bot->GetLevel() <= 5)
@@ -162,6 +169,7 @@ void SuggestWhatToDoAction::grindMaterials()
     return;
 }
 
+/// 生成刷取阵营声望相关的行动建议文本
 void SuggestWhatToDoAction::grindReputation()
 {
     if (factions.empty())
@@ -221,26 +229,31 @@ void SuggestWhatToDoAction::grindReputation()
     BroadcastHelper::BroadcastSuggestGrindReputation(ai, levels, allowedFactions, bot);
 }
 
+/// 生成一条通用日常闲聊或组队建议文本
 void SuggestWhatToDoAction::something()
 {
     BroadcastHelper::BroadcastSuggestSomething(ai, bot);
 }
 
+/// 生成一条带幽默吐槽风格的随机频道互动文本
 void SuggestWhatToDoAction::somethingToxic()
 {
     BroadcastHelper::BroadcastSuggestSomethingToxic(ai, bot);
 }
 
+/// 生成趣味物品链接回复台词
 void SuggestWhatToDoAction::toxicLinks()
 {
     BroadcastHelper::BroadcastSuggestToxicLinks(ai, bot);
 }
 
+/// 生成关于雷霆之怒的趣味世界频道台词
 void SuggestWhatToDoAction::thunderfury()
 {
     BroadcastHelper::BroadcastSuggestThunderfury(ai, bot);
 }
 
+/// 可交易物品遍历器：遍历机器人背包收集可对外交易或拍卖的商品清单
 class FindTradeItemsVisitor : public IterateItemsVisitor
 {
 public:
@@ -272,6 +285,7 @@ private:
     uint32 quality;
 };
 
+/// 判断当前状态下该动作是否可用/有效（交易建议播报动作）
 bool SuggestTradeAction::isUseful()
 {
     if (!sRandomPlayerbotMgr.IsRandomBot(bot) || bot->GetGroup() || bot->GetInstanceId())
@@ -280,6 +294,7 @@ bool SuggestTradeAction::isUseful()
     return true;
 }
 
+/// 执行动作主逻辑（交易建议播报动作）
 bool SuggestTradeAction::Execute(Event& event)
 {
     uint32 quality = urand(0, 100);

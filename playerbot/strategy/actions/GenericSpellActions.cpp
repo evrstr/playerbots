@@ -5,6 +5,7 @@
 
 using namespace ai;
 
+/// 构造函数：初始化施放法术基类动作
 CastSpellAction::CastSpellAction(PlayerbotAI* ai, std::string spell)
 : Action(ai, spell)
 , range(ai->GetRange("spell"))
@@ -18,6 +19,7 @@ CastSpellAction::CastSpellAction(PlayerbotAI* ai, std::string spell)
     }
 }
 
+/// 执行动作主逻辑（施放法术基类动作）
 bool CastSpellAction::Execute(Event& event)
 {
     bool executed = false;
@@ -78,6 +80,7 @@ bool CastSpellAction::Execute(Event& event)
     return executed;
 }
 
+/// 判断执行该动作的前置条件是否满足（施放法术基类动作）
 bool CastSpellAction::isPossible()
 {
     if (spellName == "mount")
@@ -135,10 +138,11 @@ bool CastSpellAction::isPossible()
         return false;
     }
     
-    // Check if the spell can be casted
-	return ai->CanCastSpell(spellName, spellTarget, 0, nullptr, true);
+    // Check if the spell can be casted (检查该法术当前是否可以施放)
+    return ai->CanCastSpell(spellName, spellTarget, 0, nullptr, true);
 }
 
+/// 判断当前状态下该动作是否可用/有效（施放法术基类动作）
 bool CastSpellAction::isUseful()
 {
     if (ai->IsInVehicle() && !ai->IsInVehicle(false, false, true))
@@ -157,7 +161,7 @@ bool CastSpellAction::isUseful()
     const SpellEntry* pSpellInfo = sServerFacade.LookupSpellInfo(spellId);
     if (pSpellInfo)
     {
-        // check if the damage we'd take from damage shields is too harmful, only for melee spells
+        // check if the damage we'd take from damage shields is too harmful, only for melee spells (检查近战法术攻击反伤护盾目标时承受的反伤是否过高)
         if (range == ATTACK_DISTANCE)
         {
             std::set<Aura*> alreadyDone;
@@ -169,7 +173,7 @@ bool CastSpellAction::isUseful()
                     alreadyDone.insert(*i);
                     uint32 damage = (*i)->GetModifier()->m_amount;
 
-                    // If the damage shield does at least 10% of our max hp on each hit we do, we shouldn't cast a melee spell
+                    // If the damage shield does at least 10% of our max hp on each hit we do, we shouldn't cast a melee spell (若反伤护盾每次反伤超过最大生命值的 10%，则不施放近战法术)
                     if (damage >= bot->GetMaxHealth() * 0.10f)
                     {
                         bot->AttackStop();
@@ -183,7 +187,7 @@ bool CastSpellAction::isUseful()
             }
         }
 
-        // If target is more likely than not to reflect and our spell is reflectable, don't cast
+        // If target is more likely than not to reflect and our spell is reflectable, don't cast (若目标大概率具有法术反射且当前法术可被反射，则放弃施法)
         if (spellTarget->GetReflectChance(GetSpellSchoolMask(pSpellInfo)) > 50.0f && IsReflectableSpell(pSpellInfo))
             return false;
     }
@@ -191,21 +195,22 @@ bool CastSpellAction::isUseful()
     return true;
 }
 
+/// 获取执行本动作前需要优先执行的前置动作列表
 NextAction** CastSpellAction::getPrerequisites()
 {
-    // Set the reach action as the cast spell prerequisite when needed
+    // Set the reach action as the cast spell prerequisite when needed (需要时将接近动作设为施法前置动作)
     const std::string reachAction = GetReachActionName();
     if (!reachAction.empty())
     {
         const std::string targetName = GetTargetName();
 
-        // No need for a reach action when target is self
+        // No need for a reach action when target is self (目标为自身时无需执行接近目标动作)
         if (targetName != "self target")
         {
             const std::string spellName = GetSpellName();
             const std::string targetQualifier = GetTargetQualifier();
 
-            // Generate the reach action with qualifiers
+            // Generate the reach action with qualifiers (生成附带限定符的接近目标动作)
             std::vector<std::string> qualifiers = { spellName, targetName };
             if (!targetQualifier.empty())
             {
@@ -220,6 +225,7 @@ NextAction** CastSpellAction::getPrerequisites()
     return Action::getPrerequisites();
 }
 
+/// 设置动作关联的法术名称并解析对应的法术 ID
 void CastSpellAction::SetSpellName(const std::string& name, std::string spellIDContextName /*= "spell id"*/, bool force)
 {
     if (force || spellName != name)
@@ -235,6 +241,7 @@ void CastSpellAction::SetSpellName(const std::string& name, std::string spellIDC
     }
 }
 
+/// 获取当前动作的目标单位（施放法术基类动作）
 Unit* CastSpellAction::GetTarget()
 {
     std::string targetName = GetTargetName();
@@ -242,6 +249,7 @@ Unit* CastSpellAction::GetTarget()
     return targetNameQualifier.empty() ? ai->GetUnit(AI_VALUE(ObjectGuid, targetName)) : ai->GetUnit(AI_VALUE2(ObjectGuid, targetName, targetNameQualifier));
 }
 
+/// 判断执行该动作的前置条件是否满足（施放宠物法术动作）
 bool CastPetSpellAction::isPossible()
 {
     Unit* spellTarget = GetTarget();
@@ -254,7 +262,7 @@ bool CastPetSpellAction::isPossible()
         const uint32& spellId = GetSpellID();
         if (pet->HasSpell(spellId) && pet->IsSpellReady(spellId))
         {
-            // Check if the pet is not too far from the owner
+            // Check if the pet is not too far from the owner (检查宠物与主人之间的距离是否未过远)
             if (bot->GetDistance(pet) <= sPlayerbotAIConfig.sightDistance)
             {
                 bool canReach = false;
@@ -285,16 +293,19 @@ bool CastPetSpellAction::isPossible()
     return false;
 }
 
+/// 判断当前状态下该动作是否可用/有效（施放光环法术基类动作）
 bool CastAuraSpellAction::isUseful()
 {
     return CastSpellAction::isUseful() && !ai->HasAura(GetSpellName(), GetTarget(), false, isOwner);
 }
 
+/// 判断当前状态下该动作是否可用/有效（施放近战范围技能动作）
 bool CastMeleeAoeSpellAction::isUseful()
 {
     return CastSpellAction::isUseful() && sServerFacade.IsDistanceLessOrEqualThan(AI_VALUE2(float, "distance", GetTargetName()), radius);
 }
 
+/// 判断执行该动作的前置条件是否满足（施放物品附魔动作）
 bool CastEnchantItemAction::isPossible()
 {
     if (!CastSpellAction::isPossible())
@@ -303,31 +314,37 @@ bool CastEnchantItemAction::isPossible()
     return GetSpellID() && AI_VALUE2(Item*, "item for spell", GetSpellID());
 }
 
+/// 判断当前状态下该动作是否可用/有效（施放群体治疗法术动作）
 bool CastAoeHealSpellAction::isUseful()
 {
     return CastSpellAction::isUseful();
 }
 
+/// 判断当前状态下该动作是否可用/有效（对队友施放持续治疗动作）
 bool HealHotPartyMemberAction::isUseful()
 {
     return HealPartyMemberAction::isUseful() && !ai->HasAura(GetSpellName(), GetTarget());
 }
 
+/// 判断执行该动作的前置条件是否满足（施放载具技能基类动作）
 bool CastVehicleSpellAction::isPossible()
 {
     return ai->CanCastVehicleSpell(GetSpellID(), GetTarget());
 }
 
+/// 判断当前状态下该动作是否可用/有效（施放载具技能基类动作）
 bool CastVehicleSpellAction::isUseful()
 {
     return ai->IsInVehicle(false, true);
 }
 
+/// 执行动作主逻辑（施放载具技能基类动作）
 bool CastVehicleSpellAction::Execute(Event& event)
 {
     return ai->CastVehicleSpell(GetSpellID(), GetTarget(), speed, needTurn);
 }
 
+/// 判断执行该动作的前置条件是否满足（冰冻死亡箭载具技能动作）
 bool CastFrozenDeathboltAction::isPossible()
 {
     Unit* target = GetTarget();
@@ -341,9 +358,10 @@ bool CastFrozenDeathboltAction::isPossible()
     return CastVehicleSpellAction::isPossible();
 }
 
+/// 判断当前状态下该动作是否可用/有效（施放战争践踏动作）
 bool CastWarStompAction::isUseful()
 {
-    // ignore distance check in pvp or duel
+    // ignore distance check in pvp or duel (PvP 或决斗期间忽略距离限制检查)
     if (!ai->HasStrategy("pvp", BotState::BOT_STATE_COMBAT) &&
         !ai->HasStrategy("duel", BotState::BOT_STATE_COMBAT))
     {
@@ -356,6 +374,7 @@ bool CastWarStompAction::isUseful()
     return true;
 }
 
+/// 判断执行该动作的前置条件是否满足（吞噬人形生物载具技能动作）
 bool CastDevourHumanoidAction::isPossible()
 {
     Unit* target = GetTarget();
@@ -369,13 +388,14 @@ bool CastDevourHumanoidAction::isPossible()
     return CastVehicleSpellAction::isPossible();
 }
 
+/// 判断执行该动作的前置条件是否满足（施放远程射击/魔杖动作）
 bool CastShootAction::isPossible()
 {
-    // Check if the bot has a ranged weapon equipped and has ammo
+    // Check if the bot has a ranged weapon equipped and has ammo (检查机器人是否装备了远程武器并携带弹药)
     UpdateWeaponInfo();
     if (rangedWeapon && !needsAmmo)
     {
-        // Check if the target exist and it can be shot
+        // Check if the target exist and it can be shot (检查目标是否存在且可被远程射击)
         Unit* target = GetTarget();
         if (target && sServerFacade.IsWithinLOSInMap(bot, target))
         {
@@ -386,6 +406,7 @@ bool CastShootAction::isPossible()
     return false;
 }
 
+/// 执行动作主逻辑（施放远程射击/魔杖动作）
 bool CastShootAction::Execute(Event& event)
 {
     bool succeeded = false;
@@ -393,7 +414,7 @@ bool CastShootAction::Execute(Event& event)
     UpdateWeaponInfo();
     if (rangedWeapon && !needsAmmo)
     {
-        // Prevent calling the shoot spell when already active
+        // Prevent calling the shoot spell when already active (自动射击已激活时避免重复施放射击法术)
         Spell* autoRepeatSpell = ai->GetBot()->GetCurrentSpell(CURRENT_AUTOREPEAT_SPELL);
         if (autoRepeatSpell && (autoRepeatSpell->m_spellInfo->Id == GetSpellID()))
         {
@@ -413,9 +434,10 @@ bool CastShootAction::Execute(Event& event)
     return succeeded;
 }
 
+/// 刷新并记录主副手武器及远程武器状态参数
 void CastShootAction::UpdateWeaponInfo()
 {
-    // Check if we have a new ranged weapon equipped
+    // Check if we have a new ranged weapon equipped (检查是否刚刚装备了新的远程武器)
     const Item* equippedWeapon = bot->GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_RANGED);
     if (equippedWeapon)
     {
@@ -473,7 +495,7 @@ void CastShootAction::UpdateWeaponInfo()
                 default: break;
             }
 
-            // Set the new weapon parameters
+            // Set the new weapon parameters (更新记录新的武器参数)
             if (isRangedWeapon)
             {
                 SetSpellName(spellName);
@@ -482,7 +504,7 @@ void CastShootAction::UpdateWeaponInfo()
             }
         }
 
-        // Check the ammunition
+        // Check the ammunition (检查远程弹药储备)
 #ifdef MANGOSBOT_ZERO
         needsAmmo = (GetSpellName() != "shoot") ? (AI_VALUE2(uint32, "item count", "ammo") <= 0) : false;
 #endif
@@ -493,17 +515,20 @@ void CastShootAction::UpdateWeaponInfo()
     }
 }
 
+/// 判断当前状态下该动作是否可用/有效（移除自身增益动作）
 bool RemoveBuffAction::isUseful()
 {
     return ai->HasAura(name, bot);
 }
 
+/// 执行动作主逻辑（移除自身增益动作）
 bool RemoveBuffAction::Execute(Event& event)
 {
     ai->RemoveAura(name);
     return !ai->HasAura(name, bot);
 }
 
+/// 判断当前状态下该动作是否可用/有效（中断当前施法动作）
 bool InterruptCurrentSpellAction::isUseful()
 {
     for (int type = CURRENT_MELEE_SPELL; type < CURRENT_CHANNELED_SPELL; type++)
@@ -515,6 +540,7 @@ bool InterruptCurrentSpellAction::isUseful()
     return false;
 }
 
+/// 执行动作主逻辑（中断当前施法动作）
 bool InterruptCurrentSpellAction::Execute(Event& event)
 {
     bool interrupted = false;
@@ -531,9 +557,10 @@ bool InterruptCurrentSpellAction::Execute(Event& event)
     return interrupted;
 }
 
+/// 获取当前动作的目标单位（对指定目标施法动作）
 Unit* CastSpellTargetAction::GetTarget()
 {
-    // Check for assigned targets
+    // Check for assigned targets (检查是否已分配指定目标)
     const std::list<ObjectGuid>& possibleTargets = AI_VALUE(std::list<ObjectGuid>, targetsValue);
     if (!possibleTargets.empty())
     {
@@ -548,7 +575,7 @@ Unit* CastSpellTargetAction::GetTarget()
     }
     else
     {
-        // Check for the default target
+        // Check for the default target (检查默认目标)
         Unit* possibleTarget = CastSpellAction::GetTarget();
         if (IsTargetValid(possibleTarget))
         {
@@ -559,6 +586,7 @@ Unit* CastSpellTargetAction::GetTarget()
     return nullptr;
 }
 
+/// 检查目标单位是否存活、在视野内且满足攻击/施法合法性
 bool CastSpellTargetAction::IsTargetValid(Unit* target)
 {
     return target &&
@@ -569,6 +597,7 @@ bool CastSpellTargetAction::IsTargetValid(Unit* target)
            (!auraCheck || !ai->HasAura(GetSpellID(), target));
 }
 
+/// 检查目标单位是否存活、在视野内且满足攻击/施法合法性
 bool CastItemTargetAction::IsTargetValid(Unit* target)
 {
     if (CastSpellTargetAction::IsTargetValid(target))
@@ -606,6 +635,7 @@ bool CastItemTargetAction::IsTargetValid(Unit* target)
     return false;
 }
 
+/// 判断当前状态下该动作是否可用/有效（对物品目标施法动作）
 bool CastItemTargetAction::isUseful()
 {
     const ItemPrototype* proto = sObjectMgr.GetItemPrototype(GetItemId());
@@ -633,6 +663,7 @@ bool CastItemTargetAction::isUseful()
     return false;
 }
 
+/// 判断执行该动作的前置条件是否满足（对物品目标施法动作）
 bool CastItemTargetAction::isPossible()
 {
     uint32 itemId = GetItemId();
@@ -656,11 +687,11 @@ bool CastItemTargetAction::isPossible()
     {
         _Spell const& spellData = proto->Spells[i];
 
-        // no spell
+        // no spell (无法术)
         if (!spellData.SpellId)
             continue;
 
-        // wrong triggering type
+        // wrong triggering type (触发器类型不匹配)
 #ifdef MANGOSBOT_ZERO
         if (spellData.SpellTrigger != ITEM_SPELLTRIGGER_ON_USE && spellData.SpellTrigger != ITEM_SPELLTRIGGER_ON_NO_DELAY_USE)
 #else
@@ -680,6 +711,7 @@ bool CastItemTargetAction::isPossible()
     return spellCount;
 }
 
+/// 执行动作主逻辑（对物品目标施法动作）
 bool CastItemTargetAction::Execute(Event& event)
 {
     uint32 itemId = GetItemId();
@@ -691,8 +723,9 @@ bool CastItemTargetAction::Execute(Event& event)
 
     Item* item = nullptr;
 
-    if (!ai->HasCheat(BotCheatMask::item)) //If bot has no item cheat it needs an item to cast.
+    if (!ai->HasCheat(BotCheatMask::item)) // If bot has no item cheat it needs an item to cast. (若机器人未开启物品作弊，则需要实际拥有对应物品才可施放。)
     {
+        // 查找背包中匹配的物品
         std::list<Item*> items = AI_VALUE2(std::list<Item*>, "inventory items", chat->formatQItem(itemId));
 
         if (items.empty())
@@ -710,18 +743,18 @@ bool CastItemTargetAction::Execute(Event& event)
     else
         targets.m_targetMask = TARGET_FLAG_SELF;
 
-    // use triggered flag only for items with many spell casts and for not first cast
+    // use triggered flag only for items with many spell casts and for not first cast (仅对多段施法物品的后续施法使用 triggered 标志)
     int count = 0;
 
     for (int i = 0; i < MAX_ITEM_PROTO_SPELLS; ++i)
     {
         _Spell const& spellData = proto->Spells[i];
 
-        // no spell
+        // no spell (无法术)
         if (!spellData.SpellId)
             continue;
 
-        // wrong triggering type
+        // wrong triggering type (触发器类型不匹配)
 #ifdef MANGOSBOT_ZERO
         if (spellData.SpellTrigger != ITEM_SPELLTRIGGER_ON_USE && spellData.SpellTrigger != ITEM_SPELLTRIGGER_ON_NO_DELAY_USE)
 #else
@@ -770,6 +803,7 @@ bool CastItemTargetAction::Execute(Event& event)
     return count;
 }
 
+/// 检查指定法术是否正处于冷却时间中
 bool CastItemTargetAction::HasSpellCooldown(uint32 itemId)
 {
     ItemPrototype const* proto = sObjectMgr.GetItemPrototype(itemId);

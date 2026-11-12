@@ -1,3 +1,4 @@
+/// 能源舰（The Mechanar）副本触发器编译单元
 
 #include "playerbot/playerbot.h"
 #include "MechanarDungeonTriggers.h"

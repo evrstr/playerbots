@@ -1,8 +1,10 @@
+/// 测试执行上下文（TestContext）状态管理实现
 #include "TestContext.h"
 #include "playerbot/PlayerbotMgr.h"
 
 using namespace ai;
 
+/// 重置上下文全部运行状态、计数器、焦点记录及清理队列
 void TestContext::Reset()
 {
     script.clear();
@@ -44,12 +46,14 @@ void TestContext::Reset()
     actionSpamArmed = false;
 }
 
+/// 线程安全记录已成功传送到位的队友 GUID
 void TestContext::RecordDeliveredGroupMember(ObjectGuid guid)
 {
     std::lock_guard<std::mutex> lock(groupDeliveryMutex);
     deliveredGroupMembers.insert(guid);
 }
 
+/// 线程安全获取已成功传送到位的队友 GUID 集合
 std::set<ObjectGuid> TestContext::GetDeliveredGroupMembers()
 {
     std::lock_guard<std::mutex> lock(groupDeliveryMutex);

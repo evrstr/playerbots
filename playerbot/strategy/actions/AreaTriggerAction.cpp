@@ -5,14 +5,16 @@
 
 using namespace ai;
 
+/// 执行动作主逻辑（前往区域触发器动作）
 bool ReachAreaTriggerAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
     uint32 triggerId;
 
-    if (ai->IsRealPlayer()) //Do not trigger own area trigger.
+    if (ai->IsRealPlayer()) // Do not trigger own area trigger. (不要触发自身所在的区域触发器。)
         return false;
 
+    // 解析事件携带的网络封包数据
     WorldPacket p(event.getPacket());
     p.rpos(0);
     p >> triggerId;
@@ -39,7 +41,7 @@ bool ReachAreaTriggerAction::Execute(Event& event)
     }
 
     MotionMaster &mm = *bot->GetMotionMaster();
-	mm.MovePoint(atEntry->mapid, atEntry->x, atEntry->y, atEntry->z, FORCED_MOVEMENT_RUN);
+    mm.MovePoint(atEntry->mapid, atEntry->x, atEntry->y, atEntry->z, FORCED_MOVEMENT_RUN);
     const float distance = sqrt(bot->GetDistance(atEntry->x, atEntry->y, atEntry->z));
     const float duration = 1000.0f * distance / bot->GetSpeed(MOVE_RUN) + sPlayerbotAIConfig.reactDelay;
     ai->TellError(requester, "Wait for me");
@@ -51,6 +53,7 @@ bool ReachAreaTriggerAction::Execute(Event& event)
 
 
 
+/// 执行动作主逻辑（区域触发器交互动作）
 bool AreaTriggerAction::Execute(Event& event)
 {
     LastMovement& movement = context->GetValue<LastMovement&>("last area trigger")->Get();

@@ -5,6 +5,7 @@
 #include "PlayerbotAIBase.h"
 #include "PlayerbotMgr.h"
 
+/// 基于 TCP 套接字的远程指令服务器，监听端口接收并执行外部机器人管理命令
 class PlayerbotCommandServer
 {
 public:

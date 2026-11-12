@@ -7,6 +7,7 @@
 
 using namespace ai;
 
+/// 执行动作主逻辑（忽略法术列表指令动作）
 bool SkipSpellsListAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -57,7 +58,7 @@ bool SkipSpellsListAction::Execute(Event& event)
                 const bool remove = spell.substr(0, 1) == "-";
                 if (remove)
                 {
-                    // Remove the -
+                    // Remove the - (移除前缀 '-' 符号)
                     spell = spell.substr(1);
                 }
 
@@ -115,6 +116,7 @@ bool SkipSpellsListAction::Execute(Event& event)
     return false;
 }
 
+/// 从指令参数中解析法术名称或法术 ID 列表
 std::vector<std::string> SkipSpellsListAction::ParseSpells(const std::string& text)
 {
     std::vector<std::string> spells;

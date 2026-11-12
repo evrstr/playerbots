@@ -1,3 +1,4 @@
+/// 表情动作与社交互动策略实现
 
 #include "playerbot/playerbot.h"
 #include "EmoteStrategy.h"
@@ -5,6 +6,7 @@
 
 using namespace ai;
 
+/// 初始化非战斗触发器：随机做表情、回复玩家表情、迎新问候及闲聊建议
 void EmoteStrategy::InitNonCombatTriggers(std::list<TriggerNode*> &triggers)
 {
     triggers.push_back(new TriggerNode(

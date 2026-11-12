@@ -6,12 +6,14 @@
 
 using namespace ai;
 
+/// 执行动作主逻辑（PvP/状态标记指令动作）
 bool FlagAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
     std::string cmd = event.getParam();
     if (!qualifier.empty())
         cmd = qualifier;
+    // 按空格拆分命令行参数
     std::vector<std::string> ss = split(cmd, ' ');
     if (ss.size() != 2)
     {

@@ -9,6 +9,7 @@ using namespace ai;
 
 std::map<uint32, SkillLineAbilityEntry const*> SetCraftAction::skillSpells;
 
+/// 加载指定专业或武器技能相关的法术列表
 void SetCraftAction::LoadSkillSpells()
 {
     if (!skillSpells.empty())
@@ -22,6 +23,7 @@ void SetCraftAction::LoadSkillSpells()
     }
 }
 
+/// 解析聊天指令中的专业技能名称或关键字
 uint32 SetCraftAction::ParseProfession(const std::string& text)
 {
     std::string lower = text;
@@ -40,6 +42,7 @@ uint32 SetCraftAction::ParseProfession(const std::string& text)
     return ChatHelper::parseSkillName(lower);
 }
 
+/// 列出指定专业能够制作的所有物品清单
 void SetCraftAction::TellCraftableByProfession(Player* requester, uint32 skill)
 {
     LoadSkillSpells();
@@ -95,6 +98,7 @@ void SetCraftAction::TellCraftableByProfession(Player* requester, uint32 skill)
         ai->TellPlayer(requester, entry);
 }
 
+/// 执行动作主逻辑（设置制造配方动作）
 bool SetCraftAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -191,6 +195,7 @@ bool SetCraftAction::Execute(Event& event)
     return true;
 }
 
+/// 汇报当前已设置的制造配方或代工状态
 void SetCraftAction::TellCraft(Player* requester)
 {
     CraftData& data = AI_VALUE(CraftData&, "craft");
@@ -228,6 +233,7 @@ void SetCraftAction::TellCraft(Player* requester)
     ai->TellPlayer(requester, out.str());
 }
 
+/// 获取设定的专业代工收费金额
 uint32 SetCraftAction::GetCraftFee(CraftData& data)
 {
     if (data.IsEmpty())

@@ -9,6 +9,7 @@
 
 using namespace ai;
 
+/// 在文本中查找最后一个分隔符位置
 int FindLastSeparator(std::string text, std::string sep)
 {
     int pos = text.rfind(sep);
@@ -22,6 +23,7 @@ int FindLastSeparator(std::string text, std::string sep)
     return pos;
 }
 
+/// 原地去除字符串左侧的空白字符
 static inline void ltrim(std::string& s) 
 {
     s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](unsigned char ch) 
@@ -30,9 +32,10 @@ static inline void ltrim(std::string& s)
     }));
 }
 
+/// 执行动作主逻辑（自定义施法指令动作）
 bool CastCustomSpellAction::Execute(Event& event)
 {
-    // only allow proper vehicle seats
+    // only allow proper vehicle seats (仅允许进入有效的可用载具座位)
     if (ai->IsInVehicle() && !ai->IsInVehicle(false, false, true))
         return false;
 
@@ -44,13 +47,13 @@ bool CastCustomSpellAction::Execute(Event& event)
 
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
 
-    // Process summon request
+    // Process summon request (处理召唤请求)
     if (CastSummonPlayer(requester, text))
     {
         return true;
     }
 
-    // Grab the first game object or unit from the parameters as target.
+    // Grab the first game object or unit from the parameters as target. (提取参数中的第一个游戏对象或单位作为目标。)
     GameObject* gameObjectTarget = nullptr;
     std::list<ObjectGuid> gos = chat->parseGameobjects(text);
     if (!gos.empty())
@@ -96,7 +99,7 @@ bool CastCustomSpellAction::Execute(Event& event)
     if (!target)
         target = bot;
 
-    if (!requester) //Use self as requester for permissions.
+    if (!requester) // Use self as requester for permissions. (使用机器人自身作为权限校验请求者。)
         requester = bot;
 
     Item* itemTarget = nullptr;
@@ -134,7 +137,7 @@ bool CastCustomSpellAction::Execute(Event& event)
         return false;
     }
 
-    // Don't use totem items for totem spells (except enchanting bars)
+    // Don't use totem items for totem spells (except enchanting bars) (施放图腾法术时不消耗背包图腾道具（附魔棒除外）)
     if (pSpellInfo->Totem[0] > 0 && 
         pSpellInfo->Totem[0] != 5060 &&
         pSpellInfo->Totem[0] != 6218 &&
@@ -277,13 +280,14 @@ bool CastCustomSpellAction::Execute(Event& event)
     return result;
 }
 
+/// 对目标队友施放术士召唤仪式法术
 bool CastCustomSpellAction::CastSummonPlayer(Player* requester, std::string command)
 {
     if (bot->getClass() == CLASS_WARLOCK)
     {
         if (command.find("summon") != std::string::npos)
         {
-            // Don't summon player when trying to summon warlock pet
+            // Don't summon player when trying to summon warlock pet (召唤术士宠物时不要误触发召唤玩家逻辑)
             if (command.find("imp") != std::string::npos || 
                 command.find("voidwalker") != std::string::npos || 
                 command.find("succubus") != std::string::npos || 
@@ -297,14 +301,14 @@ bool CastCustomSpellAction::CastSummonPlayer(Player* requester, std::string comm
 
             if (!ai->IsStateActive(BotState::BOT_STATE_COMBAT))
             {
-                // Get target from command parameters
+                // Get target from command parameters (从指令参数中解析目标)
                 uint8 membersAroundSummoner = 0;
                 Player* target = nullptr;
                 const std::string summonString = "summon ";
                 const int pos = command.find(summonString);
                 if (pos != std::string::npos)
                 {
-                    // Get player name
+                    // Get player name (获取玩家名称)
                     std::string playerName = command.substr(summonString.size());
 
                     const Group* group = bot->GetGroup();
@@ -331,7 +335,7 @@ bool CastCustomSpellAction::CastSummonPlayer(Player* requester, std::string comm
                 }
                 else
                 {
-                    // Get target from requester target
+                    // Get target from requester target (从请求者当前选中目标获取目标)
                     if (requester && requester->GetSelectionGuid())
                     {
                         const ObjectGuid& targetGuid = requester->GetSelectionGuid();
@@ -366,8 +370,8 @@ bool CastCustomSpellAction::CastSummonPlayer(Player* requester, std::string comm
                 {
                     if (membersAroundSummoner >= 3)
                     {
-                        // Preferred path: let the target accept a normal summon request. Only if it
-                        // cannot (dead / in combat) fall back to a thread-safe direct teleport.
+                        // Preferred path: let the target accept a normal summon request. Only if it (优先路径：让目标接受正常召唤请求；仅当无法)
+                        // cannot (dead / in combat) fall back to a thread-safe direct teleport. (无法使用普通传送（死亡/战斗中），回退至线程安全的直接传送。)
                         if (!PlayerbotAI::SendSummonRequest(bot, target))
                         {
                             uint32 destMapId = bot->GetMapId();
@@ -412,6 +416,7 @@ bool CastCustomSpellAction::CastSummonPlayer(Player* requester, std::string comm
     return false;
 }
 
+/// 执行动作主逻辑（随机施法动作）
 bool CastRandomSpellAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -551,6 +556,7 @@ bool CastRandomSpellAction::Execute(Event& event)
     return false;
 }
 
+/// 调用底层施法接口对目标单位或坐标施放指定法术
 bool CastRandomSpellAction::castSpell(uint32 spellId, WorldObject* wo, Player* requester)
 {
     bool executed = false;
@@ -624,6 +630,7 @@ bool CastRandomSpellAction::castSpell(uint32 spellId, WorldObject* wo, Player* r
     return executed;
 }
 
+/// 执行动作主逻辑（随机制作物品动作）
 bool CraftRandomItemAction::Execute(Event& event)
 {
     std::vector<uint32> spellIds = AI_VALUE(std::vector<uint32>, "craft spells");
@@ -671,7 +678,7 @@ bool CraftRandomItemAction::Execute(Event& event)
 
         uint32 castCount = AI_VALUE2(uint32, "has reagents for", spellId);
 
-        if (spellId == 61288) //Crafting random glyph
+        if (spellId == 61288) // Crafting random glyph (随机制作铭文雕文)
         {
             castCount = 1;
         }
@@ -702,7 +709,7 @@ bool CraftRandomItemAction::Execute(Event& event)
         cmd << spellId << " " << castCount;
 
         ai->HandleCommand(CHAT_MSG_WHISPER, cmd.str(), *bot);
-        SetDuration(1.0f); //Spel was not cast yet so no delay is needed.
+        SetDuration(1.0f); // Spel was not cast yet so no delay is needed. (法术尚未施放，因此无需等待延迟。)
         return true;
 
     }
@@ -710,6 +717,7 @@ bool CraftRandomItemAction::Execute(Event& event)
     return false;
 }
 
+/// 执行动作主逻辑（随机分解物品动作）
 bool DisenchantRandomItemAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -738,13 +746,13 @@ bool DisenchantRandomItemAction::Execute(Event& event)
             continue;
 
 #ifndef MANGOSBOT_ZERO
-        // 2.0.x addon: Check player enchanting level against the item disenchanting requirements
+        // 2.0.x addon: Check player enchanting level against the item disenchanting requirements (2.0.x 补充逻辑：检查玩家附魔等级是否满足物品分解要求)
         int32 item_disenchantskilllevel = proto->RequiredDisenchantSkill;
         if (item_disenchantskilllevel > int32(bot->GetSkillValue(SKILL_ENCHANTING)))
             continue;
 #endif
 
-        // don't touch rare+ items if with real player/guild
+        // don't touch rare+ items if with real player/guild (与真实玩家或公会成员同玩时不随意销毁蓝装及以上品质物品)
         if ((ai->HasRealPlayerMaster() || ai->IsInRealGuild()) && proto->Quality > ITEM_QUALITY_UNCOMMON)
         {
             continue;
@@ -766,6 +774,7 @@ bool DisenchantRandomItemAction::Execute(Event& event)
     return false;
 };
 
+/// 执行动作主逻辑（处理物品动作基类）
 bool ProcessItemAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();

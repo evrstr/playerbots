@@ -1,3 +1,4 @@
+// 策略值实现：GuildValues（公会订单解析、共享缺口统计、材料检查及建会逻辑）
 
 #include "playerbot/playerbot.h"
 #include "GuildValues.h"
@@ -11,6 +12,7 @@
 using namespace ai;
 
 #ifndef MANGOSBOT_ZERO
+// 获取公会银行指定标签页与槽位的物品实例
 Item* GuildAccess::GetGuildItem(uint8 TabId, uint8 SlotId)
 {
     if (TabId >= GetPurchasedTabs() || SlotId >= GUILD_BANK_MAX_SLOTS)
@@ -19,6 +21,7 @@ Item* GuildAccess::GetGuildItem(uint8 TabId, uint8 SlotId)
 }
 #endif
 
+// 去除字符串首尾空白字符
 std::string GuildOrderValue::TrimWhitespace(const std::string& str)
 {
     std::string result = str;
@@ -27,6 +30,7 @@ std::string GuildOrderValue::TrimWhitespace(const std::string& str)
     return result;
 }
 
+// 按大小写不敏感前缀匹配并提取订单正文内容
 bool GuildOrderValue::ParseOrderPrefix(const std::string& note, const std::string& prefix, std::string& outBody)
 {
     auto pos = note.find(prefix);
@@ -43,6 +47,7 @@ bool GuildOrderValue::ParseOrderPrefix(const std::string& note, const std::strin
 
 char* strstri(const char* haystack, const char* needle);
 
+// 按物品名称（带静态缓存）精确查找物品模板 Entry ID
 uint32 GuildOrderValue::FindItemByName(const std::string& name)
 {
     static std::unordered_map<std::string, uint32> s_cache;
@@ -81,6 +86,7 @@ uint32 GuildOrderValue::FindItemByName(const std::string& name)
     return substringMatch;
 }
 
+// 扫描全服任务模板，缓存可重复完成且奖励指定物品的任务与槽位
 std::vector<std::pair<uint32, int8>> ai::FindRepeatableQuestsRewardingItem(uint32 itemId)
 {
     static std::unordered_map<uint32, std::vector<std::pair<uint32, int8>>> s_cache;
@@ -124,6 +130,7 @@ std::vector<std::pair<uint32, int8>> ai::FindRepeatableQuestsRewardingItem(uint3
     return result;
 }
 
+// 统计在线公会成员对指定共享成品的总缺口数量
 uint32 ai::CountGuildFinishedItemDeficit(Player* bot, uint32 itemId, const std::vector<GuildShareItemEntry>& shareList)
 {
     if (!bot->GetGuildId())
@@ -176,6 +183,7 @@ uint32 ai::CountGuildFinishedItemDeficit(Player* bot, uint32 itemId, const std::
     return worker.deficit;
 }
 
+// 单次遍历在线公会成员，批量统计多个共享物品的总缺口
 static std::unordered_map<uint32, uint32> CountGuildFinishedItemDeficits(
     Player* bot,
     const std::set<uint32>& itemIds,
@@ -233,6 +241,7 @@ static std::unordered_map<uint32, uint32> CountGuildFinishedItemDeficits(
     return deficits;
 }
 
+// 查找机器人已学会且能制造指定物品的商业技能法术映射
 static std::unordered_map<uint32, uint32> BuildCraftSpellMap(Player* bot, const std::set<uint32>& itemIds)
 {
     std::unordered_map<uint32, uint32> craftMap;
@@ -267,6 +276,7 @@ static std::unordered_map<uint32, uint32> BuildCraftSpellMap(Player* bot, const 
     return craftMap;
 }
 
+// 扣除公会成员自身背包和公会银行已有库存，计算净缺口数量
 static std::unordered_map<uint32, uint32> ComputeRemainingNeeds(
     PlayerbotAI* ai,
     const std::set<uint32>& itemIds,
@@ -315,6 +325,7 @@ static bool HasSkipOrderNote(Player* bot)
     return lower == "skip order";
 }
 
+// 解析官员备注中的手动订单，无手动订单时依次回退到公会共享制造、采集或任务订单
 GuildOrder GuildOrderValue::Calculate()
 {
     GuildOrder order;
@@ -360,8 +371,8 @@ GuildOrder GuildOrderValue::Calculate()
     {
         order.type = GuildOrderType::Craft;
 
-        // Parse optional amount for craft orders:
-        // Craft: <item> <amount>
+        // Parse optional amount for craft orders: | 解析制造订单的可选数量参数
+        // Craft: <item> <amount> | 格式：Craft: <物品名> <数量>
         auto lastSpace = body.rfind(' ');
         if (lastSpace != std::string::npos)
         {
@@ -383,8 +394,8 @@ GuildOrder GuildOrderValue::Calculate()
     {
         order.type = GuildOrderType::Farm;
 
-        // Parse optional amount for farm orders:
-        // Farm: <item> <amount>
+        // Parse optional amount for farm orders: | 解析采集订单的可选数量参数
+        // Farm: <item> <amount> | 格式：Farm: <物品名> <数量>
         auto lastSpace = body.rfind(' ');
         if (lastSpace != std::string::npos)
         {
@@ -436,6 +447,7 @@ static std::string TrimWS(const std::string& str)
     return result;
 }
 
+// 将职业名称字符串解析为对应的玩家职业 ID
 uint8 GuildShareListValue::ParseClassName(const std::string& name)
 {
     std::string lower = name;
@@ -456,6 +468,7 @@ uint8 GuildShareListValue::ParseClassName(const std::string& name)
     return 0;
 }
 
+// 将职责或职业筛选关键字解析为 GuildShareFilter 枚举
 GuildShareFilter GuildShareListValue::ParseRoleFilter(const std::string& name)
 {
     std::string lower = name;
@@ -471,6 +484,7 @@ GuildShareFilter GuildShareListValue::ParseRoleFilter(const std::string& name)
     return GuildShareFilter::FILTER_CLASS;
 }
 
+// 判断指定玩家是否符合共享条目的职业或职责过滤条件
 bool GuildShareItemEntry::MatchesPlayer(Player* player) const
 {
     if (!player)
@@ -529,7 +543,8 @@ bool GuildShareItemEntry::MatchesPlayer(Player* player) const
     }
 }
 
-// Parse the guild info tab "Share: <class/role> <item1> <amount>, <item2> <amount>, ..."
+// Parse the guild info tab "Share: <class/role> <item1> <amount>, <item2> <amount>, ..." | 解析公会信息页签中的共享配置：Share: <职业/职责> <物品1> <数量>, ...
+// 从公会信息文本（GINFO）解析 Share 共享物品配置列表
 std::vector<GuildShareItemEntry> GuildShareListValue::Calculate()
 {
     std::vector<GuildShareItemEntry> result;
@@ -572,7 +587,7 @@ std::vector<GuildShareItemEntry> GuildShareListValue::Calculate()
         if (!filterName.empty() && filterName.back() == ':')
             filterName.pop_back();
 
-        // Try role filter first (All, Melee, Ranged, Tank, DPS, Heal)
+        // Try role filter first (All, Melee, Ranged, Tank, DPS, Heal) | 优先尝试按团队职责（All/Melee/Ranged/Tank/DPS/Heal）匹配
         GuildShareFilter roleFilter = ParseRoleFilter(filterName);
         uint8 playerClass = 0;
 
@@ -629,6 +644,7 @@ std::vector<GuildShareItemEntry> GuildShareListValue::Calculate()
     return result;
 }
 
+// 筛选机器人有能力制造且存在缺口的共享成品并随机生成制造订单
 GuildOrder GuildShareCraftOrderValue::Calculate()
 {
     GuildOrder order;
@@ -693,6 +709,7 @@ GuildOrder GuildShareCraftOrderValue::Calculate()
     return order;
 }
 
+// 统计共享成品与制造材料净缺口，按专业匹配度生成采集或拍卖行采购订单
 GuildOrder GuildShareFarmOrderValue::Calculate()
 {
     GuildOrder order;
@@ -756,7 +773,7 @@ GuildOrder GuildShareFarmOrderValue::Calculate()
     if (reagentNeeds.empty())
         return order;
 
-    // 20% chance to move to auctioneer instead of farming
+    // 20% chance to move to auctioneer instead of farming | 20% 概率前往拍卖行购买而非自行采集
     if (urand(1, 100) <= 20 && bot->GetMoney() >= 100)
     {
         std::vector<uint32> neededItemIds;
@@ -889,6 +906,7 @@ GuildOrder GuildShareFarmOrderValue::Calculate()
     return order;
 }
 
+// 查找无法自制但可通过可重复任务获得的紧缺共享物品并生成任务订单
 GuildOrder GuildShareQuestRewardOrderValue::Calculate()
 {
     GuildOrder order;
@@ -964,6 +982,7 @@ GuildOrder GuildShareQuestRewardOrderValue::Calculate()
     return order;
 }
 
+// 随机选取一项公会急需且可通过任务获得的物品 ID
 uint32 GuildShareQuestRewardItemValue::Calculate()
 {
     if (!bot->GetGuildId())
@@ -1019,6 +1038,7 @@ uint32 GuildShareQuestRewardItemValue::Calculate()
     return 0;
 }
 
+// 查找附近缺少共享清单物品的在线公会成员及待交付物品
 GuildShareTarget GuildShareTargetValue::Calculate()
 {
     GuildShareTarget result;
@@ -1113,6 +1133,7 @@ GuildShareTarget GuildShareTargetValue::Calculate()
     return result;
 }
 
+// 汇总当前公会共享制造与当前制造订单所缺失的商业材料 ID
 std::vector<uint32> NeedsProfessionReagentsValue::GetMissingReagents(PlayerbotAI* ai)
 {
     std::vector<uint32> missing;
@@ -1254,6 +1275,7 @@ std::vector<uint32> NeedsProfessionReagentsValue::GetMissingReagents(PlayerbotAI
     return missing;
 }
 
+// 判断是否存在缺失的专业制造材料
 bool NeedsProfessionReagentsValue::Calculate()
 {
     bool hasAnyCraftingSkill =
@@ -1272,6 +1294,7 @@ bool NeedsProfessionReagentsValue::Calculate()
     return !GetMissingReagents(ai).empty();
 }
 
+// 统计背包内公会注册表上的已签名人数
 uint8 PetitionSignsValue::Calculate()
 {
     if (bot->GetGuildId())
@@ -1287,33 +1310,34 @@ uint8 PetitionSignsValue::Calculate()
     return result ? (uint8)result->GetRowCount() : 0;
 };
 
+// 检查机器人是否具备购买公会战袍的所有前置条件
 bool CanBuyTabard::Calculate()
 {
-	if (!bot->GetGuildId())
-		return false;
+    if (!bot->GetGuildId())
+        return false;
 
-	if (AI_VALUE(TravelTarget*,"travel target")->GetStatus() == TravelStatus::TRAVEL_STATUS_TRAVEL)
-		return false;
+    if (AI_VALUE(TravelTarget*,"travel target")->GetStatus() == TravelStatus::TRAVEL_STATUS_TRAVEL)
+        return false;
 
-	bool inCity = false;
-	AreaTableEntry const* areaEntry = GetAreaEntryByAreaID(sServerFacade.GetAreaId(bot));
-	if (areaEntry)
-	{
-		if (areaEntry->zone)
-			areaEntry = GetAreaEntryByAreaID(areaEntry->zone);
+    bool inCity = false;
+    AreaTableEntry const* areaEntry = GetAreaEntryByAreaID(sServerFacade.GetAreaId(bot));
+    if (areaEntry)
+    {
+        if (areaEntry->zone)
+            areaEntry = GetAreaEntryByAreaID(areaEntry->zone);
 
-		if (areaEntry && areaEntry->flags & AREA_FLAG_CAPITAL)
-			inCity = true;
-	}
+        if (areaEntry && areaEntry->flags & AREA_FLAG_CAPITAL)
+            inCity = true;
+    }
 
-	if (!inCity)
-		return false;
+    if (!inCity)
+        return false;
 
-	if (AI_VALUE2(uint32, "item count", chat->formatQItem(5976)))
-		return false;
+    if (AI_VALUE2(uint32, "item count", chat->formatQItem(5976)))
+        return false;
 
-	if (AI_VALUE2(uint32, "free money for", uint32(NeedMoneyFor::guild)) < 10000)
-		return false;
+    if (AI_VALUE2(uint32, "free money for", uint32(NeedMoneyFor::guild)) < 10000)
+        return false;
 
-	return true;
+    return true;
 }

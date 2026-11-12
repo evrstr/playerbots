@@ -10,6 +10,7 @@
 
 using namespace ai;
 
+/// 执行动作主逻辑（跟随目标动作）
 bool FollowAction::Execute(Event& event)
 {
     bool moved = false;
@@ -33,6 +34,7 @@ bool FollowAction::Execute(Event& event)
     return moved;
 }
 
+/// 判断当前状态下该动作是否可用/有效（跟随目标动作）
 bool FollowAction::isUseful()
 {
     if (!ai->CanMove())
@@ -87,7 +89,7 @@ bool FollowAction::isUseful()
         return true;
     }
 
-    // maybe jump is faster?
+    // maybe jump is faster? (判断跳跃是否更快)
     if (ai->HasStrategy("follow jump", BotState::BOT_STATE_NON_COMBAT) && ai->AllowActivity())
     {
         return true;
@@ -101,9 +103,10 @@ bool FollowAction::isUseful()
     return true;
 }
 
+/// 判断死亡灵魂状态下是否允许继续跟随主人
 bool FollowAction::CanDeadFollow(Unit* target)
 {
-    //Move to corpse when dead and player is alive or not a ghost.
+    // Move to corpse when dead and player is alive or not a ghost. (死亡状态下，若主人存活或非灵魂状态则前往尸体位置。)
     if (!sServerFacade.IsAlive(bot) && (sServerFacade.IsAlive(target) || !target->HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_GHOST)))
     {
         return false;
@@ -112,6 +115,7 @@ bool FollowAction::CanDeadFollow(Unit* target)
     return true;
 }
 
+/// 判断当前状态下该动作是否可用/有效（停止跟随动作）
 bool StopFollowAction::isUseful()
 {
     if (bot->GetMotionMaster()->GetCurrentMovementGeneratorType() != FOLLOW_MOTION_TYPE)
@@ -123,6 +127,7 @@ bool StopFollowAction::isUseful()
     return true;
 }
 
+/// 执行动作主逻辑（逃向主人动作）
 bool FleeToMasterAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -168,6 +173,7 @@ bool FleeToMasterAction::Execute(Event& event)
     return true;
 }
 
+/// 判断当前状态下该动作是否可用/有效（逃向主人动作）
 bool FleeToMasterAction::isUseful()
 {
     if (!ai->CanMove())

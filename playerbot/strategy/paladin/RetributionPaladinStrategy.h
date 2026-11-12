@@ -1,8 +1,10 @@
+// 圣骑士 - 惩戒圣骑士策略头文件 (RetributionPaladinStrategy.h)
 #pragma once
 #include "PaladinStrategy.h"
 
 namespace ai
 {
+    // 惩戒圣骑士专精占位策略：用于专精识别与占位的策略类
     class RetributionPaladinPlaceholderStrategy : public SpecPlaceholderStrategy
     {
     public:
@@ -11,6 +13,7 @@ namespace ai
         std::string getName() override { return "retribution"; }
     };
 
+    // 惩戒圣骑士策略：定义该专精/场景下的触发器与默认行为
     class RetributionPaladinStrategy : public PaladinStrategy
     {
     public:
@@ -25,6 +28,7 @@ namespace ai
         virtual NextAction** GetDefaultCombatActions() override;
     };
 
+    // 惩戒圣骑士PVE策略：定义该专精/场景下的触发器与默认行为
     class RetributionPaladinPveStrategy : public RetributionPaladinStrategy
     {
     public:
@@ -38,6 +42,7 @@ namespace ai
         void InitDeadTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 惩戒圣骑士PVP策略：定义该专精/场景下的触发器与默认行为
     class RetributionPaladinPvpStrategy : public RetributionPaladinStrategy
     {
     public:
@@ -51,6 +56,7 @@ namespace ai
         void InitDeadTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 惩戒圣骑士团队副本策略：定义该专精/场景下的触发器与默认行为
     class RetributionPaladinRaidStrategy : public RetributionPaladinStrategy
     {
     public:
@@ -64,6 +70,7 @@ namespace ai
         void InitDeadTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 惩戒圣骑士AOE群体策略：定义该专精/场景下的触发器与默认行为
     class RetributionPaladinAoeStrategy : public PaladinAoeStrategy
     {
     public:
@@ -74,6 +81,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 惩戒圣骑士AOE群体PVE策略：定义该专精/场景下的触发器与默认行为
     class RetributionPaladinAoePveStrategy : public RetributionPaladinAoeStrategy
     {
     public:
@@ -85,6 +93,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 惩戒圣骑士AOE群体PVP策略：定义该专精/场景下的触发器与默认行为
     class RetributionPaladinAoePvpStrategy : public RetributionPaladinAoeStrategy
     {
     public:
@@ -96,6 +105,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 惩戒圣骑士AOE群体团队副本策略：定义该专精/场景下的触发器与默认行为
     class RetributionPaladinAoeRaidStrategy : public RetributionPaladinAoeStrategy
     {
     public:
@@ -107,6 +117,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 惩戒圣骑士增益Buff策略：定义该专精/场景下的触发器与默认行为
     class RetributionPaladinBuffStrategy : public PaladinBuffStrategy
     {
     public:
@@ -117,6 +128,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 惩戒圣骑士增益BuffPVE策略：定义该专精/场景下的触发器与默认行为
     class RetributionPaladinBuffPveStrategy : public RetributionPaladinBuffStrategy
     {
     public:
@@ -128,6 +140,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 惩戒圣骑士增益BuffPVP策略：定义该专精/场景下的触发器与默认行为
     class RetributionPaladinBuffPvpStrategy : public RetributionPaladinBuffStrategy
     {
     public:
@@ -139,6 +152,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 惩戒圣骑士增益Buff团队副本策略：定义该专精/场景下的触发器与默认行为
     class RetributionPaladinBuffRaidStrategy : public RetributionPaladinBuffStrategy
     {
     public:
@@ -150,6 +164,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 惩戒圣骑士爆发增益策略：定义该专精/场景下的触发器与默认行为
     class RetributionPaladinBoostStrategy : public PaladinBoostStrategy
     {
     public:
@@ -160,6 +175,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 惩戒圣骑士爆发增益PVE策略：定义该专精/场景下的触发器与默认行为
     class RetributionPaladinBoostPveStrategy : public RetributionPaladinBoostStrategy
     {
     public:
@@ -171,6 +187,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 惩戒圣骑士爆发增益PVP策略：定义该专精/场景下的触发器与默认行为
     class RetributionPaladinBoostPvpStrategy : public RetributionPaladinBoostStrategy
     {
     public:
@@ -182,6 +199,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 惩戒圣骑士爆发增益团队副本策略：定义该专精/场景下的触发器与默认行为
     class RetributionPaladinBoostRaidStrategy : public RetributionPaladinBoostStrategy
     {
     public:
@@ -193,6 +211,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 惩戒圣骑士控制(CC)策略：定义该专精/场景下的触发器与默认行为
     class RetributionPaladinCcStrategy : public PaladinCcStrategy
     {
     public:
@@ -203,6 +222,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 惩戒圣骑士控制(CC)PVE策略：定义该专精/场景下的触发器与默认行为
     class RetributionPaladinCcPveStrategy : public RetributionPaladinCcStrategy
     {
     public:
@@ -214,6 +234,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 惩戒圣骑士控制(CC)PVP策略：定义该专精/场景下的触发器与默认行为
     class RetributionPaladinCcPvpStrategy : public RetributionPaladinCcStrategy
     {
     public:
@@ -225,6 +246,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 惩戒圣骑士控制(CC)团队副本策略：定义该专精/场景下的触发器与默认行为
     class RetributionPaladinCcRaidStrategy : public RetributionPaladinCcStrategy
     {
     public:
@@ -236,6 +258,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 惩戒圣骑士驱散净化策略：定义该专精/场景下的触发器与默认行为
     class RetributionPaladinCureStrategy : public PaladinCureStrategy
     {
     public:
@@ -246,6 +269,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 惩戒圣骑士驱散净化PVE策略：定义该专精/场景下的触发器与默认行为
     class RetributionPaladinCurePveStrategy : public RetributionPaladinCureStrategy
     {
     public:
@@ -257,6 +281,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 惩戒圣骑士驱散净化PVP策略：定义该专精/场景下的触发器与默认行为
     class RetributionPaladinCurePvpStrategy : public RetributionPaladinCureStrategy
     {
     public:
@@ -268,6 +293,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 惩戒圣骑士驱散净化团队副本策略：定义该专精/场景下的触发器与默认行为
     class RetributionPaladinCureRaidStrategy : public RetributionPaladinCureStrategy
     {
     public:
@@ -279,6 +305,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 惩戒圣骑士光环策略：定义该专精/场景下的触发器与默认行为
     class RetributionPaladinAuraStrategy : public PaladinAuraStrategy
     {
     public:
@@ -289,6 +316,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 惩戒圣骑士光环PVE策略：定义该专精/场景下的触发器与默认行为
     class RetributionPaladinAuraPveStrategy : public RetributionPaladinAuraStrategy
     {
     public:
@@ -300,6 +328,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 惩戒圣骑士光环PVP策略：定义该专精/场景下的触发器与默认行为
     class RetributionPaladinAuraPvpStrategy : public RetributionPaladinAuraStrategy
     {
     public:
@@ -311,6 +340,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 惩戒圣骑士光环团队副本策略：定义该专精/场景下的触发器与默认行为
     class RetributionPaladinAuraRaidStrategy : public RetributionPaladinAuraStrategy
     {
     public:
@@ -322,6 +352,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 惩戒圣骑士祝福策略：定义该专精/场景下的触发器与默认行为
     class RetributionPaladinBlessingStrategy : public PaladinBlessingStrategy
     {
     public:
@@ -332,6 +363,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 惩戒圣骑士祝福PVE策略：定义该专精/场景下的触发器与默认行为
     class RetributionPaladinBlessingPveStrategy : public RetributionPaladinBlessingStrategy
     {
     public:
@@ -343,6 +375,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 惩戒圣骑士祝福PVP策略：定义该专精/场景下的触发器与默认行为
     class RetributionPaladinBlessingPvpStrategy : public RetributionPaladinBlessingStrategy
     {
     public:
@@ -354,6 +387,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 惩戒圣骑士祝福团队副本策略：定义该专精/场景下的触发器与默认行为
     class RetributionPaladinBlessingRaidStrategy : public RetributionPaladinBlessingStrategy
     {
     public:

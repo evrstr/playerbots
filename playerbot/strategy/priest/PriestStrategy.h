@@ -1,8 +1,10 @@
+// 牧师 - 牧师策略头文件 (PriestStrategy.h)
 #pragma once
 #include "playerbot/strategy/generic/ClassStrategy.h"
 
 namespace ai
 {
+    // 牧师策略：定义该专精/场景下的触发器与默认行为
     class PriestStrategy : public ClassStrategy
     {
     public:
@@ -15,6 +17,7 @@ namespace ai
         virtual void InitDeadTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 牧师PVP策略：定义该专精/场景下的触发器与默认行为
     class PriestPvpStrategy : public ClassPvpStrategy
     {
     public:
@@ -24,6 +27,7 @@ namespace ai
         static void InitDeadTriggers(std::list<TriggerNode*>& triggers);
     };
 
+    // 牧师PVE策略：定义该专精/场景下的触发器与默认行为
     class PriestPveStrategy : public ClassPveStrategy
     {
     public:
@@ -33,6 +37,7 @@ namespace ai
         static void InitDeadTriggers(std::list<TriggerNode*>& triggers);
     };
 
+    // 牧师团队副本策略：定义该专精/场景下的触发器与默认行为
     class PriestRaidStrategy : public ClassRaidStrategy
     {
     public:
@@ -42,6 +47,7 @@ namespace ai
         static void InitDeadTriggers(std::list<TriggerNode*>& triggers);
     };
 
+    // 牧师AOE群体策略：定义该专精/场景下的触发器与默认行为
     class PriestAoeStrategy : public AoeStrategy
     {
     public:
@@ -52,6 +58,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 牧师AOE群体PVP策略：定义该专精/场景下的触发器与默认行为
     class PriestAoePvpStrategy : public AoePvpStrategy
     {
     public:
@@ -59,6 +66,7 @@ namespace ai
         static void InitNonCombatTriggers(std::list<TriggerNode*>& triggers);
     };
 
+    // 牧师AOE群体PVE策略：定义该专精/场景下的触发器与默认行为
     class PriestAoePveStrategy : public AoePveStrategy
     {
     public:
@@ -66,6 +74,7 @@ namespace ai
         static void InitNonCombatTriggers(std::list<TriggerNode*>& triggers);
     };
 
+    // 牧师AOE群体团队副本策略：定义该专精/场景下的触发器与默认行为
     class PriestAoeRaidStrategy : public AoeRaidStrategy
     {
     public:
@@ -73,6 +82,7 @@ namespace ai
         static void InitNonCombatTriggers(std::list<TriggerNode*>& triggers);
     };
 
+    // 牧师控制(CC)策略：定义该专精/场景下的触发器与默认行为
     class PriestCcStrategy : public CcStrategy
     {
     public:
@@ -83,6 +93,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 牧师控制(CC)PVP策略：定义该专精/场景下的触发器与默认行为
     class PriestCcPvpStrategy : public CcPvpStrategy
     {
     public:
@@ -90,6 +101,7 @@ namespace ai
         static void InitNonCombatTriggers(std::list<TriggerNode*>& triggers);
     };
 
+    // 牧师控制(CC)PVE策略：定义该专精/场景下的触发器与默认行为
     class PriestCcPveStrategy : public CcPveStrategy
     {
     public:
@@ -97,6 +109,7 @@ namespace ai
         static void InitNonCombatTriggers(std::list<TriggerNode*>& triggers);
     };
 
+    // 牧师控制(CC)团队副本策略：定义该专精/场景下的触发器与默认行为
     class PriestCcRaidStrategy : public CcRaidStrategy
     {
     public:
@@ -104,6 +117,7 @@ namespace ai
         static void InitNonCombatTriggers(std::list<TriggerNode*>& triggers);
     };
 
+    // 牧师增益Buff策略：定义该专精/场景下的触发器与默认行为
     class PriestBuffStrategy : public BuffStrategy
     {
     public:
@@ -114,6 +128,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 牧师增益BuffPVP策略：定义该专精/场景下的触发器与默认行为
     class PriestBuffPvpStrategy : public BuffPvpStrategy
     {
     public:
@@ -121,6 +136,7 @@ namespace ai
         static void InitNonCombatTriggers(std::list<TriggerNode*>& triggers);
     };
 
+    // 牧师增益BuffPVE策略：定义该专精/场景下的触发器与默认行为
     class PriestBuffPveStrategy : public BuffPveStrategy
     {
     public:
@@ -128,6 +144,7 @@ namespace ai
         static void InitNonCombatTriggers(std::list<TriggerNode*>& triggers);
     };
 
+    // 牧师增益Buff团队副本策略：定义该专精/场景下的触发器与默认行为
     class PriestBuffRaidStrategy : public BuffRaidStrategy
     {
     public:
@@ -135,6 +152,7 @@ namespace ai
         static void InitNonCombatTriggers(std::list<TriggerNode*>& triggers);
     };
 
+    // 牧师爆发增益策略：定义该专精/场景下的触发器与默认行为
     class PriestBoostStrategy : public BoostStrategy
     {
     public:
@@ -145,6 +163,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 牧师爆发增益PVP策略：定义该专精/场景下的触发器与默认行为
     class PriestBoostPvpStrategy : public BoostPvpStrategy
     {
     public:
@@ -152,6 +171,7 @@ namespace ai
         static void InitNonCombatTriggers(std::list<TriggerNode*>& triggers);
     };
 
+    // 牧师爆发增益PVE策略：定义该专精/场景下的触发器与默认行为
     class PriestBoostPveStrategy : public BoostPveStrategy
     {
     public:
@@ -159,6 +179,7 @@ namespace ai
         static void InitNonCombatTriggers(std::list<TriggerNode*>& triggers);
     };
 
+    // 牧师爆发增益团队副本策略：定义该专精/场景下的触发器与默认行为
     class PriestBoostRaidStrategy : public BoostRaidStrategy
     {
     public:
@@ -166,6 +187,7 @@ namespace ai
         static void InitNonCombatTriggers(std::list<TriggerNode*>& triggers);
     };
 
+    // 牧师驱散净化策略：定义该专精/场景下的触发器与默认行为
     class PriestCureStrategy : public CureStrategy
     {
     public:
@@ -176,6 +198,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 牧师驱散净化PVP策略：定义该专精/场景下的触发器与默认行为
     class PriestCurePvpStrategy : public CurePvpStrategy
     {
     public:
@@ -183,6 +206,7 @@ namespace ai
         static void InitNonCombatTriggers(std::list<TriggerNode*>& triggers);
     };
 
+    // 牧师驱散净化PVE策略：定义该专精/场景下的触发器与默认行为
     class PriestCurePveStrategy : public CurePveStrategy
     {
     public:
@@ -190,6 +214,7 @@ namespace ai
         static void InitNonCombatTriggers(std::list<TriggerNode*>& triggers);
     };
 
+    // 牧师驱散净化团队副本策略：定义该专精/场景下的触发器与默认行为
     class PriestCureRaidStrategy : public CureRaidStrategy
     {
     public:
@@ -197,6 +222,7 @@ namespace ai
         static void InitNonCombatTriggers(std::list<TriggerNode*>& triggers);
     };
 
+    // 牧师辅助治疗策略：定义该专精/场景下的触发器与默认行为
     class PriestOffhealStrategy : public OffhealStrategy
     {
     public:
@@ -207,6 +233,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 牧师辅助治疗PVP策略：定义该专精/场景下的触发器与默认行为
     class PriestOffhealPvpStrategy : public PriestOffhealStrategy
     {
     public:
@@ -218,6 +245,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 牧师辅助治疗PVE策略：定义该专精/场景下的触发器与默认行为
     class PriestOffhealPveStrategy : public PriestOffhealStrategy
     {
     public:
@@ -229,6 +257,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 牧师辅助治疗团队副本策略：定义该专精/场景下的触发器与默认行为
     class PriestOffhealRaidStrategy : public PriestOffhealStrategy
     {
     public:
@@ -240,6 +269,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 牧师辅助输出策略：定义该专精/场景下的触发器与默认行为
     class PriestOffdpsStrategy : public OffdpsStrategy
     {
     public:
@@ -250,6 +280,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 牧师辅助输出PVP策略：定义该专精/场景下的触发器与默认行为
     class PriestOffdpsPvpStrategy : public PriestOffdpsStrategy
     {
     public:
@@ -261,6 +292,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 牧师辅助输出PVE策略：定义该专精/场景下的触发器与默认行为
     class PriestOffdpsPveStrategy : public PriestOffdpsStrategy
     {
     public:
@@ -272,6 +304,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 牧师辅助输出团队副本策略：定义该专精/场景下的触发器与默认行为
     class PriestOffdpsRaidStrategy : public PriestOffdpsStrategy
     {
     public:

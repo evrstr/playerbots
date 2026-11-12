@@ -7,6 +7,7 @@
 
 namespace ai
 {
+    /// 向指定玩家发送队伍或团队邀请
     bool InviteToGroupAction::Invite(Player* inviter, Player* player)
     {
         if (!player)
@@ -34,6 +35,7 @@ namespace ai
         return true;
     }
 
+    /// 执行动作主逻辑（申请入队动作）
     bool JoinGroupAction::Execute(Event& event)
     {
         if (bot->InBattleGround())
@@ -173,7 +175,7 @@ namespace ai
         Group::MemberSlotList const& groupSlot = group->GetMemberSlots();
         for (Group::member_citerator itr = groupSlot.begin(); itr != groupSlot.end(); itr++)
         {
-            // Only add group member targets that are alive and near the player
+            // Only add group member targets that are alive and near the player (仅添加存活且靠近玩家的队友目标)
             Player* player = sObjectMgr.GetPlayer(itr->guid);
 
             if (!PlayerbotAI::IsSafe(groupMaster, player))
@@ -192,6 +194,7 @@ namespace ai
         return allowedClassNr;
     }
 
+    /// 执行动作主逻辑（自动寻队邀请动作）
     bool LfgAction::Execute(Event& event)
     {
         Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -230,7 +233,7 @@ namespace ai
 
         if (group)
         {
-            //If no input use max raid for raid groups.
+            // If no input use max raid for raid groups. (若未指定人数，团队默认使用最大团队人数上限。)
             if (param.empty() && group->IsRaidGroup())
 #ifdef MANGOSBOT_ZERO
                 param = "40";
@@ -242,9 +245,9 @@ namespace ai
             if (group->IsFull())
             {
                 if (param.empty() || param == "5" || group->IsRaidGroup())
-                    return false; //Group or raid is full so stop trying.
+                    return false; // Group or raid is full so stop trying. (队伍或团队已满员，停止继续邀请。)
                 else
-                    group->ConvertToRaid(); //We want a raid but are in a group so convert and continue.
+                    group->ConvertToRaid(); // We want a raid but are in a group so convert and continue. (目标需要团队而当前为普通小队，先转换为团队再继续。)
             }
         }
 
@@ -290,9 +293,10 @@ namespace ai
         return false;
     }
 
+    /// 执行动作主逻辑（邀请附近玩家组队动作）
     bool InviteNearbyToGroupAction::Execute(Event& event)
     {
-        if (!bot->GetGroup())  //Select a random formation to copy.
+        if (!bot->GetGroup())  // Select a random formation to copy. (随机挑选一个阵型模板进行复制。)
         {
             std::vector<std::string> formations = { "melee","queue","chaos","circle","line","shield","arrow","near","far"};
             FormationValue* value = (FormationValue*)context->GetValue<Formation*>("formation");
@@ -337,10 +341,10 @@ namespace ai
 
             if (botAi)
             {
-                if (botAi->GetGrouperType() == GrouperType::SOLO && !botAi->HasRealPlayerMaster()) //Do not invite solo players. 
+                if (botAi->GetGrouperType() == GrouperType::SOLO && !botAi->HasRealPlayerMaster()) // Do not invite solo players. (不要邀请独狼玩家。)
                     continue;
 
-                if (botAi->HasActivePlayerMaster()) //Do not invite alts of active players. 
+                if (botAi->HasActivePlayerMaster()) // Do not invite alts of active players. (不要邀请活跃玩家的小号。)
                     continue;
             }
 
@@ -350,7 +354,7 @@ namespace ai
             if (sServerFacade.GetDistance2d(bot, player) > sPlayerbotAIConfig.spellDistance)
                 continue;
 
-            //When inviting the 5th member of the group convert to raid for future invites.
+            // When inviting the 5th member of the group convert to raid for future invites. (邀请第 5 名以外的成员时将小队转换为团队以支持后续邀请。)
             if (group && ai->GetGrouperType() > GrouperType::LEADER_5 && !group->IsRaidGroup() && bot->GetGroup()->GetMembersCount() > 3)
                 group->ConvertToRaid();
 
@@ -386,6 +390,7 @@ namespace ai
         return false;
     }
 
+    /// 判断当前状态下该动作是否可用/有效（邀请附近玩家组队动作）
     bool InviteNearbyToGroupAction::isUseful()
     {
         if (!sPlayerbotAIConfig.randomBotGroupNearby)
@@ -418,12 +423,13 @@ namespace ai
                 return false;
         }
 
-        if (ai->HasActivePlayerMaster()) //Alts do not invite randomly
+        if (ai->HasActivePlayerMaster()) // Alts do not invite randomly (小号不进行随机组队邀请)
            return false;
 
         return true;
     }
 
+    /// 获取并筛选当前在线的同公会成员列表
     std::vector<Player*> InviteGuildToGroupAction::getGuildMembers()
     {
         Guild* guild = sGuildMgr.GetGuildById(bot->GetGuildId());
@@ -434,6 +440,7 @@ namespace ai
         return worker.GetResult();
     }
 
+    /// 执行动作主逻辑（邀请公会成员组队动作）
     bool InviteGuildToGroupAction::Execute(Event& event)
     {
         Guild* guild = sGuildMgr.GetGuildById(bot->GetGuildId());
@@ -475,27 +482,27 @@ namespace ai
 
             if (playerAi)
             {
-                if (playerAi->GetGrouperType() == GrouperType::SOLO && !playerAi->HasRealPlayerMaster()) //Do not invite solo players.
+                if (playerAi->GetGrouperType() == GrouperType::SOLO && !playerAi->HasRealPlayerMaster()) // Do not invite solo players. (不要邀请独狼玩家。)
                     continue;
 
-                if (playerAi->HasActivePlayerMaster()) //Do not invite alts of active players.
+                if (playerAi->HasActivePlayerMaster()) // Do not invite alts of active players. (不要邀请活跃玩家的小号。)
                     continue;
 
-                if (player->GetLevel() > bot->GetLevel() + 5) //Invite higher levels that need money so they can grind money and help out.
+                if (player->GetLevel() > bot->GetLevel() + 5) // Invite higher levels that need money so they can grind money and help out. (邀请需要金币的高等级玩家，便于组队刷怪挣钱并互相协助。)
                 {
                     if (!ai->IsSafe(player) || !PAI_VALUE(bool, "should get money"))
                         continue;
                 }
             }
 
-            if (bot->GetLevel() > player->GetLevel() + 5) //Do not invite members that too low level or risk dragging them to deadly places.
+            if (bot->GetLevel() > player->GetLevel() + 5) // Do not invite members that too low level or risk dragging them to deadly places. (不要邀请等级过低的玩家，以免将其带入危险区域。)
                 continue;
 
             if (!playerAi && sServerFacade.GetDistance2d(bot, player) > sPlayerbotAIConfig.sightDistance)
                 continue;
 
             Group* group = bot->GetGroup();
-            //When inviting the 5th member of the group convert to raid for future invites.
+            // When inviting the 5th member of the group convert to raid for future invites. (邀请第 5 名以外的成员时将小队转换为团队以支持后续邀请。)
             if (group && ai->GetGrouperType() > GrouperType::LEADER_5 && !group->IsRaidGroup() && bot->GetGroup()->GetMembersCount() > 3)
             {
                 group->ConvertToRaid();

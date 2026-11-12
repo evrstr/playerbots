@@ -5,10 +5,12 @@
 
 using namespace ai;
 
+/// 执行动作主逻辑（摧毁物品指令动作）
 bool DestroyItemAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
     std::string text = event.getParam();
+    // 解析命令参数中的物品链接或 ID 列表
     ItemIds ids = chat->parseItems(text);
 
     for (ItemIds::iterator i =ids.begin(); i != ids.end(); i++)
@@ -20,19 +22,21 @@ bool DestroyItemAction::Execute(Event& event)
     return true;
 }
 
+/// 销毁背包中指定的物品
 void DestroyItemAction::DestroyItem(FindItemVisitor* visitor, Player* requester)
 {
     ai->InventoryIterateItems(visitor, IterateItemsMask::ITERATE_ITEMS_IN_BAGS);
     std::list<Item*> items = visitor->GetResult();
-	for (std::list<Item*>::iterator i = items.begin(); i != items.end(); ++i)
+    for (std::list<Item*>::iterator i = items.begin(); i != items.end(); ++i)
     {
-		Item* item = *i;
+        Item* item = *i;
         std::ostringstream out; out << chat->formatItem(item) << " destroyed";
         bot->DestroyItem(item->GetBagSlot(),item->GetSlot(), true);
         ai->TellPlayer(requester, out, PlayerbotSecurityLevel::PLAYERBOT_SECURITY_ALLOW_ALL, false);
     }
 }
 
+/// 执行动作主逻辑（智能清理背包动作）
 bool SmartDestroyItemAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -49,7 +53,7 @@ bool SmartDestroyItemAction::Execute(Event& event)
     if(sPlayerbotAIConfig.IsFreeAltBot(bot) && !ai->HasActivePlayerMaster())
         onlyDestroyGray = false;
 
-    // only destroy grey items if with real player/guild
+    // only destroy grey items if with real player/guild (与真实玩家或公会同玩时仅销毁灰色垃圾物品)
     if (onlyDestroyGray)
     {
         std::set<Item*> items;
@@ -74,22 +78,22 @@ bool SmartDestroyItemAction::Execute(Event& event)
         return true;
     }
 
-    std::vector<ItemUsage> bestToDestroy = { ItemUsage::ITEM_USAGE_NONE }; //First destroy anything useless.
+    std::vector<ItemUsage> bestToDestroy = { ItemUsage::ITEM_USAGE_NONE }; // First destroy anything useless. (先销毁所有无用的物品。)
 
-    if (!AI_VALUE(bool, "can sell") && AI_VALUE(bool, "should get money")) //We need money so quest items are less important since they can't directly be sold.
+    if (!AI_VALUE(bool, "can sell") && AI_VALUE(bool, "should get money")) // We need money so quest items are less important since they can't directly be sold. (当前急需金币，无法直接售卖的任务物品优先级相对降低。)
     {
         bestToDestroy.push_back(ItemUsage::ITEM_USAGE_QUEST);
     }
-    else //We don't need money so destroy the cheapest stuff.
+    else // We don't need money so destroy the cheapest stuff. (当前不缺金币，直接销毁最廉价物品腾空间。)
     {
         bestToDestroy.push_back(ItemUsage::ITEM_USAGE_VENDOR);
         bestToDestroy.push_back(ItemUsage::ITEM_USAGE_BROKEN_AH);
         bestToDestroy.push_back(ItemUsage::ITEM_USAGE_AH);
     }
 
-    //If we still need room 
-    bestToDestroy.push_back(ItemUsage::ITEM_USAGE_SKILL); //Items that might help tradeskill are more important than above but still expendable.
-    bestToDestroy.push_back(ItemUsage::ITEM_USAGE_USE); //These are more likely to be useful 'soon' but still expendable.
+    // If we still need room (若背包仍需腾出空间)
+    bestToDestroy.push_back(ItemUsage::ITEM_USAGE_SKILL); // Items that might help tradeskill are more important than above but still expendable. (有助于商业技能的物品优先级高于前者，但仍可按需消耗或处理。)
+    bestToDestroy.push_back(ItemUsage::ITEM_USAGE_USE); // These are more likely to be useful 'soon' but still expendable. (此类物品近期可能有用，但仍属可消耗清理类别。)
 
     for (auto& usage : bestToDestroy)
     {
@@ -115,6 +119,7 @@ bool SmartDestroyItemAction::Execute(Event& event)
     return false;
 }
 
+/// 执行动作主逻辑（一键销毁灰色物品动作）
 bool DestroyAllGrayItemsAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();

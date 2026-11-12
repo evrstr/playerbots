@@ -11,6 +11,7 @@
 
 using namespace ai;
 
+/// 执行动作主逻辑（前往旅行目标动作）
 bool MoveToTravelTargetAction::Execute(Event& event)
 {
     TravelTarget* target = AI_VALUE(TravelTarget*, "travel target");
@@ -83,14 +84,14 @@ bool MoveToTravelTargetAction::Execute(Event& event)
                 ai->TellPlayerNoFacing(GetMaster(), out, PlayerbotSecurityLevel::PLAYERBOT_SECURITY_ALLOW_ALL, false);
             }
 
-            // Introduce a random delay between 80% and 120% of maxWaitForMove to make waiting more natural
+            // Introduce a random delay between 80% and 120% of maxWaitForMove to make waiting more natural (在 maxWaitForMove 的 80%~120% 之间引入随机延迟，使等待更拟人化)
             uint32 randomDelay = sPlayerbotAIConfig.maxWaitForMove * (urand(80, 120) / 100.0f);
             target->SetExpireIn(target->GetTimeLeft() + randomDelay);
 
             SetDuration(randomDelay);
 
-            // Occasionally face the member and perform an emote
-            if (urand(0, 3) == 0) { // 25% chance to emote
+            // Occasionally face the member and perform an emote (偶尔面向队友并做出表情动作)
+            if (urand(0, 3) == 0) { // 25% chance to emote (25% 概率触发动作表情)
                 bot->SetFacingToObject(member);
                 uint32 emoteChoice = urand(0, 2);
                 switch (emoteChoice) {
@@ -188,6 +189,7 @@ bool MoveToTravelTargetAction::Execute(Event& event)
     return canMove;
 }
 
+/// 判断当前状态下该动作是否可用/有效（前往旅行目标动作）
 bool MoveToTravelTargetAction::isUseful()
 {
     if (!ai->AllowActivity(TRAVEL_ACTIVITY))
@@ -235,7 +237,7 @@ bool MoveToTravelTargetAction::isUseful()
     if (travelPos.isDungeon() && bot->GetGroup() && bot->GetGroup()->IsLeader(bot->GetObjectGuid()) && sTravelMgr.MapTransDistance(bot, travelPos, true) < sPlayerbotAIConfig.sightDistance && !AI_VALUE2(bool, "group and", "near leader"))
         return false;
      
-    //Should the bot still loot something?
+    // Should the bot still loot something? (检查机器人是否仍有尚未拾取的战利品)
     if (AI_VALUE(bool, "has available loot"))
     {
         LootObject lootObject = AI_VALUE(LootObjectStack*, "available loot")->GetLoot(ai->GetRange("loot"));
@@ -243,7 +245,7 @@ bool MoveToTravelTargetAction::isUseful()
             return false;
     }
 
-    //Is the bot still going to loot something?
+    // Is the bot still going to loot something? (检查机器人是否仍有待拾取的目标)
     LootObject loot = AI_VALUE(LootObject, "loot target");
 
     if (loot.IsLootPossible(bot))

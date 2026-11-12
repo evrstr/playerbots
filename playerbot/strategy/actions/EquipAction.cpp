@@ -9,6 +9,7 @@
 
 using namespace ai;
 
+/// 执行动作主逻辑（装备物品指令动作）
 bool EquipAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -31,13 +32,14 @@ bool EquipAction::Execute(Event& event)
         text = text.substr(3);
     }
 
+    // 解析命令参数中的物品链接或 ID 列表
     ItemIds ids = chat->parseItems(text);
     if (ids.empty())
     {
-        //Get items based on text.
+        // Get items based on text. (根据文本参数匹配背包物品。)
         std::list<Item*> found = ai->InventoryParseItems(text, IterateItemsMask::ITERATE_ITEMS_IN_BAGS);
 
-        //Sort items on itemLevel descending.
+        // Sort items on itemLevel descending. (按物品等级降序排列物品。)
         found.sort([](Item* i, Item* j) {return i->GetProto()->ItemLevel > j->GetProto()->ItemLevel; });
 
         std::vector< uint16> dests;
@@ -78,6 +80,7 @@ bool EquipAction::Execute(Event& event)
     return true;
 }
 
+/// 按类别或名称汇总列出背包中的物品清单
 void EquipAction::ListItems(Player* requester)
 {
     ai->TellPlayer(requester, "=== Equip ===");
@@ -98,6 +101,7 @@ void EquipAction::ListItems(Player* requester)
     ai->InventoryTellItems(requester, items, soulbound);
 }
 
+/// 判断目标物品是否符合当前附魔配方的施法条件
 bool EquipAction::IsEnchantable(Item* item, uint32 spellid)
 {
 
@@ -114,6 +118,7 @@ bool EquipAction::IsEnchantable(Item* item, uint32 spellid)
 
 }
 
+/// 为指定装备或背包物品施放附魔配方
 void EquipAction::EnchantItem(Item* item)
 {
     if (item)
@@ -152,6 +157,7 @@ void EquipAction::EnchantItem(Item* item)
     }
 }
 
+/// 批量解析并穿戴一组指定的装备
 void EquipAction::EquipItems(Player* requester, ItemIds ids)
 {
     for (ItemIds::iterator i = ids.begin(); i != ids.end(); i++)
@@ -161,6 +167,7 @@ void EquipAction::EquipItems(Player* requester, ItemIds ids)
     }
 }
 
+/// 按槽位批量装备指定的物品列表
 void EquipAction::EquipItemsToSlot(Player* requester, ItemIds ids, uint8 targetSlot)
 {
     for (ItemIds::iterator i = ids.begin(); i != ids.end(); i++)
@@ -177,11 +184,12 @@ void EquipAction::EquipItemsToSlot(Player* requester, ItemIds ids, uint8 targetS
     }
 }
 
+/// 将背包中的指定物品穿戴到合适的装备栏位
 void EquipAction::EquipItem(Player* requester, FindItemVisitor* visitor)
 {
     ai->InventoryIterateItems(visitor, IterateItemsMask::ITERATE_ITEMS_IN_BAGS);
     std::list<Item*> items = visitor->GetResult();
-	if (!items.empty()) 
+    if (!items.empty()) 
     {
         Item* item = *items.begin();
 
@@ -189,7 +197,7 @@ void EquipAction::EquipItem(Player* requester, FindItemVisitor* visitor)
     }
 }
 
-//Return the bag slot with smallest bag
+// Return the bag slot with smallest bag (返回当前装备的最小容量背包槽位)
 uint8 EquipAction::GetSmallestBagSlot(Player* bot)
 {
     int8 curBag = 0;
@@ -216,6 +224,7 @@ uint8 EquipAction::GetSmallestBagSlot(Player* bot)
     return curBag;
 }
 
+/// 将指定物品穿戴到指定的装备槽位
 void EquipAction::EquipItemToSlot(Player* requester, Item* item, uint8 targetSlot)
 {
     uint8 bagIndex = item->GetBagSlot();
@@ -261,6 +270,7 @@ void EquipAction::EquipItemToSlot(Player* requester, Item* item, uint8 targetSlo
     ai->TellPlayer(requester, BOT_TEXT2("equip_command", args), PlayerbotSecurityLevel::PLAYERBOT_SECURITY_ALLOW_ALL, false);
 }
 
+/// 将背包中的指定物品穿戴到合适的装备栏位
 void EquipAction::EquipItem(PlayerbotAI* ai, Player* requester, Item* item, bool silent)
 {
     Player* bot = ai->GetBot();
@@ -298,7 +308,7 @@ void EquipAction::EquipItem(PlayerbotAI* ai, Player* requester, Item* item, bool
             {
                 uint16 src = ((bagIndex << 8) | slot);
 
-                if (newBagSlot == item->GetBagSlot()) //The new bag is in the slots of the old bag. Move it to the pack first.
+                if (newBagSlot == item->GetBagSlot()) // The new bag is in the slots of the old bag. Move it to the pack first. (新背包当前存放在即将替换的旧背包内，需先将其移入主行囊。)
                 {
                     uint16 dst = ((INVENTORY_SLOT_BAG_0 << 8) | INVENTORY_SLOT_ITEM_START);
                     bot->SwapItem(src, dst);
@@ -336,6 +346,7 @@ void EquipAction::EquipItem(PlayerbotAI* ai, Player* requester, Item* item, bool
     }
 }
 
+/// 执行动作主逻辑（自动换装升级动作）
 bool EquipUpgradesAction::Execute(Event& event)
 {
     if (!sPlayerbotAIConfig.autoEquipUpgradeLoot && !sRandomPlayerbotMgr.IsRandomBot(bot))
@@ -356,6 +367,7 @@ bool EquipUpgradesAction::Execute(Event& event)
 
     if (event.getSource() == "trade status")
     {
+        // 解析事件携带的网络封包数据
         WorldPacket p(event.getPacket());
         p.rpos(0);
         uint32 status;
@@ -386,11 +398,11 @@ bool EquipUpgradesAction::Execute(Event& event)
             //uint32 invCount;
             uint8 bagSlot;
 
-            data >> received;                               // 0=looted, 1=from npc
-            data >> created;                                // 0=received, 1=created
-            data >> isShowChatMessage;                                      // IsShowChatMessage
+            data >> received;                               // 0=looted, 1=from npc (0=拾取获得，1=NPC 给予)
+            data >> created;                                // 0=received, 1=created (0=接收获得，1=制作产生)
+            data >> isShowChatMessage;                                      // IsShowChatMessage (是否显示聊天消息)
             data >> bagSlot;
-            // item slot, but when added to stack: 0xFFFFFFFF
+            // item slot, but when added to stack: 0xFFFFFFFF (物品槽位（堆叠合并时为 0xFFFFFFFF）)
             data >> slotId;
             data >> itemId;
             data >> suffixFactor;
@@ -418,11 +430,13 @@ bool EquipUpgradesAction::Execute(Event& event)
     Item* oldOffhand = bot->GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_OFFHAND);
         
     if (oldMainhand)
+        /// 卸下指定装备栏位或名称的已穿戴装备
         UnequipAction::UnequipItem(ai, bot, oldMainhand, true);
     if (oldOffhand)
+        /// 卸下指定装备栏位或名称的已穿戴装备
         UnequipAction::UnequipItem(ai, bot, oldOffhand, true);
 
-    context->ClearExpiredValues("item usage", 10); //Clear old item usage.
+    context->ClearExpiredValues("item usage", 10); // Clear old item usage. (清除旧的物品用途缓存。)
 
     std::list<Item*> items;
 
@@ -439,7 +453,7 @@ bool EquipUpgradesAction::Execute(Event& event)
         bool jMain = j->GetProto()->InventoryType == INVTYPE_WEAPONMAINHAND;
 
         if (iMain != jMain)
-            return iMain; // mainhand comes first
+            return iMain; // mainhand comes first (主手武器优先处理)
 
         return sRandomItemMgr.ItemStatWeight(plr, i) > sRandomItemMgr.ItemStatWeight(plr, j); });
 
@@ -459,13 +473,13 @@ bool EquipUpgradesAction::Execute(Event& event)
             EquipItem(ai, GetMaster(), item, item == oldMainhand || item == oldOffhand);  
             didEquip = true;
 
-            // auto enchant if cheat is turned on
+            // auto enchant if cheat is turned on (若开启作弊模式则自动进行附魔)
             if (sPlayerbotAIConfig.autoEnchantUpgradeLoot && !item->GetEnchantmentId(EnchantmentSlot(0)))
                 EnchantItem(item); 
         }
     }
 
-    // Check if main-hand has higher top-end damage than off-hand
+    // Check if main-hand has higher top-end damage than off-hand (检查主手武器上限伤害是否高于副手武器)
     if (didEquip && bot->CanDualWield())
     {
         Item* mh = bot->GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_MAINHAND);

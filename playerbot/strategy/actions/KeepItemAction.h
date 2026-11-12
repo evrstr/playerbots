@@ -4,11 +4,15 @@
 
 namespace ai
 {
+    /// 保留物品设置动作：配置物品保留规则（如保留、售卖或分解）
     class KeepItemAction : public ChatCommandAction
     {
     public:
+        /// 构造函数：初始化保留物品设置动作
         KeepItemAction(PlayerbotAI* ai, std::string name = "keep") : ChatCommandAction(ai, name) {}
+        /// 执行动作主逻辑（保留物品设置动作）
         virtual bool Execute(Event& event) override;
+        /// 判断在被昏迷或控制状态下是否仍可执行该动作（保留物品设置动作）
         virtual bool isUsefulWhenStunned() override { return true; }
 
         std::unordered_map<ForceItemUsage, std::string> keepName =
@@ -22,7 +26,7 @@ namespace ai
         };
 
 #ifdef GenerateBotHelp
-        virtual std::string GetHelpName() { return "keep"; } //Must equal iternal name
+        virtual std::string GetHelpName() { return "keep"; } // Must equal iternal name (必须与内部动作名称一致)
         virtual std::string GetHelpDescription()
         {
             return "This command will force bots to keep an item in their inventory.\n"

@@ -22,6 +22,7 @@
 
 #include "RandomPlayerbotMgr.h"
 
+// 记录对象创建及可选调用栈用于内存泄漏排查
 void MemoryMonitor::Add(std::string objectType, uint64_t object, int level, std::string stack)
 {
     if(stack.empty())
@@ -38,6 +39,7 @@ void MemoryMonitor::Add(std::string objectType, uint64_t object, int level, std:
     }
 }
 
+// 记录对象销毁并从存活映射中移除
 void MemoryMonitor::Rem(std::string objectType, uint64_t object, int level)
 {
     objectnumbers[std::this_thread::get_id()][objectType]--; 
@@ -51,6 +53,7 @@ void MemoryMonitor::Rem(std::string objectType, uint64_t object, int level)
     }
 }
 
+// 原子增减指定类型的全局对象计数
 void MemoryMonitor::Count(ObjectCounterType type, int delta)
 {
     if (type >= 0 && type < OBJECT_COUNTER_COUNT)
@@ -65,6 +68,7 @@ long long MemoryMonitor::GetCount(ObjectCounterType type) const
     return 0;
 }
 
+// 获取当前进程私有工作集/内存占用字节数
 uint64 MemoryMonitor::GetPrivateUsage() const
 {
 #if PLATFORM == PLATFORM_WINDOWS
@@ -76,6 +80,7 @@ uint64 MemoryMonitor::GetPrivateUsage() const
 #endif
 }
 
+// 周期性触发堆遍历与分配热点采样诊断
 void MemoryMonitor::SampleDiagnostics()
 {
     std::string logsDir = sConfig.GetStringDefault("LogsDir");
@@ -90,6 +95,7 @@ void MemoryMonitor::SampleDiagnostics()
             sConfig.GetIntDefault("Playerbots.AllocWatchSampleRate", 256));
 }
 
+// 将各线程存活对象计数变化打印到日志
 void MemoryMonitor::Print()
 {
     Browse();
@@ -122,6 +128,7 @@ void MemoryMonitor::Print()
     }
 }
 
+// 将当前进程内存与各类对象计数写入 CSV 日志
 void MemoryMonitor::LogCount(std::string filename)
 {
     std::map<std::string, int> nums;
@@ -201,6 +208,7 @@ void MemoryMonitor::Browse()
     BrowseTo(nullptr);
 }
 
+// 导出所有未释放对象的创建时间戳与调用栈明细
 void MemoryMonitor::BrowseTo(FILE* file)
 {
     std::unordered_map<std::string, std::unordered_map<std::string, double>> here;
@@ -316,6 +324,7 @@ void MemoryMonitor::BrowseTo(FILE* file)
 typedef BOOL (NTAPI *HeapEnumRoutine_t)(PVOID HeapHandle, PVOID UserParameter);
 typedef ULONG (WINAPI *EnumProcessHeapsFn_t)(HeapEnumRoutine_t, PVOID);
 
+// Windows 进程堆遍历汇总统计结构
 struct HeapSum
 {
     uint64_t committed = 0; // bytes committed in region heaps
@@ -401,6 +410,7 @@ void HeapWatch::SampleIfNeeded(std::string const& filename, uint32 intervalSec, 
     t.detach();
 }
 
+// 遍历所有进程堆块并按大小分桶输出统计报表
 void HeapWatch::Sample(std::string const& filename, bool headers, bool fullWalk)
 {
     EnumProcessHeapsFn_t enumHeaps = (EnumProcessHeapsFn_t)GetProcAddress(GetModuleHandleA("ntdll.dll"), "RtlEnumProcessHeaps");
@@ -528,6 +538,7 @@ static const uint32_t BLOCK_TABLE_SIZE = 1 << 20;
 static const uint32_t BLOCK_MASK = BLOCK_TABLE_SIZE - 1;
 static const uint32_t MAX_FRAMES = 10;
 
+// Windows 内存分配采样调用点统计节点
 struct AllocSite
 {
     uint64_t hash;
@@ -789,6 +800,7 @@ static PVOID NTAPI HookReAlloc(PVOID heap, ULONG flags, PVOID addr, SIZE_T size)
     return result;
 }
 
+// Hook 已加载模块 IAT 中的 HeapAlloc/HeapFree/HeapReAlloc 以采样分配热点
 static void PatchModuleImports(HMODULE module)
 {
     uint8_t* base = (uint8_t*)module;
@@ -1018,6 +1030,7 @@ static void Dump(std::string const& filename, bool headers, Symbolizer& symboliz
         (unsigned long long)g_sampled.load(), (unsigned long long)g_dropped.load());
 }
 
+// 按需安装堆分配采样 Hook 并周期性导出热点调用栈
 void AllocWatch::StartIfNeeded(std::string const& filename, uint32 intervalSec, uint32 sampleRate)
 {
     bool expected = false;

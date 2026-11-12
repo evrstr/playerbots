@@ -1,9 +1,11 @@
+/// 聊天指令处理策略实现
 
 #include "playerbot/playerbot.h"
 #include "ChatCommandHandlerStrategy.h"
 
 using namespace ai;
 
+/// 内部动作节点工厂：构建“tank attack”聊天快捷指令动作节点
 class ChatCommandActionNodeFactoryInternal : public NamedObjectFactory<ActionNode>
 {
 public:
@@ -22,6 +24,7 @@ private:
     }
 };
 
+/// 构造聊天指令策略，注册所有支持透传的聊天指令名称列表
 ChatCommandHandlerStrategy::ChatCommandHandlerStrategy(PlayerbotAI* ai) : PassTroughStrategy(ai)
 {
     actionNodeFactories.Add(std::make_unique<ChatCommandActionNodeFactoryInternal>());
@@ -124,6 +127,7 @@ ChatCommandHandlerStrategy::ChatCommandHandlerStrategy(PlayerbotAI* ai) : PassTr
     supported.push_back("speak");
 }
 
+/// 初始化反应触发器：将特定聊天关键词映射至对应的机器人执行动作
 void ChatCommandHandlerStrategy::InitReactionTriggers(std::list<TriggerNode*> &triggers)
 {
     PassTroughStrategy::InitNonCombatTriggers(triggers);

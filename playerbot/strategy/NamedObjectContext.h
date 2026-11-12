@@ -8,6 +8,7 @@
 
 namespace ai
 {
+    /// 参数限定符基类，支持通过 "::" 传递字符串或 "{a,b}" 多重限定参数
     class Qualified
     {
     public:
@@ -104,19 +105,19 @@ namespace ai
             bool valid = !str.empty();
             if (valid)
             {
-                // Check for sign character at the beginning
+                // Check for sign character at the beginning | 检查开头的正负号
                 size_t start = 0;
                 if (str[0] == '+' || str[0] == '-')
                 {
                     start = 1;
                 }
 
-                // Loop through each character to check if it's a digit
+                // Loop through each character to check if it's a digit | 逐字符检查是否为数字
                 for (size_t i = start; i < str.size(); ++i) 
                 {
                     if (!std::isdigit(str[i])) 
                     {
-                        // Non-numeric character found
+                        // Non-numeric character found | 发现非数字字符
                         valid = false;
                         break;
                     }
@@ -148,6 +149,7 @@ namespace ai
     };
 
     template <class T>
+    /// 命名对象工厂模板，按注册名及可选 "::qualifier" 参数动态实例化对象
     class NamedObjectFactory
     {
     protected:
@@ -192,6 +194,7 @@ namespace ai
 
 
     template <class T>
+    /// 命名对象缓存上下文，负责按名称创建、缓存、更新、重置与销毁对象实例
     class NamedObjectContext : public NamedObjectFactory<T>
     {
     public:
@@ -268,6 +271,7 @@ namespace ai
         bool supportsSiblings;
     };
 
+    /// 多个 NamedObjectContext 的组合查找列表，支持同组互斥策略(siblings)检索
     template <class T> class NamedObjectContextList
     {
     public:
@@ -379,6 +383,7 @@ namespace ai
     };
 
     template <class T>
+    /// 多个 NamedObjectFactory 的逆序查找工厂链
     class NamedObjectFactoryList
     {
     public:

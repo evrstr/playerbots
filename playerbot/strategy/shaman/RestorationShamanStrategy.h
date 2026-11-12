@@ -1,8 +1,10 @@
+// 萨满祭司 - 恢复萨满祭司策略头文件 (RestorationShamanStrategy.h)
 #pragma once
 #include "ShamanStrategy.h"
 
 namespace ai
 {
+    // 恢复萨满祭司专精占位策略：用于专精识别与占位的策略类
     class RestorationShamanPlaceholderStrategy : public SpecPlaceholderStrategy
     {
     public:
@@ -11,6 +13,7 @@ namespace ai
         std::string getName() override { return "restoration"; }
     };
 
+    // 恢复萨满祭司策略：定义该专精/场景下的触发器与默认行为
     class RestorationShamanStrategy : public ShamanStrategy
     {
     public:
@@ -23,6 +26,7 @@ namespace ai
         virtual void InitDeadTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 恢复萨满祭司PVE策略：定义该专精/场景下的触发器与默认行为
     class RestorationShamanPveStrategy : public RestorationShamanStrategy
     {
     public:
@@ -36,6 +40,7 @@ namespace ai
         void InitDeadTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 恢复萨满祭司PVP策略：定义该专精/场景下的触发器与默认行为
     class RestorationShamanPvpStrategy : public RestorationShamanStrategy
     {
     public:
@@ -49,6 +54,7 @@ namespace ai
         void InitDeadTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 恢复萨满祭司团队副本策略：定义该专精/场景下的触发器与默认行为
     class RestorationShamanRaidStrategy : public RestorationShamanStrategy
     {
     public:
@@ -62,6 +68,7 @@ namespace ai
         void InitDeadTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 恢复萨满祭司AOE群体策略：定义该专精/场景下的触发器与默认行为
     class RestorationShamanAoeStrategy : public ShamanAoeStrategy
     {
     public:
@@ -72,6 +79,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 恢复萨满祭司AOE群体PVE策略：定义该专精/场景下的触发器与默认行为
     class RestorationShamanAoePveStrategy : public RestorationShamanAoeStrategy
     {
     public:
@@ -83,6 +91,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 恢复萨满祭司AOE群体PVP策略：定义该专精/场景下的触发器与默认行为
     class RestorationShamanAoePvpStrategy : public RestorationShamanAoeStrategy
     {
     public:
@@ -94,6 +103,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 恢复萨满祭司AOE群体团队副本策略：定义该专精/场景下的触发器与默认行为
     class RestorationShamanAoeRaidStrategy : public RestorationShamanAoeStrategy
     {
     public:
@@ -105,6 +115,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 恢复萨满祭司控制(CC)策略：定义该专精/场景下的触发器与默认行为
     class RestorationShamanCcStrategy : public ShamanCcStrategy
     {
     public:
@@ -115,6 +126,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 恢复萨满祭司控制(CC)PVE策略：定义该专精/场景下的触发器与默认行为
     class RestorationShamanCcPveStrategy : public RestorationShamanCcStrategy
     {
     public:
@@ -126,6 +138,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 恢复萨满祭司控制(CC)PVP策略：定义该专精/场景下的触发器与默认行为
     class RestorationShamanCcPvpStrategy : public RestorationShamanCcStrategy
     {
     public:
@@ -137,6 +150,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 恢复萨满祭司控制(CC)团队副本策略：定义该专精/场景下的触发器与默认行为
     class RestorationShamanCcRaidStrategy : public RestorationShamanCcStrategy
     {
     public:
@@ -148,6 +162,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 恢复萨满祭司驱散净化策略：定义该专精/场景下的触发器与默认行为
     class RestorationShamanCureStrategy : public ShamanCureStrategy
     {
     public:
@@ -158,6 +173,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 恢复萨满祭司驱散净化PVE策略：定义该专精/场景下的触发器与默认行为
     class RestorationShamanCurePveStrategy : public RestorationShamanCureStrategy
     {
     public:
@@ -169,6 +185,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 恢复萨满祭司驱散净化PVP策略：定义该专精/场景下的触发器与默认行为
     class RestorationShamanCurePvpStrategy : public RestorationShamanCureStrategy
     {
     public:
@@ -180,6 +197,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 恢复萨满祭司驱散净化团队副本策略：定义该专精/场景下的触发器与默认行为
     class RestorationShamanCureRaidStrategy : public RestorationShamanCureStrategy
     {
     public:
@@ -191,6 +209,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 恢复萨满祭司图腾策略：定义该专精/场景下的触发器与默认行为
     class RestorationShamanTotemsStrategy : public ShamanTotemsStrategy
     {
     public:
@@ -201,6 +220,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 恢复萨满祭司图腾PVE策略：定义该专精/场景下的触发器与默认行为
     class RestorationShamanTotemsPveStrategy : public RestorationShamanTotemsStrategy
     {
     public:
@@ -212,6 +232,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 恢复萨满祭司图腾PVP策略：定义该专精/场景下的触发器与默认行为
     class RestorationShamanTotemsPvpStrategy : public RestorationShamanTotemsStrategy
     {
     public:
@@ -223,6 +244,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 恢复萨满祭司图腾团队副本策略：定义该专精/场景下的触发器与默认行为
     class RestorationShamanTotemsRaidStrategy : public RestorationShamanTotemsStrategy
     {
     public:
@@ -234,6 +256,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 恢复萨满祭司增益Buff策略：定义该专精/场景下的触发器与默认行为
     class RestorationShamanBuffStrategy : public ShamanBuffStrategy
     {
     public:
@@ -244,6 +267,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 恢复萨满祭司增益BuffPVE策略：定义该专精/场景下的触发器与默认行为
     class RestorationShamanBuffPveStrategy : public RestorationShamanBuffStrategy
     {
     public:
@@ -255,6 +279,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 恢复萨满祭司增益BuffPVP策略：定义该专精/场景下的触发器与默认行为
     class RestorationShamanBuffPvpStrategy : public RestorationShamanBuffStrategy
     {
     public:
@@ -266,6 +291,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 恢复萨满祭司增益Buff团队副本策略：定义该专精/场景下的触发器与默认行为
     class RestorationShamanBuffRaidStrategy : public RestorationShamanBuffStrategy
     {
     public:
@@ -277,6 +303,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 恢复萨满祭司爆发增益策略：定义该专精/场景下的触发器与默认行为
     class RestorationShamanBoostStrategy : public ShamanBoostStrategy
     {
     public:
@@ -287,6 +314,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 恢复萨满祭司爆发增益PVE策略：定义该专精/场景下的触发器与默认行为
     class RestorationShamanBoostPveStrategy : public RestorationShamanBoostStrategy
     {
     public:
@@ -298,6 +326,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 恢复萨满祭司爆发增益PVP策略：定义该专精/场景下的触发器与默认行为
     class RestorationShamanBoostPvpStrategy : public RestorationShamanBoostStrategy
     {
     public:
@@ -309,6 +338,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 恢复萨满祭司爆发增益团队副本策略：定义该专精/场景下的触发器与默认行为
     class RestorationShamanBoostRaidStrategy : public RestorationShamanBoostStrategy
     {
     public:

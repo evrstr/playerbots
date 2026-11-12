@@ -1,60 +1,70 @@
+// 德鲁伊 - 动作头文件 (DruidActions.h)：定义德鲁伊专用技能施放与战斗动作
 #pragma once
 #include "playerbot/strategy/actions/GenericActions.h"
 
 namespace ai
 {
-	class CastFaerieFireAction : public CastRangedDebuffSpellAction
-	{
-	public:
-		CastFaerieFireAction(PlayerbotAI* ai) : CastRangedDebuffSpellAction(ai, "faerie fire") {}
-	};
+    // 施放精灵之火动作
+    class CastFaerieFireAction : public CastRangedDebuffSpellAction
+    {
+    public:
+        CastFaerieFireAction(PlayerbotAI* ai) : CastRangedDebuffSpellAction(ai, "faerie fire") {}
+    };
 
+    // 施放精灵之火(野性)动作
     class CastFaerieFireFeralAction : public CastRangedDebuffSpellAction
     {
     public:
         CastFaerieFireFeralAction(PlayerbotAI* ai) : CastRangedDebuffSpellAction(ai, "faerie fire (feral)") {}
     };
 
-	class CastRejuvenationAction : public CastHealingSpellAction 
-	{
-	public:
-		CastRejuvenationAction(PlayerbotAI* ai) : CastHealingSpellAction(ai, "rejuvenation") {}
-	};
+    // 施放回春术动作
+    class CastRejuvenationAction : public CastHealingSpellAction 
+    {
+    public:
+        CastRejuvenationAction(PlayerbotAI* ai) : CastHealingSpellAction(ai, "rejuvenation") {}
+    };
 
-	class CastRegrowthAction : public CastHealingSpellAction 
-	{
-	public:
-		CastRegrowthAction(PlayerbotAI* ai) : CastHealingSpellAction(ai, "regrowth") {}
-	};
+    // 施放愈合动作
+    class CastRegrowthAction : public CastHealingSpellAction 
+    {
+    public:
+        CastRegrowthAction(PlayerbotAI* ai) : CastHealingSpellAction(ai, "regrowth") {}
+    };
 
+    // 施放迅捷治愈动作
     class CastSwiftmendAction : public CastHealingSpellAction 
-	{
-	public:
+    {
+    public:
         CastSwiftmendAction(PlayerbotAI* ai) : CastHealingSpellAction(ai, "swiftmend") {}
         virtual bool isPossible() override
-		{
+        {
             return CastHealingSpellAction::isPossible() && (ai->HasAura("regrowth", GetTarget()) || ai->HasAura("rejuvenation", GetTarget()));
-		}
-	};
+        }
+    };
 
+    // 施放治疗之触动作
     class CastHealingTouchAction : public CastHealingSpellAction 
-	{
+    {
     public:
         CastHealingTouchAction(PlayerbotAI* ai) : CastHealingSpellAction(ai, "healing touch") {}
     };
 
+    // 施放回春术动作
     class CastRejuvenationOnPartyAction : public HealPartyMemberAction
     {
     public:
         CastRejuvenationOnPartyAction(PlayerbotAI* ai) : HealPartyMemberAction(ai, "rejuvenation") {}
     };
 
+    // 施放愈合动作
     class CastRegrowthOnPartyAction : public HealPartyMemberAction
     {
     public:
         CastRegrowthOnPartyAction(PlayerbotAI* ai) : HealPartyMemberAction(ai, "regrowth") {}
     };
 
+    // 施放迅捷治愈动作
     class CastSwiftmendOnPartyAction : public HealPartyMemberAction
     {
     public:
@@ -65,161 +75,191 @@ namespace ai
         }
     };
 
+    // 施放治疗之触动作
     class CastHealingTouchOnPartyAction : public HealPartyMemberAction
     {
     public:
         CastHealingTouchOnPartyAction(PlayerbotAI* ai) : HealPartyMemberAction(ai, "healing touch") {}
     };
 
-	class CastReviveAction : public ResurrectPartyMemberAction
-	{
-	public:
-		CastReviveAction(PlayerbotAI* ai) : ResurrectPartyMemberAction(ai, "revive") {}
+    // 施放起死回生动作
+    class CastReviveAction : public ResurrectPartyMemberAction
+    {
+    public:
+        CastReviveAction(PlayerbotAI* ai) : ResurrectPartyMemberAction(ai, "revive") {}
 
-		virtual NextAction** getPrerequisites() 
-		{
-			return NextAction::merge( NextAction::array(0, new NextAction("restoration caster form"), NULL), ResurrectPartyMemberAction::getPrerequisites());
-		}
-	};
+        virtual NextAction** getPrerequisites() 
+        {
+            return NextAction::merge( NextAction::array(0, new NextAction("restoration caster form"), NULL), ResurrectPartyMemberAction::getPrerequisites());
+        }
+    };
 
-	class CastRebirthAction : public CastSpellTargetAction
-	{
-	public:
-		CastRebirthAction(PlayerbotAI* ai) : CastSpellTargetAction(ai, "rebirth", "revive targets") {}
+    // 施放复生动作
+    class CastRebirthAction : public CastSpellTargetAction
+    {
+    public:
+        CastRebirthAction(PlayerbotAI* ai) : CastSpellTargetAction(ai, "rebirth", "revive targets") {}
         std::string GetReachActionName() override { return "reach party member to heal"; }
         std::string GetTargetName() override { return "party member to resurrect"; }
-	};
+    };
 
-	BUFF_ACTION(CastMarkOfTheWildAction, "mark of the wild");
-	BUFF_PARTY_ACTION(CastMarkOfTheWildOnPartyAction, "mark of the wild");
-	GREATER_BUFF_PARTY_ACTION(CastGiftOfTheWildOnPartyAction, "gift of the wild", "mark of the wild");
+    // 自我增益动作：野性印记 (CastMarkOfTheWildAction)
+    BUFF_ACTION(CastMarkOfTheWildAction, "mark of the wild");
+    // 队友增益动作：野性印记 (CastMarkOfTheWildOnPartyAction)
+    BUFF_PARTY_ACTION(CastMarkOfTheWildOnPartyAction, "mark of the wild");
+    // 团队强效祝福动作：野性赐福 (CastGiftOfTheWildOnPartyAction)
+    GREATER_BUFF_PARTY_ACTION(CastGiftOfTheWildOnPartyAction, "gift of the wild", "mark of the wild");
 
-	class CastSurvivalInstinctsAction : public CastBuffSpellAction 
-	{
-	public:
-		CastSurvivalInstinctsAction(PlayerbotAI* ai) : CastBuffSpellAction(ai, "survival instincts") {}
-	};
+    // 施放生存本能动作
+    class CastSurvivalInstinctsAction : public CastBuffSpellAction 
+    {
+    public:
+        CastSurvivalInstinctsAction(PlayerbotAI* ai) : CastBuffSpellAction(ai, "survival instincts") {}
+    };
 
-	class CastThornsAction : public CastBuffSpellAction 
-	{
-	public:
-		CastThornsAction(PlayerbotAI* ai) : CastBuffSpellAction(ai, "thorns") {}
-	};
+    // 施放荆棘术动作
+    class CastThornsAction : public CastBuffSpellAction 
+    {
+    public:
+        CastThornsAction(PlayerbotAI* ai) : CastBuffSpellAction(ai, "thorns") {}
+    };
 
+    // 施放荆棘术动作
     class CastThornsOnPartyAction : public BuffOnPartyAction 
-	{
+    {
     public:
         CastThornsOnPartyAction(PlayerbotAI* ai) : BuffOnPartyAction(ai, "thorns") {}
     };
 
-	class CastOmenOfClarityAction : public CastBuffSpellAction 
-	{
-	public:
-	    CastOmenOfClarityAction(PlayerbotAI* ai) : CastBuffSpellAction(ai, "omen of clarity") {}
-		virtual bool isUseful() override { return CastBuffSpellAction::isUseful() && ai->HasSpell("omen of clarity"); }
-	};
+    // 施放清晰预兆动作
+    class CastOmenOfClarityAction : public CastBuffSpellAction 
+    {
+    public:
+        CastOmenOfClarityAction(PlayerbotAI* ai) : CastBuffSpellAction(ai, "omen of clarity") {}
+        virtual bool isUseful() override { return CastBuffSpellAction::isUseful() && ai->HasSpell("omen of clarity"); }
+    };
 
-	class CastWrathAction : public CastSpellAction
-	{
-	public:
-		CastWrathAction(PlayerbotAI* ai) : CastSpellAction(ai, "wrath") {}
-	};
+    // 施放愤怒动作
+    class CastWrathAction : public CastSpellAction
+    {
+    public:
+        CastWrathAction(PlayerbotAI* ai) : CastSpellAction(ai, "wrath") {}
+    };
 
-	class CastStarfallAction : public CastSpellAction
-	{
-	public:
-		CastStarfallAction(PlayerbotAI* ai) : CastSpellAction(ai, "starfall") {}
-	};
+    // 施放星辰坠落动作
+    class CastStarfallAction : public CastSpellAction
+    {
+    public:
+        CastStarfallAction(PlayerbotAI* ai) : CastSpellAction(ai, "starfall") {}
+    };
 
-	class CastHurricaneAction : public CastSpellAction
-	{
-	public:
-	    CastHurricaneAction(PlayerbotAI* ai) : CastSpellAction(ai, "hurricane") {}
-	};
+    // 施放飓风动作
+    class CastHurricaneAction : public CastSpellAction
+    {
+    public:
+        CastHurricaneAction(PlayerbotAI* ai) : CastSpellAction(ai, "hurricane") {}
+    };
 
-	class CastMoonfireAction : public CastRangedDebuffSpellAction
-	{
-	public:
-		CastMoonfireAction(PlayerbotAI* ai) : CastRangedDebuffSpellAction(ai, "moonfire") {}
-	};
+    // 施放月火术动作
+    class CastMoonfireAction : public CastRangedDebuffSpellAction
+    {
+    public:
+        CastMoonfireAction(PlayerbotAI* ai) : CastRangedDebuffSpellAction(ai, "moonfire") {}
+    };
 
-	class CastInsectSwarmAction : public CastRangedDebuffSpellAction
-	{
-	public:
-		CastInsectSwarmAction(PlayerbotAI* ai) : CastRangedDebuffSpellAction(ai, "insect swarm") {}
-	};
+    // 施放虫群动作
+    class CastInsectSwarmAction : public CastRangedDebuffSpellAction
+    {
+    public:
+        CastInsectSwarmAction(PlayerbotAI* ai) : CastRangedDebuffSpellAction(ai, "insect swarm") {}
+    };
 
-	class CastStarfireAction : public CastSpellAction
-	{
-	public:
-		CastStarfireAction(PlayerbotAI* ai) : CastSpellAction(ai, "starfire") {}
-	};
+    // 施放星火术动作
+    class CastStarfireAction : public CastSpellAction
+    {
+    public:
+        CastStarfireAction(PlayerbotAI* ai) : CastSpellAction(ai, "starfire") {}
+    };
 
-	class CastEntanglingRootsAction : public CastSpellAction
-	{
-	public:
-		CastEntanglingRootsAction(PlayerbotAI* ai) : CastSpellAction(ai, "entangling roots") {}
-	};
+    // 施放纠缠根须动作
+    class CastEntanglingRootsAction : public CastSpellAction
+    {
+    public:
+        CastEntanglingRootsAction(PlayerbotAI* ai) : CastSpellAction(ai, "entangling roots") {}
+    };
 
+    // 施放纠缠根须动作
     class CastEntanglingRootsCcAction : public CastCrowdControlSpellAction
     {
     public:
         CastEntanglingRootsCcAction(PlayerbotAI* ai) : CastCrowdControlSpellAction(ai, "entangling roots") {}
     };
 
-	SNARE_ACTION(CastEntanglingRootsSnareAction, "entangling roots");
+    // 减速技能动作：纠缠根须 (CastEntanglingRootsSnareAction)
+    SNARE_ACTION(CastEntanglingRootsSnareAction, "entangling roots");
 
+    // 施放休眠动作
     class CastHibernateAction : public CastSpellAction
-	{
-	public:
+    {
+    public:
         CastHibernateAction(PlayerbotAI* ai) : CastSpellAction(ai, "hibernate") {}
-	};
+    };
 
+    // 施放休眠动作
     class CastHibernateCcAction : public CastCrowdControlSpellAction
     {
     public:
         CastHibernateCcAction(PlayerbotAI* ai) : CastCrowdControlSpellAction(ai, "hibernate") {}
     };
 
+    // 施放自然之握动作
     class CastNaturesGraspAction : public CastBuffSpellAction
-	{
-	public:
+    {
+    public:
         CastNaturesGraspAction(PlayerbotAI* ai) : CastBuffSpellAction(ai, "nature's grasp") {}
-	};
+    };
 
-	class CastCurePoisonAction : public CastCureSpellAction
-	{
-	public:
-		CastCurePoisonAction(PlayerbotAI* ai) : CastCureSpellAction(ai, "cure poison") {}
-	};
+    // 施放消毒术动作
+    class CastCurePoisonAction : public CastCureSpellAction
+    {
+    public:
+        CastCurePoisonAction(PlayerbotAI* ai) : CastCureSpellAction(ai, "cure poison") {}
+    };
 
+    // 施放消毒术动作
     class CastCurePoisonOnPartyAction : public CurePartyMemberAction
     {
     public:
         CastCurePoisonOnPartyAction(PlayerbotAI* ai) : CurePartyMemberAction(ai, "cure poison", DISPEL_POISON) {}
     };
 
-	class CastAbolishPoisonAction : public CastCureSpellAction
-	{
-	public:
-		CastAbolishPoisonAction(PlayerbotAI* ai) : CastCureSpellAction(ai, "abolish poison") {}
-	};
+    // 施放驱毒术动作
+    class CastAbolishPoisonAction : public CastCureSpellAction
+    {
+    public:
+        CastAbolishPoisonAction(PlayerbotAI* ai) : CastCureSpellAction(ai, "abolish poison") {}
+    };
 
+    // 施放驱毒术动作
     class CastAbolishPoisonOnPartyAction : public CurePartyMemberAction
     {
     public:
         CastAbolishPoisonOnPartyAction(PlayerbotAI* ai) : CurePartyMemberAction(ai, "abolish poison", DISPEL_POISON) {}
     };
 
-	CURE_ACTION(CastRemoveCurseAction, "remove curse");
-	CURE_PARTY_ACTION(CastRemoveCurseOnPartyAction, "remove curse", DISPEL_CURSE);
+    // 自我驱散净化动作：解除诅咒 (CastRemoveCurseAction)
+    CURE_ACTION(CastRemoveCurseAction, "remove curse");
+    // 队友驱散净化动作：解除诅咒 (CastRemoveCurseOnPartyAction)
+    CURE_PARTY_ACTION(CastRemoveCurseOnPartyAction, "remove curse", DISPEL_CURSE);
 
+    // 施放树皮术动作
     class CastBarskinAction : public CastBuffSpellAction
     {
     public:
         CastBarskinAction(PlayerbotAI* ai) : CastBuffSpellAction(ai, "barskin") {}
     };
 
+    // 施放激活动作
     class CastInnervateAction : public CastSpellTargetAction
     {
     public:
@@ -243,207 +283,234 @@ namespace ai
         }
     };
 
+    // 施放宁静动作
     class CastTranquilityAction : public CastAoeHealSpellAction
     {
     public:
         CastTranquilityAction(PlayerbotAI* ai) : CastAoeHealSpellAction(ai, "tranquility") {}
     };
 
+    // 施放自然迅捷动作
     class CastNaturesSwiftnessAction : public CastBuffSpellAction
     {
     public:
         CastNaturesSwiftnessAction(PlayerbotAI* ai) : CastBuffSpellAction(ai, "nature's swiftness") {}
     };
 
-	class CastBearFormAction : public CastBuffSpellAction
-	{
-	public:
-		CastBearFormAction(PlayerbotAI* ai) : CastBuffSpellAction(ai, "bear form") {}
+    // 施放熊形态动作
+    class CastBearFormAction : public CastBuffSpellAction
+    {
+    public:
+        CastBearFormAction(PlayerbotAI* ai) : CastBuffSpellAction(ai, "bear form") {}
 
-		virtual bool isPossible()
-		{
-			return CastBuffSpellAction::isPossible() && !ai->HasAura("dire bear form", GetTarget());
-		}
+        virtual bool isPossible()
+        {
+            return CastBuffSpellAction::isPossible() && !ai->HasAura("dire bear form", GetTarget());
+        }
 
-		virtual bool isUseful()
-		{
-			return CastBuffSpellAction::isUseful() && !ai->HasAura("dire bear form", GetTarget());
-		}
-	};
+        virtual bool isUseful()
+        {
+            return CastBuffSpellAction::isUseful() && !ai->HasAura("dire bear form", GetTarget());
+        }
+    };
 
-	class CastDireBearFormAction : public CastBuffSpellAction
-	{
-	public:
-		CastDireBearFormAction(PlayerbotAI* ai) : CastBuffSpellAction(ai, "dire bear form") {}
+    // 施放巨熊形态动作
+    class CastDireBearFormAction : public CastBuffSpellAction
+    {
+    public:
+        CastDireBearFormAction(PlayerbotAI* ai) : CastBuffSpellAction(ai, "dire bear form") {}
 
-		virtual NextAction** getAlternatives() 
-		{
-			return NextAction::merge(NextAction::array(0, new NextAction("bear form"), NULL), CastSpellAction::getAlternatives());
-		}
-	};
+        virtual NextAction** getAlternatives() 
+        {
+            return NextAction::merge(NextAction::array(0, new NextAction("bear form"), NULL), CastSpellAction::getAlternatives());
+        }
+    };
 
-	class CastCatFormAction : public CastBuffSpellAction
-	{
-	public:
-		CastCatFormAction(PlayerbotAI* ai) : CastBuffSpellAction(ai, "cat form") {}
-	};
+    // 施放猎豹形态动作
+    class CastCatFormAction : public CastBuffSpellAction
+    {
+    public:
+        CastCatFormAction(PlayerbotAI* ai) : CastBuffSpellAction(ai, "cat form") {}
+    };
 
-	class CastTreeFormAction : public CastBuffSpellAction
-	{
-	public:
-		CastTreeFormAction(PlayerbotAI* ai) : CastBuffSpellAction(ai, "tree of life") {}
-	};
+    // 施放生命之树动作
+    class CastTreeFormAction : public CastBuffSpellAction
+    {
+    public:
+        CastTreeFormAction(PlayerbotAI* ai) : CastBuffSpellAction(ai, "tree of life") {}
+    };
 
-	class CastMoonkinFormAction : public CastBuffSpellAction
-	{
-	public:
-		CastMoonkinFormAction(PlayerbotAI* ai) : CastBuffSpellAction(ai, "moonkin form") {}
-	};
+    // 施放枭兽形态动作
+    class CastMoonkinFormAction : public CastBuffSpellAction
+    {
+    public:
+        CastMoonkinFormAction(PlayerbotAI* ai) : CastBuffSpellAction(ai, "moonkin form") {}
+    };
 
-	class CastAquaticFormAction : public CastBuffSpellAction
-	{
-	public:
-		CastAquaticFormAction(PlayerbotAI* ai) : CastBuffSpellAction(ai, "aquatic form") {}
-	};
+    // 施放水栖形态动作
+    class CastAquaticFormAction : public CastBuffSpellAction
+    {
+    public:
+        CastAquaticFormAction(PlayerbotAI* ai) : CastBuffSpellAction(ai, "aquatic form") {}
+    };
 
-	class CastTravelFormAction : public CastBuffSpellAction
-	{
-	public:
-		CastTravelFormAction(PlayerbotAI* ai) : CastBuffSpellAction(ai, "travel form") {}
-		
-		virtual bool isUseful()
-		{
-			bool firstmount = bot->GetLevel() >=
+    // 施放旅行形态动作
+    class CastTravelFormAction : public CastBuffSpellAction
+    {
+    public:
+        CastTravelFormAction(PlayerbotAI* ai) : CastBuffSpellAction(ai, "travel form") {}
+        
+        virtual bool isUseful()
+        {
+            bool firstmount = bot->GetLevel() >=
+// 经典旧世 (Vanilla 60级) 版本逻辑
 #ifdef MANGOSBOT_ZERO
-				40
+                40
 #else
+// 燃烧的远征 (TBC 70级) 版本逻辑
 #ifdef MANGOSBOT_ONE
-				30
+                30
 #else
-				20
+                20
 #endif
 #endif
-				;
+                ;
 
-			// useful if no mount or with wsg flag
-			return !bot->IsMounted() || !firstmount;
-		}
-	};
+            // useful if no mount or with wsg flag
+            return !bot->IsMounted() || !firstmount;
+        }
+    };
 
-	class CastCasterFormAction : public CastBuffSpellAction
-	{
-	public:
-		CastCasterFormAction(PlayerbotAI* ai, std::string spell = "caster form") : CastBuffSpellAction(ai, spell) {}
+    // 施放人形态(施法者形态)动作
+    class CastCasterFormAction : public CastBuffSpellAction
+    {
+    public:
+        CastCasterFormAction(PlayerbotAI* ai, std::string spell = "caster form") : CastBuffSpellAction(ai, spell) {}
 
-		virtual bool isUseful() override
-		{
-			return ai->HasAnyAuraOf(GetTarget(), "dire bear form", "bear form", "cat form", "travel form", "aquatic form", "flight form", "swift flight form", "moonkin form", "tree of life", NULL);
-		}
+        virtual bool isUseful() override
+        {
+            return ai->HasAnyAuraOf(GetTarget(), "dire bear form", "bear form", "cat form", "travel form", "aquatic form", "flight form", "swift flight form", "moonkin form", "tree of life", NULL);
+        }
 
-		virtual bool isPossible() { return true; }
+        virtual bool isPossible() { return true; }
 
-		virtual bool Execute(Event& event);
-	};
+        virtual bool Execute(Event& event);
+    };
 
+    // 施放平衡施法者形态动作
     class CastBalanceCasterFormAction : public CastCasterFormAction
-	{
-	public:
-		CastBalanceCasterFormAction(PlayerbotAI* ai) : CastCasterFormAction(ai, "balance caster form") {}
+    {
+    public:
+        CastBalanceCasterFormAction(PlayerbotAI* ai) : CastCasterFormAction(ai, "balance caster form") {}
 
-		bool isUseful() override
-		{
-			return ai->HasAnyAuraOf(GetTarget(), "dire bear form", "bear form", "cat form", "travel form", "aquatic form", "flight form", "swift flight form", "tree of life", NULL);
-		}
-	};
+        bool isUseful() override
+        {
+            return ai->HasAnyAuraOf(GetTarget(), "dire bear form", "bear form", "cat form", "travel form", "aquatic form", "flight form", "swift flight form", "tree of life", NULL);
+        }
+    };
 
+    // 施放恢复施法者形态动作
     class CastRestorationCasterFormAction : public CastCasterFormAction
-	{
-	public:
-		CastRestorationCasterFormAction(PlayerbotAI* ai) : CastCasterFormAction(ai, "restoration caster form") {}
+    {
+    public:
+        CastRestorationCasterFormAction(PlayerbotAI* ai) : CastCasterFormAction(ai, "restoration caster form") {}
 
-		bool isUseful() override
-		{
-			return ai->HasAnyAuraOf(GetTarget(), "dire bear form", "bear form", "cat form", "travel form", "aquatic form", "flight form", "swift flight form", "moonkin form", NULL);
-		}
-	};
+        bool isUseful() override
+        {
+            return ai->HasAnyAuraOf(GetTarget(), "dire bear form", "bear form", "cat form", "travel form", "aquatic form", "flight form", "swift flight form", "moonkin form", NULL);
+        }
+    };
 
+    // 施放平衡或恢复施法者形态动作
     class CastBalanceOrRestorationCasterFormAction : public CastCasterFormAction
-	{
-	public:
-		CastBalanceOrRestorationCasterFormAction(PlayerbotAI* ai) : CastCasterFormAction(ai, "balance or restoration caster form") {}
+    {
+    public:
+        CastBalanceOrRestorationCasterFormAction(PlayerbotAI* ai) : CastCasterFormAction(ai, "balance or restoration caster form") {}
 
-		bool isUseful() override
-		{
-			return ai->HasAnyAuraOf(GetTarget(), "dire bear form", "bear form", "cat form", "travel form", "aquatic form", "flight form", "swift flight form", NULL);
-		}
-	};
+        bool isUseful() override
+        {
+            return ai->HasAnyAuraOf(GetTarget(), "dire bear form", "bear form", "cat form", "travel form", "aquatic form", "flight form", "swift flight form", NULL);
+        }
+    };
 
+    // 施放野性冲锋(豹)动作
     class CastFeralChargeCatAction : public CastReachTargetSpellAction
     {
     public:
         CastFeralChargeCatAction(PlayerbotAI* ai) : CastReachTargetSpellAction(ai, "feral charge - cat", 1.5f) {}
     };
 
+    // 施放畏缩动作
     class CastCowerAction : public CastBuffSpellAction
     {
     public:
         CastCowerAction(PlayerbotAI* ai) : CastBuffSpellAction(ai, "cower") {}
     };
 
+    // 施放狂暴动作
     class CastBerserkAction : public CastBuffSpellAction
     {
     public:
         CastBerserkAction(PlayerbotAI* ai) : CastBuffSpellAction(ai, "berserk") {}
     };
 
+    // 施放猛虎之怒动作
     class CastTigersFuryAction : public CastBuffSpellAction
     {
     public:
         CastTigersFuryAction(PlayerbotAI* ai) : CastBuffSpellAction(ai, "tiger's fury") {}
     };
 
+    // 施放扫击动作
     class CastRakeAction : public CastMeleeDebuffSpellAction
     {
     public:
         CastRakeAction(PlayerbotAI* ai) : CastMeleeDebuffSpellAction(ai, "rake") {}
     };
 
+    // 施放爪击动作
     class CastClawAction : public CastMeleeSpellAction
     {
     public:
         CastClawAction(PlayerbotAI* ai) : CastMeleeSpellAction(ai, "claw") {}
     };
 
+    // 施放裂伤(豹)动作
     class CastMangleCatAction : public CastMeleeSpellAction
     {
     public:
         CastMangleCatAction(PlayerbotAI* ai) : CastMeleeSpellAction(ai, "mangle (cat)") {}
     };
 
+    // 施放横扫(豹)动作
     class CastSwipeCatAction : public CastMeleeSpellAction
     {
     public:
         CastSwipeCatAction(PlayerbotAI* ai) : CastMeleeSpellAction(ai, "swipe (cat)") {}
     };
 
+    // 施放凶猛撕咬动作
     class CastFerociousBiteAction : public CastMeleeSpellAction
     {
     public:
         CastFerociousBiteAction(PlayerbotAI* ai) : CastMeleeSpellAction(ai, "ferocious bite") {}
     };
 
+    // 施放割裂动作
     class CastRipAction : public CastMeleeSpellAction
     {
     public:
         CastRipAction(PlayerbotAI* ai) : CastMeleeSpellAction(ai, "rip") {}
     };
 
+    // 施放撕碎动作
     class CastShredAction : public CastMeleeSpellAction
     {
     public:
         CastShredAction(PlayerbotAI* ai) : CastMeleeSpellAction(ai, "shred") {}
     };
 
+    // 施放潜行动作
     class CastProwlAction : public CastBuffSpellAction
     {
     public:
@@ -475,6 +542,7 @@ namespace ai
         }
     };
 
+    // 施放解除潜行动作
     class DruidUnstealthAction : public Action
     {
     public:
@@ -494,6 +562,7 @@ namespace ai
         }
     };
 
+    // 施放检查潜行动作
     class CheckStealthAction : public Action
     {
     public:
@@ -528,28 +597,33 @@ namespace ai
         }
     };
 
+    // 施放急奔动作
     class CastDashAction : public CastBuffSpellAction
     {
     public:
         CastDashAction(PlayerbotAI* ai) : CastBuffSpellAction(ai, "dash") {}
     };
 
+    // 施放毁灭动作
     class CastRavageAction : public CastMeleeSpellAction
     {
     public:
         CastRavageAction(PlayerbotAI* ai) : CastMeleeSpellAction(ai, "ravage") {}
     };
 
+    // 施放突袭动作
     class CastPounceAction : public CastMeleeSpellAction
     {
     public:
         CastPounceAction(PlayerbotAI* ai) : CastMeleeSpellAction(ai, "pounce") {}
     };
 
+    // 施放野性冲锋(熊形态)动作
     class CastFeralChargeBearAction : public CastReachTargetSpellAction
     {
     public:
         CastFeralChargeBearAction(PlayerbotAI* ai) 
+// 巫妖王之怒 (WotLK 80级) 版本逻辑
 #ifdef MANGOSBOT_TWO
         : CastReachTargetSpellAction(ai, "feral charge - bear", 1.5f) {}
 #else
@@ -557,12 +631,14 @@ namespace ai
 #endif
     };
 
+    // 施放低吼动作
     class CastGrowlAction : public CastSpellAction
     {
     public:
         CastGrowlAction(PlayerbotAI* ai) : CastSpellAction(ai, "growl") {}
     };
 
+    // 施放重殴动作
     class CastMaulAction : public CastMeleeSpellAction
     {
     public:
@@ -570,33 +646,39 @@ namespace ai
         virtual bool isUseful() override { return CastMeleeSpellAction::isUseful() && AI_VALUE2(uint8, "rage", "self target") >= 45; }
     };
 
+    // 施放重击动作
     class CastBashAction : public CastMeleeSpellAction
     {
     public:
         CastBashAction(PlayerbotAI* ai) : CastMeleeSpellAction(ai, "bash") {}
     };
 
+    // 施放横扫动作
     class CastSwipeAction : public CastMeleeSpellAction
     {
     public:
         CastSwipeAction(PlayerbotAI* ai) : CastMeleeSpellAction(ai, "swipe") {}
     };
 
+    // 施放挫志咆哮动作
     class CastDemoralizingRoarAction : public CastMeleeDebuffSpellAction
     {
     public:
         CastDemoralizingRoarAction(PlayerbotAI* ai) : CastMeleeDebuffSpellAction(ai, "demoralizing roar") {}
     };
 
+    // 施放裂伤(熊)动作
     class CastMangleBearAction : public CastMeleeSpellAction
     {
     public:
         CastMangleBearAction(PlayerbotAI* ai) : CastMeleeSpellAction(ai, "mangle (bear)") {}
     };
 
+    // 施放横扫(熊)动作
     class CastSwipeBearAction : public CastMeleeSpellAction
     {
     public:
+// 巫妖王之怒 (WotLK 80级) 版本逻辑
 #ifdef MANGOSBOT_TWO
         CastSwipeBearAction(PlayerbotAI* ai) : CastMeleeSpellAction(ai, "swipe (bear)") {}
 #else
@@ -604,36 +686,42 @@ namespace ai
 #endif
     };
 
+    // 施放割伤动作
     class CastLacerateAction : public CastMeleeSpellAction
     {
     public:
         CastLacerateAction(PlayerbotAI* ai) : CastMeleeSpellAction(ai, "lacerate") {}
     };
 
+    // 施放重击动作
     class CastBashOnEnemyHealerAction : public CastSpellOnEnemyHealerAction
     {
     public:
         CastBashOnEnemyHealerAction(PlayerbotAI* ai) : CastSpellOnEnemyHealerAction(ai, "bash") {}
     };
 
+    // 施放狂暴回复动作
     class CastFrenziedRegenerationAction : public CastBuffSpellAction
     {
     public:
         CastFrenziedRegenerationAction(PlayerbotAI* ai) : CastBuffSpellAction(ai, "frenzied regeneration") {}
     };
 
+    // 施放挑战咆哮动作
     class CastChallengingRoarAction : public CastMeleeSpellAction
     {
     public:
         CastChallengingRoarAction(PlayerbotAI* ai) : CastMeleeSpellAction(ai, "challenging roar") {}
     };
 
+    // 施放狂怒动作
     class CastEnrageAction : public CastBuffSpellAction
     {
     public:
         CastEnrageAction(PlayerbotAI* ai) : CastBuffSpellAction(ai, "enrage") {}
     };
 
+    // 施放生命绽放动作
     class CastLifebloomAction : public CastSpellAction
     {
     public:
@@ -642,6 +730,7 @@ namespace ai
         std::string GetTargetName() override { return "party tank without lifebloom"; }
     };
 
+    // 施放更新PVE策略动作
     class UpdateDruidPveStrategiesAction : public UpdateStrategyDependenciesAction
     {
     public:
@@ -773,6 +862,7 @@ namespace ai
         }
     };
 
+    // 施放更新PVP策略动作
     class UpdateDruidPvpStrategiesAction : public UpdateStrategyDependenciesAction
     {
     public:
@@ -904,6 +994,7 @@ namespace ai
         }
     };
 
+    // 施放更新团队副本策略动作
     class UpdateDruidRaidStrategiesAction : public UpdateStrategyDependenciesAction
     {
     public:

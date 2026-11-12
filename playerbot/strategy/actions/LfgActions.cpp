@@ -6,12 +6,14 @@
 
 using namespace ai;
 
+/// 执行动作主逻辑（加入地下城查找器排队动作）
 bool LfgJoinAction::Execute(Event& event)
 {
     return JoinLFG();
 }
 
 #ifdef MANGOSBOT_TWO
+/// 获取机器人当前的地下城查找器职责标识
 LfgRoles LfgJoinAction::GetRoles()
 {
     if (!sRandomPlayerbotMgr.IsRandomBot(bot))
@@ -78,6 +80,7 @@ LfgRoles LfgJoinAction::GetRoles()
 }
 #endif
 
+/// 根据职业与天赋设置机器人在 LFG 中的职责标识
 bool LfgJoinAction::SetRoles()
 {
 #ifdef MANGOSBOT_TWO_UNUSED
@@ -87,6 +90,7 @@ bool LfgJoinAction::SetRoles()
     return true;
 }
 
+/// 向地下城查找器提交排队请求
 bool LfgJoinAction::JoinLFG()
 {
 #ifdef MANGOSBOT_ZERO
@@ -109,7 +113,7 @@ bool LfgJoinAction::JoinLFG()
         uint32 dungeonId = (*i & 0xFFFF);
         zoneId = ((*i >> 16) & 0xFFFF);
 
-        // join only if close to closest graveyard
+        // join only if close to closest graveyard (仅当靠近最近墓地时加入)
         if (zoneId)
         {
             WorldSafeLocsEntry const* ClosestGrave = nullptr;
@@ -196,8 +200,8 @@ bool LfgJoinAction::JoinLFG()
     if (grouperType == GrouperType::SOLO)
         return false;
 
-    bool isLFG = false; // member
-    bool isLFM = false; // leader
+    bool isLFG = false; // member (成员)
+    bool isLFM = false; // leader (队长)
 
     if (grouperType == GrouperType::MEMBER)
         isLFG = true;
@@ -207,13 +211,13 @@ bool LfgJoinAction::JoinLFG()
 
     Group* group = bot->GetGroup();
 
-    // don't use lfg if already has group
+    // don't use lfg if already has group (已有队伍时不使用自动寻队)
     if (isLFG && group)
         return false;
 
     needMembers = uint8(grouperType) - 1;
 
-    // don't use lfg if not leader or group has enough members
+    // don't use lfg if not leader or group has enough members (非队长或队伍人数已足够时不使用寻队)
     if (isLFM && group)
     {
         if (group->IsFull())
@@ -236,7 +240,7 @@ bool LfgJoinAction::JoinLFG()
     {
         state = target->GetTravelState();
         status = target->GetStatus();
-        // queue only if quest not completed
+        // queue only if quest not completed (仅在任务尚未完成时加入队列)
         if (state < TravelState::TRAVEL_STATE_TRAVEL_HAND_IN_QUEST)
         {
             if (typeid(*target) == typeid(QuestTravelDestination))
@@ -244,7 +248,7 @@ bool LfgJoinAction::JoinLFG()
                 Quest const* qinfo = sObjectMgr.GetQuestTemplate(((QuestTravelDestination*)target->GetDestination())->GetQuestId());
                 if (qinfo)
                 {
-                    // only group quests are allowed for quest lfg
+                    // only group quests are allowed for quest lfg (任务寻队仅限组队/精英任务)
                     if (qinfo->GetType() == QUEST_TYPE_ELITE)
                         groupQ = true;
 
@@ -264,11 +268,11 @@ bool LfgJoinAction::JoinLFG()
         zoneName = areaEntry->area_name[0];
     }*/
 
-    // only use lfg zone if current quest leads there
+    // only use lfg zone if current quest leads there (仅当当前任务指向该区域时使用区域 LFG)
     if (questZoneLFG)
     {
         AreaTableEntry const* areaEntry = GetAreaEntryByAreaID(questZoneLFG);
-        // check if area has no parent zone
+        // check if area has no parent zone (检查区域是否没有父级区域)
         if (areaEntry && !areaEntry->zone)
         {
             zoneLFG = areaEntry->ID;
@@ -278,7 +282,7 @@ bool LfgJoinAction::JoinLFG()
     else if (!bot->IsTaxiFlying())
     {
         AreaTableEntry const* areaEntry = GetAreaEntryByAreaID(bot->GetZoneId());
-        // check if area has no parent zone
+        // check if area has no parent zone (检查区域是否没有父级区域)
         if (areaEntry && !areaEntry->zone)
         {
             zoneLFG = areaEntry->ID;
@@ -291,7 +295,7 @@ bool LfgJoinAction::JoinLFG()
     // if bot wants to lead
     if (isLFM)
     {
-        // lfm for current elite quest
+        // lfm for current elite quest (LFM 招人：针对当前精英任务)
         if (questLFG && groupQ)
         {
             lfgType = LFG_TYPE_QUEST;
@@ -303,7 +307,7 @@ bool LfgJoinAction::JoinLFG()
             bot->GetSession()->HandleLfmClearAutoFillOpcode(p);
             joinedLFG = true;
         }
-        // lfm for current quest zone or just current zone
+        // lfm for current quest zone or just current zone (LFM 招人：针对当前任务区域或所在区域)
         else if (zoneLFG && (questZoneLFG || (status >= TravelStatus::TRAVEL_STATUS_COOLDOWN || state >= TravelState::TRAVEL_STATE_TRAVEL_HAND_IN_QUEST || (state == TravelState::TRAVEL_STATE_IDLE && !urand(0, 4)))))
         {
             for (uint32 i = 0; i < sLFGDungeonStore.GetNumRows(); ++i)
@@ -314,13 +318,13 @@ bool LfgJoinAction::JoinLFG()
                         continue;
                     if (dungeon->minlevel > bot->GetLevel())
                         continue;
-                    // skip enemy faction
+                    // skip enemy faction (跳过敌对阵营)
                     if (dungeon->faction == 0 && bot->GetTeam() == ALLIANCE)
                         continue;
                     if (dungeon->faction == 1 && bot->GetTeam() == HORDE)
                         continue;
 
-                    // check by zone name...
+                    // check by zone name... (按区域名称检查...)
                     if (dungeon->name[0] == zoneName)
                     {
                         lfgType = LFG_TYPE_ZONE;
@@ -336,7 +340,7 @@ bool LfgJoinAction::JoinLFG()
                 }
             }
         }
-        // lfm for random dungeon if nothing else to do
+        // lfm for random dungeon if nothing else to do (LFM 招人：无其他事务时招人打随机副本)
         else if (status >= TravelStatus::TRAVEL_STATUS_COOLDOWN || state >= TravelState::TRAVEL_STATE_TRAVEL_HAND_IN_QUEST || (state == TravelState::TRAVEL_STATE_IDLE && !urand(0, 4)))
         {
             std::vector<uint32> dungeons;
@@ -349,11 +353,11 @@ bool LfgJoinAction::JoinLFG()
                     if (dungeon->minlevel > bot->GetLevel())
                         continue;
 
-                    // only normal dungeons
+                    // only normal dungeons (仅限普通难度地下城)
                     if (dungeon->type != 1)
                         continue;
 
-                    // skip enemy faction
+                    // skip enemy faction (跳过敌对阵营)
                     if (dungeon->faction == 0 && bot->GetTeam() == ALLIANCE)
                         continue;
                     if (dungeon->faction == 1 && bot->GetTeam() == HORDE)
@@ -378,7 +382,7 @@ bool LfgJoinAction::JoinLFG()
                 }
             }
         }
-        // try to LFM for current dungeon
+        // try to LFM for current dungeon (尝试为当前地下城招人（LFM）)
         if (target && group && !group->IsFull())
         {
             // if moving to boss
@@ -405,17 +409,17 @@ bool LfgJoinAction::JoinLFG()
                                     if (dungeon->minlevel > bot->GetLevel())
                                         continue;
 
-                                    // only normal dungeons
+                                    // only normal dungeons (仅限普通难度地下城)
                                     if (dungeon->type != 1)
                                         continue;
 
-                                    // skip enemy faction
+                                    // skip enemy faction (跳过敌对阵营)
                                     if (dungeon->faction == 0 && bot->GetTeam() == ALLIANCE)
                                         continue;
                                     if (dungeon->faction == 1 && bot->GetTeam() == HORDE)
                                         continue;
 
-                                    // check by zone name, doesn't work for some dungeons
+                                    // check by zone name, doesn't work for some dungeons (按区域名称检查（部分副本不适用）)
                                     if (dungeon->name[0] == areaEntry->area_name[0])
                                     {
                                         lfgType = LFG_TYPE_DUNGEON;
@@ -426,7 +430,7 @@ bool LfgJoinAction::JoinLFG()
                                         bot->GetSession()->HandleSetLfmOpcode(p);
                                         bot->GetSession()->HandleLfmSetAutoFillOpcode(p);
 
-                                        // set auto invite if real player in queue
+                                        // set auto invite if real player in queue (队列中有真实玩家时开启自动邀请)
                                         std::vector<uint32> player_dungeons = sRandomPlayerbotMgr.LfgDungeons[bot->GetTeam()];
                                         if (!player_dungeons.empty())
                                         {
@@ -437,11 +441,11 @@ bool LfgJoinAction::JoinLFG()
                                                 uint32 type = ((*i >> 8) & 0xFFFF);
                                                 zoneId = ((*i >> 16) & 0xFFFF);
 
-                                                // only lfg
+                                                // only lfg (仅使用 LFG 队列)
                                                 if (type != 0)
                                                     continue;
 
-                                                // join only if close to closest graveyard
+                                                // join only if close to closest graveyard (仅当靠近最近墓地时加入)
                                                 if (zoneId)
                                                 {
                                                     WorldSafeLocsEntry const* ClosestGrave = nullptr;
@@ -487,7 +491,7 @@ bool LfgJoinAction::JoinLFG()
             }
         }
         
-        // set auto invite if real player in queue 
+        // set auto invite if real player in queue (队列中有真实玩家时开启自动邀请)
         std::vector<uint32> player_dungeons = sRandomPlayerbotMgr.LfgDungeons[bot->GetTeam()];
         if (!player_dungeons.empty() && !group)
         {
@@ -498,11 +502,11 @@ bool LfgJoinAction::JoinLFG()
                 uint32 type = ((*i & 0xFFFF) >> 8);
                 zoneId = (*i >> 16) & 0xFFFF;
 
-                // leader only queue if player is lfg, not lfm
+                // leader only queue if player is lfg, not lfm (仅当玩家处于求组（LFG）而非招人（LFM）状态时由队长排队)
                 if (type != 0)
                     continue;
 
-                // join only if close to closest graveyard
+                // join only if close to closest graveyard (仅当靠近最近墓地时加入)
                 if (zoneId)
                 {
                     WorldSafeLocsEntry const* ClosestGrave = nullptr;
@@ -535,11 +539,11 @@ bool LfgJoinAction::JoinLFG()
                     if (player_dungeon->minlevel > bot->GetLevel())
                         continue;
 
-                    // only normal dungeons
+                    // only normal dungeons (仅限普通难度地下城)
                     if (player_dungeon->type != 1)
                         continue;
 
-                    // skip enemy faction
+                    // skip enemy faction (跳过敌对阵营)
                     if (player_dungeon->faction == 0 && bot->GetTeam() == ALLIANCE)
                         continue;
                     if (player_dungeon->faction == 1 && bot->GetTeam() == HORDE)
@@ -559,23 +563,23 @@ bool LfgJoinAction::JoinLFG()
             }
         }
     }
-    else if (isLFG) // bot is alone and looks for group
+    else if (isLFG) // bot is alone and looks for group (机器人当前独处，正在寻找队伍)
     {
-        // lfg slot 1 for current elite quest
+        // lfg slot 1 for current elite quest (LFG 槽位 1：用于当前精英任务)
         if (questLFG && groupQ)
         {
             lfgType = LFG_TYPE_QUEST;
             lfgName = questName;
             WorldPacket p;
-            p << uint32(0); // lfg slot
+            p << uint32(0); // lfg slot (LFG 队列槽位)
             uint32 temp = questLFG | (lfgType << 24);
             p << temp;
             bot->GetSession()->HandleSetLfgOpcode(p);
             bot->GetSession()->HandleLfgClearAutoJoinOpcode(p);
             joinedLFG = true;
         }
-        // lfg slot 2 for current quest zone or just current zone
-        if (zoneLFG && (questZoneLFG || (status >= TravelStatus::TRAVEL_STATUS_COOLDOWN || state >= TravelState::TRAVEL_STATE_TRAVEL_HAND_IN_QUEST || (state == TravelState::TRAVEL_STATE_IDLE && !urand(0, 4))))) // use second lfg slot for zone lfg
+        // lfg slot 2 for current quest zone or just current zone (LFG 槽位 2：用于当前任务区域或所在区域)
+        if (zoneLFG && (questZoneLFG || (status >= TravelStatus::TRAVEL_STATUS_COOLDOWN || state >= TravelState::TRAVEL_STATE_TRAVEL_HAND_IN_QUEST || (state == TravelState::TRAVEL_STATE_IDLE && !urand(0, 4))))) // use second lfg slot for zone lfg (使用第二个 LFG 槽位进行区域寻队)
         {
             for (uint32 i = 0; i < sLFGDungeonStore.GetNumRows(); ++i)
             {
@@ -586,19 +590,19 @@ bool LfgJoinAction::JoinLFG()
                     if (dungeon->minlevel > bot->GetLevel())
                         continue;
 
-                    // skip enemy faction
+                    // skip enemy faction (跳过敌对阵营)
                     if (dungeon->faction == 0 && bot->GetTeam() == ALLIANCE)
                         continue;
                     if (dungeon->faction == 1 && bot->GetTeam() == HORDE)
                         continue;
 
-                    // check by zone name...
+                    // check by zone name... (按区域名称检查...)
                     if (dungeon->name[0] == zoneName)
                     {
                         lfgType = LFG_TYPE_ZONE;
                         lfgName = zoneName;
                         WorldPacket p;
-                        p << uint32(1); // lfg slot
+                        p << uint32(1); // lfg slot (LFG 队列槽位)
                         uint32 temp = dungeon->ID | (lfgType << 24);
                         p << temp;
                         bot->GetSession()->HandleSetLfgOpcode(p);
@@ -609,7 +613,7 @@ bool LfgJoinAction::JoinLFG()
                 }
             }
         }
-        // lfg for dungeon if real player used LFM with auto invite
+        // lfg for dungeon if real player used LFM with auto invite (若真实玩家开启自动邀请招人（LFM），则自动排队匹配该副本)
         std::vector<uint32> player_dungeons = sRandomPlayerbotMgr.LfgDungeons[bot->GetTeam()];
         if (!player_dungeons.empty())
         {
@@ -620,11 +624,11 @@ bool LfgJoinAction::JoinLFG()
                 uint32 type = ((*i & 0xFFFF) >> 8);
                 zoneId = (*i >> 16) & 0xFFFF;
 
-                // members queue only if player is lfm, not lfg
+                // members queue only if player is lfm, not lfg (仅当玩家处于 LFM 状态时队员才排队)
                 if (type != 1)
                     continue;
 
-                // join only if close to closest graveyard
+                // join only if close to closest graveyard (仅当靠近最近墓地时加入)
                 if (zoneId)
                 {
                     WorldSafeLocsEntry const* ClosestGrave = nullptr;
@@ -657,11 +661,11 @@ bool LfgJoinAction::JoinLFG()
                     if (player_dungeon->minlevel > bot->GetLevel())
                         continue;
 
-                    // only normal dungeons
+                    // only normal dungeons (仅限普通难度地下城)
                     //if (player_dungeon->type != 1)
                     //    continue;
 
-                    // skip enemy faction
+                    // skip enemy faction (跳过敌对阵营)
                     if (player_dungeon->faction == 0 && bot->GetTeam() == ALLIANCE)
                         continue;
                     if (player_dungeon->faction == 1 && bot->GetTeam() == HORDE)
@@ -670,7 +674,7 @@ bool LfgJoinAction::JoinLFG()
                     lfgType = LFG_TYPE_DUNGEON;
                     lfgName = player_dungeon->name[0];
                     WorldPacket p;
-                    p << uint32(2); // lfg slot
+                    p << uint32(2); // lfg slot (LFG 队列槽位)
                     uint32 temp = player_dungeon->ID | (lfgType << 24);
                     p << temp;
                     bot->GetSession()->HandleSetLfgOpcode(p);
@@ -681,7 +685,7 @@ bool LfgJoinAction::JoinLFG()
                 }
             }
         }
-        // lfg slot 3 for random dungeon if not very busy
+        // lfg slot 3 for random dungeon if not very busy (LFG 槽位 3：空闲时用于随机地下城)
         else if (status >= TravelStatus::TRAVEL_STATUS_COOLDOWN || state >= TravelState::TRAVEL_STATE_TRAVEL_HAND_IN_QUEST || (state == TravelState::TRAVEL_STATE_IDLE && !urand(0, 4)))
         {
             std::vector<uint32> dungeons;
@@ -694,11 +698,11 @@ bool LfgJoinAction::JoinLFG()
                     if (dungeon->minlevel > bot->GetLevel())
                         continue;
 
-                    // only normal dungeons
+                    // only normal dungeons (仅限普通难度地下城)
                     if (dungeon->type != 1)
                         continue;
 
-                    // skip enemy faction
+                    // skip enemy faction (跳过敌对阵营)
                     if (dungeon->faction == 0 && bot->GetTeam() == ALLIANCE)
                         continue;
                     if (dungeon->faction == 1 && bot->GetTeam() == HORDE)
@@ -715,13 +719,13 @@ bool LfgJoinAction::JoinLFG()
                     lfgType = LFG_TYPE_DUNGEON;
                     lfgName = dungeon->name[0];
                     WorldPacket p;
-                    p << uint32(2); // lfg slot
+                    p << uint32(2); // lfg slot (LFG 队列槽位)
                     uint32 temp = dungeon->ID | (lfgType << 24);
                     p << temp;
                     bot->GetSession()->HandleSetLfgOpcode(p);
                     bot->GetSession()->HandleLfgClearAutoJoinOpcode(p);
 
-                    // set auto invite if real players in queue
+                    // set auto invite if real players in queue (队列中有真实玩家时开启自动邀请)
                     /*vector<uint32> player_dungeons = sRandomPlayerbotMgr.LfgDungeons[bot->GetTeam()];
                     if (!player_dungeons.empty())
                     {
@@ -756,7 +760,7 @@ bool LfgJoinAction::JoinLFG()
     if (!joinedLFG)
         return false;
 
-    // set comment
+    // set comment (设置备注信息)
     BotRoles botRoles = AiFactory::GetPlayerRoles(bot);
     std::string _botRoles;
     switch (botRoles)
@@ -814,7 +818,7 @@ bool LfgJoinAction::JoinLFG()
 #ifdef MANGOSBOT_TWO
     LFGData pState = bot->GetLfgData();
 
-    // check if already in lfg
+    // check if already in lfg (检查是否已在地下城查找器队列中)
     if (!pState.GetListedDungeonSet().empty())
         return false;
 
@@ -890,7 +894,7 @@ bool LfgJoinAction::JoinLFG()
     if (std::list.empty() && !random)
         return false;*/
 
-    // check role for console msg
+    // check role for console msg (检查用于控制台日志显示的职责)
     std::string _roles = "multiple roles";
 
     if ((pState.GetPlayerRoles() & PLAYER_ROLE_TANK) != 0)
@@ -959,7 +963,7 @@ bool LfgJoinAction::JoinLFG()
         sLog.outDetail("Bot #%d %s:%d <%s>: queues LFG, Dungeon as %s (%s)", bot->GetGUIDLow(), bot->GetTeam() == ALLIANCE ? "A" : "H", bot->GetLevel(), bot->GetName(), _roles, many ? "several dungeons" : dungeon->name[0]);
     }*/
 
-    // Set Raid Browser comment
+    // Set Raid Browser comment (设置团队查找器备注说明)
     std::string _gs = std::to_string(bot->GetEquipGearScore());
     std::string comment = "Bot " + _roles + " GS:" + _gs + " for LFG";
     sLFGMgr.JoinLfg(bot, GetRoles(), list, comment);
@@ -967,6 +971,7 @@ bool LfgJoinAction::JoinLFG()
     return true;
 }
 
+/// 执行动作主逻辑（LFG 职责确认动作）
 bool LfgRoleCheckAction::Execute(Event& event)
 {
 #ifdef MANGOSBOT_TWO
@@ -989,6 +994,7 @@ bool LfgRoleCheckAction::Execute(Event& event)
     return false;
 }
 
+/// 执行动作主逻辑（接受地下城查找器邀请动作）
 bool LfgAcceptAction::Execute(Event& event)
 {
 #ifdef MANGOSBOT_TWO
@@ -1043,6 +1049,7 @@ bool LfgAcceptAction::Execute(Event& event)
         return true;
     }
 
+    // 解析事件携带的网络封包数据
     WorldPacket p(event.getPacket());
 
     uint32 dungeon;
@@ -1054,9 +1061,10 @@ bool LfgAcceptAction::Execute(Event& event)
     return true;
 }
 
+/// 执行动作主逻辑（离开 LFG 队列动作）
 bool LfgLeaveAction::Execute(Event& event)
 {
-    // Don't leave if lfg strategy enabled
+    // Don't leave if lfg strategy enabled (若启用了 LFG 策略则不要离开队列)
     //if (ai->HasStrategy("lfg", BotState::BOT_STATE_NON_COMBAT))
     //    return false;
 #ifdef MANGOSBOT_ZERO
@@ -1097,7 +1105,7 @@ bool LfgLeaveAction::Execute(Event& event)
     */
 #endif
 #ifdef MANGOSBOT_TWO
-    // Don't leave if already invited / in dungeon
+    // Don't leave if already invited / in dungeon (若已收到副本邀请或已身处副本内，则不离开队列)
     if (bot->GetLfgData().GetState() > LFG_STATE_QUEUED)
         return false;
 
@@ -1106,6 +1114,7 @@ bool LfgLeaveAction::Execute(Event& event)
     return true;
 }
 
+/// 判断当前状态下该动作是否可用/有效（离开 LFG 队列动作）
 bool LfgLeaveAction::isUseful()
 {
 #ifdef MANGOSBOT_ZERO
@@ -1133,11 +1142,13 @@ bool LfgLeaveAction::isUseful()
     return true;
 }
 
+/// 执行动作主逻辑（LFG 副本传送动作）
 bool LfgTeleportAction::Execute(Event& event)
 {
 #ifdef MANGOSBOT_TWO
     bool out = false;
 
+    // 解析事件携带的网络封包数据
     WorldPacket p(event.getPacket());
     if (!p.empty())
     {
@@ -1151,6 +1162,7 @@ bool LfgTeleportAction::Execute(Event& event)
     return true;
 }
 
+/// 判断当前状态下该动作是否可用/有效（加入地下城查找器排队动作）
 bool LfgJoinAction::isUseful()
 {
     if (!sPlayerbotAIConfig.randomBotJoinLfg)
@@ -1164,7 +1176,7 @@ bool LfgJoinAction::isUseful()
         return false;
 #endif
 
-    // don't use if active player master
+    // don't use if active player master (存在活跃真实玩家主人时不使用)
     if (ai->HasRealPlayerMaster())
         return false;
 

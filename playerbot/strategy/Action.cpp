@@ -7,6 +7,7 @@
 
 using namespace ai;
 
+// 计算以 NULL 结尾的 NextAction 指针数组长度
 int NextAction::size(NextAction** actions)
 {
     if (!actions)
@@ -18,6 +19,7 @@ int NextAction::size(NextAction** actions)
     return size;
 }
 
+// 深拷贝 NextAction 指针数组
 NextAction** NextAction::clone(NextAction** actions)
 {
     if (!actions)
@@ -32,6 +34,7 @@ NextAction** NextAction::clone(NextAction** actions)
     return res;
 }
 
+// 合并两个 NextAction 数组并释放原数组内存
 NextAction** NextAction::merge(NextAction** left, NextAction** right)
 {
     int leftSize = NextAction::size(left);
@@ -51,6 +54,7 @@ NextAction** NextAction::merge(NextAction** left, NextAction** right)
 }
 
 //NextAction** NextAction::array(uint8 nil, ...)
+// 从可变参数构造以 NULL 结尾的 NextAction 指针数组
 NextAction** NextAction::array(uint32 n, ...)
 {
     va_list vl;
@@ -76,6 +80,7 @@ NextAction** NextAction::array(uint32 n, ...)
     return res;
 }
 
+// 释放 NextAction 数组中所有对象及数组本身
 void NextAction::destroy(NextAction** actions)
 {
     if (!actions)
@@ -87,11 +92,13 @@ void NextAction::destroy(NextAction** actions)
     delete[] actions;
 }
 
+// 从 AI 上下文获取动作默认目标 GUID 的 Value 对象
 Value<ObjectGuid>* Action::GetTargetValue()
 {
     return context->GetValue<ObjectGuid>(GetTargetName());
 }
 
+// 解析动作默认目标 GUID 为 Unit 指针
 Unit* Action::GetTarget()
 {
     return bot->GetPlayerbotAI()->GetUnit(GetTargetValue()->Get());

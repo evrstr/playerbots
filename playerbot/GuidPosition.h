@@ -3,6 +3,7 @@
 
 namespace ai
 {
+    /// 同时封装 ObjectGuid 与 WorldPosition 的复合定位对象，支持实体查找、阵营声望及事件/对象池查询
     class GuidPosition : public ObjectGuid, public WorldPosition
     {
     public:
@@ -19,6 +20,7 @@ namespace ai
         GuidPosition(HighGuid hi, uint32 entry, uint32 counter = 1, WorldPosition pos = WorldPosition()) : ObjectGuid(hi, entry, counter), WorldPosition(pos) {};
         GuidPosition(std::string qualifier);
 
+        /// 字符串构造模式掩码
         enum CreationMask
         {
             NONE = 0,
@@ -63,7 +65,7 @@ namespace ai
         bool IsFriendlyTo(WorldObject* object) { return IsFriendlyTo(GuidPosition(object), object->GetInstanceId()); }
         bool IsHostileTo(const WorldObject* object) { return IsHostileTo(GuidPosition(object), object->GetInstanceId()); }
 
-        bool isDead(uint32 instanceId); //For loaded grids check if the unit/object is unloaded/dead.
+        bool isDead(uint32 instanceId); //For loaded grids check if the unit/object is unloaded/dead. (在已加载网格中检测单位/物体是否死亡或已消失)
 
         uint16 IsPartOfAPool();
         uint16 GetGameEventId();
@@ -99,6 +101,7 @@ namespace ai
         return b;
     }
 
+    /// 异步地图计算用的 GuidPosition 扩展，支持预缓存区域标志(areaFlag)
     class AsyncGuidPosition : public GuidPosition
     {
     public:

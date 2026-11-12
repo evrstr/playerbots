@@ -2,10 +2,12 @@
 
 #include "Config/Config.h"
 
+/// 拍卖行机器人配置管理类，负责读取 ahbot.conf 并缓存分类与价格倍率参数
 class AhBotConfig
 {
 public:
     AhBotConfig();
+    /// 获取 AhBotConfig 单例引用
     static AhBotConfig& instance()
     {
         static AhBotConfig instance;
@@ -13,6 +15,7 @@ public:
     }
 
 public:
+    /// 从 ahbot.conf 加载所有全局及默认配置项
     bool Initialize();
 
     bool enabled;
@@ -30,26 +33,31 @@ public:
     std::set<uint32> ignoreVendorItemIds;
     bool sendmail;
 
+    /// 获取指定分类的出售价格倍率
     float GetSellPriceMultiplier(std::string category)
     {
         return GetCategoryParameter(sellPriceMultipliers, "PriceMultiplier.Sell", category, 1.0f);
     }
 
+    /// 获取指定分类的收购价格倍率
     float GetBuyPriceMultiplier(std::string category)
     {
         return GetCategoryParameter(buyPriceMultipliers, "PriceMultiplier.Buy", category, 1.0f);
     }
 
+    /// 获取指定物品名称的价格倍率
     float GetItemPriceMultiplier(std::string name)
     {
         return GetCategoryParameter(itemPriceMultipliers, "PriceMultiplier.Item", name, 1.0f);
     }
 
+    /// 获取指定分类在拍卖行允许的最大总上架数量
     int32 GetMaxAllowedAuctionCount(std::string category, int32 default_value)
     {
         return (int32)GetCategoryParameter(maxAuctionCount, "MaxAuctionCount", category, default_value);
     }
 
+    /// 获取指定分类下单个物品允许的最大同时上架数量
     int32 GetMaxAllowedItemAuctionCount(std::string category, int32 default_value)
     {
         return (int32)GetCategoryParameter(maxItemAuctionCount, "MaxItemTypeCount", category, default_value);
@@ -76,6 +84,7 @@ public:
     }
 
 private:
+    /// 读取并缓存基于分类名动态拼接的配置项浮点值
     float GetCategoryParameter(std::map<std::string, float>& cache, std::string type, std::string category, float defaultValue)
     {
         if (cache.find(category) == cache.end())

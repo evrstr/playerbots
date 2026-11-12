@@ -1,3 +1,4 @@
+// 策略值实现：EnemyHealerTargetValue（敌方治疗施法者识别）
 
 #include "playerbot/playerbot.h"
 #include "EnemyHealerTargetValue.h"
@@ -6,6 +7,7 @@
 
 using namespace ai;
 
+// 遍历可能攻击目标，筛选出非当前目标、在施法距离内且正在引导或读条正向法术的可打断敌人
 ObjectGuid EnemyHealerTargetValue::Calculate()
 {
     std::string spell = qualifier;

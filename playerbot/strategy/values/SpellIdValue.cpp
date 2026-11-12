@@ -1,3 +1,4 @@
+// 策略值实现：SpellIdValue（玩家/宠物法术名称匹配、降级策略与载具技能解析）
 
 #include "playerbot/playerbot.h"
 #include "SpellIdValue.h"
@@ -9,14 +10,17 @@
 
 using namespace ai;
 
+// 构造函数：设置 10 秒缓存间隔并启用限定符
 SpellIdValue::SpellIdValue(PlayerbotAI* ai) : CalculatedValue<uint32>(ai, "spell id", 10), Qualified()
 {
 }
 
+// 构造函数：初始化载具技能 ID 计算器
 VehicleSpellIdValue::VehicleSpellIdValue(PlayerbotAI* ai) : CalculatedValue<uint32>(ai, "vehicle spell id"), Qualified()
 {
 }
 
+// 匹配机器人及宠物已学会的同名法术，结合法力保留等级（mana save level）挑选最高或合适等级法术
 uint32 SpellIdValue::Calculate()
 {
     std::string namepart = qualifier;
@@ -38,7 +42,7 @@ uint32 SpellIdValue::Calculate()
 
     if (ids.empty())
     {
-        //sLog.outError("Please add spell %s to spell list", namepart.c_str());
+        //sLog.outError("Please add spell %s to spell list", namepart.c_str()); | 可选调试日志：未找到法术名称记录
         if (!Utf8toWStr(namepart, wnamepart))
             return 0;
 
@@ -131,8 +135,8 @@ uint32 SpellIdValue::Calculate()
     int highestSpellId = 0;
     int lowestRank = 0;
     int lowestSpellId = 0;
-    // Bots shouldn't derank buff spells (Fortitude, Mark of the Wild, Totems, Blessings etc.)
-    // Quickest way is instant and not damage or healing
+    // Bots shouldn't derank buff spells (Fortitude, Mark of the Wild, Totems, Blessings etc.) | 机器人不应降级施放增益类法术（如韧性、野性印记、图腾、祝福等）
+    // Quickest way is instant and not damage or healing | 快速判定方式为瞬发且非伤害/治疗类法术
     bool isBuff = false;
 
     for (std::set<uint32>::reverse_iterator itr = spellIds.rbegin(); itr != spellIds.rend(); ++itr)
@@ -170,14 +174,14 @@ uint32 SpellIdValue::Calculate()
 
             std::string spellName = pSpellInfo->Rank[0];
 
-            // For atoi, the input std::string has to start with a digit, so lets search for the first digit
+            // For atoi, the input std::string has to start with a digit, so lets search for the first digit | atoi 需要以数字开头，因此先定位第一个数字字符
             size_t i = 0;
             for (; i < spellName.length(); i++) { if (isdigit(spellName[i])) break; }
 
-            // remove the first chars, which aren't digits
+            // remove the first chars, which aren't digits | 去除前面的非数字前缀字符
             spellName = spellName.substr(i, spellName.length() - i);
 
-            // convert the remaining text to an integer
+            // convert the remaining text to an integer | 将剩余的等级编号文本转为整数
             int id = atoi(spellName.c_str());
 
             if (!id)
@@ -214,6 +218,7 @@ uint32 SpellIdValue::Calculate()
     return saveMana > 1 && !isBuff ? lowestSpellId : highestSpellId;
 }
 
+// 在当前搭乘载具的魅力法术栏中按名称查找匹配的技能 ID
 uint32 VehicleSpellIdValue::Calculate()
 {
 #ifdef MANGOSBOT_TWO
@@ -225,7 +230,7 @@ uint32 VehicleSpellIdValue::Calculate()
     if (!vehicle || !vehicle->IsAlive())
         return 0;
 
-    // do not allow if no spells
+    // do not allow if no spells | 载具无技能时直接返回 0
     VehicleSeatEntry const* seat = vehicle->GetVehicleInfo()->GetSeatEntry(transportInfo->GetTransportSeat());
     if (!seat || !seat->HasFlag(SEAT_FLAG_CAN_CAST))
         return 0;
@@ -251,7 +256,7 @@ uint32 VehicleSpellIdValue::Calculate()
 
     int loc = bot->GetSession()->GetSessionDbcLocale();
 
-    //Creature* creature = static_cast<Creature*>(vehicle);
+    //Creature* creature = static_cast<Creature*>(vehicle); | 注释保留：旧版载具指针转换写法
     std::vector<uint32> spells = vehicle->GetCharmSpells();
     for (uint32 x = 0; x < CREATURE_MAX_SPELLS; ++x)
     {

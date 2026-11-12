@@ -10,6 +10,7 @@
 using namespace ai;
 using namespace MaNGOS;
 
+// 从 "map|x|y|z|o|guid" 格式字符串解析 GuidPosition
 GuidPosition::GuidPosition(std::string qualifier)
 {
     std::stringstream b(qualifier);
@@ -27,6 +28,7 @@ GuidPosition::GuidPosition(std::string qualifier)
     ObjectGuid::Set(guid);
 }
 
+// 按指定掩码模式从坐标文本或传送点名称构造 GuidPosition
 GuidPosition::GuidPosition(CreationMask type, const std::string& qualifier, const WorldPosition& referencePos, uint32 instanceId)
 {
     if (type & CreationMask::COORDINATES)
@@ -123,13 +125,14 @@ const FactionTemplateEntry* GuidPosition::GetFactionTemplateEntry() const
     return nullptr;
 }
 
+// 计算当前实体对另一实体的声望敌对/友好关系（含玩家控场生物规则）
 const ReputationRank GuidPosition::GetReactionTo(const GuidPosition& other, uint32 instanceId) const
 {
     const FactionTemplateEntry* thisTemplate = GetFactionTemplateEntry();
     const FactionTemplateEntry* otherTemplate = other.GetFactionTemplateEntry();
 
     if (!thisTemplate || !otherTemplate)
-        return REP_FRIENDLY; // No faction data (e.g. charmed creature without faction): default to friendly, not a crash
+        return REP_FRIENDLY; // No faction data (e.g. charmed creature without faction): default to friendly, not a crash (无阵营数据时默认友好以避免空指针崩溃)
 
     if(other.IsUnit() && other.GetUnit(instanceId))
         if (other.GetUnit(instanceId)->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED))
@@ -168,6 +171,7 @@ const ReputationRank GuidPosition::GetReactionTo(const GuidPosition& other, uint
     return PlayerbotAI::GetFactionReaction(thisTemplate, otherTemplate);
 }
 
+// 检查对象在已加载地图网格中是否已死亡或不再存在于世界
 bool GuidPosition::isDead(uint32 instanceId)
 {
     if (!getMap(instanceId))
@@ -195,6 +199,7 @@ uint16 GuidPosition::IsPartOfAPool()
     return 0;
 }
 
+// 查询生物/物体及其所属对象池关联的游戏事件 ID
 uint16 GuidPosition::GetGameEventId()
 {
     if (uint16 pool_id = IsPartOfAPool())

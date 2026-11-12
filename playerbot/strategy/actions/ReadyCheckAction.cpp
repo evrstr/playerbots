@@ -6,6 +6,7 @@
 
 using namespace ai;
 
+/// 格式化输出名称、数值及其百分比文本
 std::string formatPercent(std::string name, uint8 value, float percent)
 {
     std::ostringstream out;
@@ -22,6 +23,7 @@ std::string formatPercent(std::string name, uint8 value, float percent)
     return out.str();
 }
 
+/// 就位检查条件基类：定义检查机器人是否已准备好开战的抽象接口
 class ReadyChecker
 {
 public:
@@ -34,6 +36,7 @@ public:
 
 std::list<ReadyChecker*> ReadyChecker::checkers;
 
+/// 生命值就位检查器：检查机器人生命值是否达到就位确认要求
 class HealthChecker : public ReadyChecker
 {
 public:
@@ -45,6 +48,7 @@ public:
     virtual std::string GetName() override { return "HP"; }
 };
 
+/// 法力值就位检查器：检查法系机器人法力值是否达到就位确认要求
 class ManaChecker : public ReadyChecker
 {
 public:
@@ -55,6 +59,7 @@ public:
     virtual std::string GetName() override { return "MP"; }
 };
 
+/// 距离就位检查器：检查机器人与队长之间的距离是否处于合理范围
 class DistanceChecker : public ReadyChecker
 {
 public:
@@ -77,6 +82,7 @@ public:
     virtual std::string GetName() override { return "Far away"; }
 };
 
+/// 猎人弹药与宠物就位检查器：检查猎人是否携带足够弹药且宠物存活
 class HunterChecker : public ReadyChecker
 {
 public:
@@ -112,6 +118,7 @@ public:
 };
 
 
+/// 物品数量就位检查器：检查特定消耗品数量是否满足团队准备要求
 class ItemCountChecker : public ReadyChecker
 {
 public:
@@ -128,6 +135,7 @@ private:
     std::string item, name;
 };
 
+/// 法力药水就位检查器：检查背包内法力药水储备是否充足
 class ManaPotionChecker : public ItemCountChecker
 {
 public:
@@ -139,6 +147,7 @@ public:
     }
 };
 
+/// 执行动作主逻辑（响应就位确认动作）
 bool ReadyCheckAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -152,9 +161,10 @@ bool ReadyCheckAction::Execute(Event& event)
             return false;
     }
 
-	return ReadyCheck(requester);
+    return ReadyCheck(requester);
 }
 
+/// 遍历并执行当前就位确认检查项的检测逻辑
 bool ReadyCheckAction::ReadyCheck(Player* requester)
 {
     if (ReadyChecker::checkers.empty())
@@ -209,6 +219,7 @@ bool ReadyCheckAction::ReadyCheck(Player* requester)
     return true;
 }
 
+/// 执行动作主逻辑（完成就位确认动作）
 bool FinishReadyCheckAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();

@@ -9,6 +9,7 @@ using namespace ai;
 
 std::map<std::string, MailProcessor*> MailAction::processors;
 
+/// 邮件播报处理器：遍历邮箱内容并向主人汇报邮件列表
 class TellMailProcessor : public MailProcessor
 {
 public:
@@ -72,6 +73,7 @@ private:
     std::list<std::string> tells;
 };
 
+/// 邮件提取处理器：自动收取邮件中包含的金币与附件物品
 class TakeMailProcessor : public MailProcessor
 {
 public:
@@ -151,7 +153,7 @@ public:
 
             RemoveMail(bot, mail->messageID, mailbox);
         }
-        else if (mail->sender < 10 && !ai->HasActivePlayerMaster()) //Remove empty mails from auctionhouse.
+        else if (mail->sender < 10 && !ai->HasActivePlayerMaster()) // Remove empty mails from auctionhouse. (清理来自拍卖行的空附件邮件。)
         {
             RemoveMail(bot, mail->messageID, mailbox);
         }
@@ -219,6 +221,7 @@ private:
     std::vector<std::string> items;
 };
 
+/// 邮件删除处理器：清理空邮件或已收取附件的过期邮件
 class DeleteMailProcessor : public MailProcessor
 {
 public:
@@ -234,6 +237,7 @@ public:
     static DeleteMailProcessor instance;
 };
 
+/// 邮件已读标记处理器：检查邮件并处理相关交互状态
 class ReadMailProcessor : public MailProcessor
 {
 public:
@@ -262,6 +266,7 @@ TakeMailProcessor TakeMailProcessor::instance;
 DeleteMailProcessor DeleteMailProcessor::instance;
 ReadMailProcessor ReadMailProcessor::instance;
 
+/// 执行动作主逻辑（邮件管理指令动作）
 bool MailAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -289,6 +294,7 @@ bool MailAction::Execute(Event& event)
         return false;
     }
 
+    // 按空格拆分命令行参数
     std::vector<std::string> ss = split(text, ' ');
     std::string action = ss[0];
     std::string filter = ss.size() > 1 ? ss[1] : "";
@@ -327,6 +333,7 @@ bool MailAction::Execute(Event& event)
     return processor->After(requester, ai);
 }
 
+/// 删除已读或空附件的邮件记录
 void MailProcessor::RemoveMail(Player* bot, uint32 id, ObjectGuid mailbox)
 {
     WorldPacket packet;
@@ -338,6 +345,7 @@ void MailProcessor::RemoveMail(Player* bot, uint32 id, ObjectGuid mailbox)
     bot->GetSession()->HandleMailDelete(packet);
 }
 
+/// 在附近搜索可用的邮箱游戏对象
 ObjectGuid MailProcessor::FindMailbox(PlayerbotAI* ai)
 {
     std::list<ObjectGuid> gos = *ai->GetAiObjectContext()->GetValue<std::list<ObjectGuid> >("nearest game objects no los");

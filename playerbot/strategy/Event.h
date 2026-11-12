@@ -7,9 +7,10 @@ class Player;
 
 namespace ai
 {
+    /// AI 触发事件封装类，携带事件源名称、文本参数、网络数据包及触发玩家指针
     class Event
-	{
-	public:
+    {
+    public:
         Event(Event const& other)
         {
             source = other.source;
@@ -24,7 +25,7 @@ namespace ai
         Event(std::string source, ObjectGuid object, Player* owner = NULL) : source(source), owner(owner) { packet << object; }
         virtual ~Event() {}
 
-	public:
+    public:
         std::string getSource() const { return source; }
         std::string getParam() { return param; }
         WorldPacket& getPacket() { return packet; }
@@ -37,5 +38,5 @@ namespace ai
         std::string param;
         WorldPacket packet;
         Player* owner = nullptr;
-	};
+    };
 }

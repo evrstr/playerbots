@@ -12,6 +12,7 @@
 
 using namespace ai;
 
+/// 执行动作主逻辑（交易状态响应动作）
 bool TradeStatusAction::Execute(Event& event)
 {
     Player* trader = bot->GetTrader();
@@ -38,6 +39,7 @@ bool TradeStatusAction::Execute(Event& event)
         return false;
     }
 
+    // 解析事件携带的网络封包数据
     WorldPacket p(event.getPacket());
     p.rpos(0);
     uint32 status;
@@ -46,7 +48,7 @@ bool TradeStatusAction::Execute(Event& event)
     if (status == TRADE_STATUS_TRADE_ACCEPT || (status == TRADE_STATUS_BACK_TO_TRADE && trader->GetTradeData() && trader->GetTradeData()->IsAccepted()))
     {
         WorldPacket p(CMSG_ACCEPT_TRADE, 4);
-        p << uint32(trader->GetTradeData()->GetServerStateIndex()); // the version of the trader's offer the bot accepts
+        p << uint32(trader->GetTradeData()->GetServerStateIndex()); // the version of the trader's offer the bot accepts (机器人确认接受对方交易报价的版本号)
 
         uint32 discount = sRandomPlayerbotMgr.GetTradeDiscount(bot, trader);
         if (CheckTrade())
@@ -54,8 +56,8 @@ bool TradeStatusAction::Execute(Event& event)
             int32 botMoney = CalculateCost(bot, true);
 
             std::map<uint32, uint32> givenItemIds, takenItemIds;
-            // the trade data may also be gone after a trade refused for lack of room:
-            // an offered item still held by its owner tells that the trade did not go through
+            // the trade data may also be gone after a trade refused for lack of room: (因背包空间不足被拒绝交易后，交易数据也可能已被清理：)
+            // an offered item still held by its owner tells that the trade did not go through (提供的物品仍在原持有者背包中，说明交易未能成交)
             ObjectGuid offeredItem;
             Player* offeredBy = nullptr;
             for (uint32 slot = 0; slot < TRADE_SLOT_TRADED_COUNT; ++slot)
@@ -125,6 +127,7 @@ bool TradeStatusAction::Execute(Event& event)
     return false;
 }
 
+/// 向目标玩家发起交易窗口请求
 void TradeStatusAction::BeginTrade()
 {
     Player* trader = bot->GetTrader();
@@ -151,6 +154,7 @@ void TradeStatusAction::BeginTrade()
     }
 }
 
+/// 校验当前交易窗口状态及双方放置的物品是否符合条件
 bool TradeStatusAction::CheckTrade()
 {
     Player* trader = bot->GetTrader();
@@ -181,7 +185,7 @@ bool TradeStatusAction::CheckTrade()
             }
         }
         
-        if (!isGettingItem) //Enchanting an item.
+        if (!isGettingItem) // Enchanting an item. (正在对物品施放附魔。)
             isGettingItem = (bot->GetTradeData()->GetItem(TRADE_SLOT_NONTRADED) && trader->GetTradeData()->GetSpell());
 
         if (isGettingItem)
@@ -304,6 +308,7 @@ bool TradeStatusAction::CheckTrade()
     return false;
 }
 
+/// 计算购买、修理或制造所需的总金币花费
 int32 TradeStatusAction::CalculateCost(Player* player, bool sell)
 {
     Player* trader = bot->GetTrader();

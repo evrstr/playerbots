@@ -7,12 +7,14 @@
 
 using namespace ai;
 
+/// 检查机器人是否装备了当前拉怪策略所需的远程武器或投掷武器
 static bool HasRequiredPullWeapon(Player* bot, PullStrategy* strategy)
 {
     const bool needsRanged = bot->getClass() == CLASS_HUNTER || strategy->GetPullActionName() == "shoot";
     return !needsRanged || bot->GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_RANGED);
 }
 
+/// 执行动作主逻辑（拉怪状态检查指令动作）
 bool PullCheckAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -98,6 +100,7 @@ bool PullCheckAction::Execute(Event& event)
     return true;
 }
 
+/// 执行动作主逻辑（拉怪请求基类动作）
 bool PullRequestAction::Execute(Event& event)
 {
     PullStrategy* strategy = PullStrategy::Get(ai);
@@ -136,7 +139,7 @@ bool PullRequestAction::Execute(Event& event)
         return false;
     }
 
-    //Set position to return to after pulling.
+    // Set position to return to after pulling. (记录拉怪结束后需要返回的位置。)
     PositionMap& posMap = AI_VALUE(PositionMap&, "position");
     PositionEntry pullPosition = posMap["pull"];
 
@@ -145,12 +148,13 @@ bool PullRequestAction::Execute(Event& event)
 
     strategy->RequestPull(target);
 
-    // Force change combat state to have a faster reaction time
+    // Force change combat state to have a faster reaction time (强制切换至战斗状态以提高反应速度)
     ai->OnCombatStarted();
 
     return true;
 }
 
+/// 获取当前动作的目标单位（拉取主人目标动作）
 Unit* PullMyTargetAction::GetTarget(Event& event)
 {
     Unit* target = nullptr;
@@ -169,11 +173,13 @@ Unit* PullMyTargetAction::GetTarget(Event& event)
     return target;
 }
 
+/// 获取当前动作的目标单位（拉取团队标记目标动作）
 Unit* PullRTITargetAction::GetTarget(Event& event)
 {
     return ai->GetUnit(AI_VALUE(ObjectGuid, "rti target"));
 }
 
+/// 执行动作主逻辑（开始拉怪动作）
 bool PullStartAction::Execute(Event& event)
 {
     bool result = false;
@@ -192,7 +198,7 @@ bool PullStartAction::Execute(Event& event)
                     SetDuration(3000);
             }
 
-            // Set the pet on passive mode during the pull
+            // Set the pet on passive mode during the pull (拉怪期间将宠物设为被动模式)
             Pet* pet = bot->GetPet();
             if (pet)
             {
@@ -212,11 +218,13 @@ bool PullStartAction::Execute(Event& event)
 }
 
 
+/// 构造函数：初始化执行拉怪动作
 PullAction::PullAction(PlayerbotAI* ai, std::string name) : CastSpellAction(ai, name)
 {
     InitPullAction();
 }
 
+/// 执行动作主逻辑（执行拉怪动作）
 bool PullAction::Execute(Event& event)
 {
     InitPullAction();
@@ -227,13 +235,13 @@ bool PullAction::Execute(Event& event)
         Unit* target = strategy->GetTarget();
         if (target)
         {
-            // Check if we are on pull range
+            // Check if we are on pull range (检查是否已进入拉怪射程范围内)
             const float distanceToTarget = target->GetDistance(bot);
             if (distanceToTarget <= strategy->GetRange())
             {
                 if (sServerFacade.isMoving(bot))
                 {
-                    // Force stop
+                    // Force stop (强制停止)
                     ai->StopMoving();
                     strategy->RequestPull(target, false);
                     return false;
@@ -241,11 +249,11 @@ bool PullAction::Execute(Event& event)
 
                 std::string actionName = strategy->GetPullActionName();
 
-                // Execute the pull action
+                // Execute the pull action (执行拉怪开怪动作)
                 SET_AI_VALUE(ObjectGuid, "current target", GetTarget()->GetObjectGuid());
                 if (ai->DoSpecificAction(actionName, event, true))
                 {
-                    strategy->RequestPull(target); //extend pull timer to walk back.
+                    strategy->RequestPull(target); // extend pull timer to walk back. (延长拉怪计时器以便走回安全位置。)
                     return true;
                 }
                 else
@@ -253,7 +261,7 @@ bool PullAction::Execute(Event& event)
             }
             else
             {
-                // Retry the reach pull action
+                // Retry the reach pull action (重试接近拉怪动作)
                 strategy->RequestPull(target, false);
             }
         }
@@ -262,6 +270,7 @@ bool PullAction::Execute(Event& event)
     return false;
 }
 
+/// 判断执行该动作的前置条件是否满足（执行拉怪动作）
 bool PullAction::isPossible()
 {
     InitPullAction();
@@ -283,9 +292,10 @@ bool PullAction::isPossible()
     return true;
 }
 
+/// 初始化拉怪动作的法术与状态参数
 void PullAction::InitPullAction()
 {
-    // Get the pull action spell name from the strategy
+    // Get the pull action spell name from the strategy (从当前策略中读取拉怪使用的法术名称)
     PullStrategy* strategy = PullStrategy::Get(ai);
     if (strategy)
     {
@@ -303,12 +313,13 @@ void PullAction::InitPullAction()
     }
 }
 
+/// 执行动作主逻辑（结束拉怪动作）
 bool PullEndAction::Execute(Event& event)
 {
     PullStrategy* strategy = PullStrategy::Get(ai);
     if (strategy)
     {
-        // Restore the pet react state
+        // Restore the pet react state (恢复宠物原有的反应姿态)
         Pet* pet = bot->GetPet();
         if (pet)
         {
@@ -322,7 +333,7 @@ bool PullEndAction::Execute(Event& event)
             }
         }
 
-        // Remove the saved pull position
+        // Remove the saved pull position (清除已保存的拉怪返回位置)
         AiObjectContext* context = ai->GetAiObjectContext();
         PositionMap& posMap = AI_VALUE(PositionMap&, "position");
         PositionEntry stayPosition = posMap["pull"];

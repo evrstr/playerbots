@@ -2,10 +2,11 @@
 
 namespace ai
 {
+    /// 机器人测试日志分析工具类，用于汇总 PID、事件、任务、计数与测试结果
     class LogAnalysis
     {
     public:
-        //Constructors
+        //Constructors | 构造函数
         LogAnalysis() {};
 
         static void RunAnalysis();

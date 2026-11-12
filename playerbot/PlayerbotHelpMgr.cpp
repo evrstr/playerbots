@@ -32,6 +32,7 @@ PlayerbotHelpMgr::~PlayerbotHelpMgr()
 {
 }
 
+// 替换文本中所有匹配的子串
 void PlayerbotHelpMgr::replace(std::string& text, const std::string what, const std::string with)
 {
     size_t start_pos = 0;
@@ -41,6 +42,7 @@ void PlayerbotHelpMgr::replace(std::string& text, const std::string what, const 
     }
 }
 
+// 将字符串列表按格式模板与最大长度限制拼接为多行或逗号分隔文本
 std::string PlayerbotHelpMgr::makeList(std::vector<std::string>const parts, std::string partFormat, uint32 maxLength)
 {
     std::string retString = "";
@@ -115,6 +117,7 @@ std::string PlayerbotHelpMgr::GetObjectLink(PlayerbotAIAware* object, std::strin
     return "[h:" + prefix + "|" + object->getName() + "]";   
 }
 
+// 遍历指定职业 AI 上下文，收集所有策略、触发器与动作关联结构（仅 GenerateBotHelp 模式）
 void PlayerbotHelpMgr::LoadStrategies(std::string className, AiObjectContext* context)
 {
     ai->SetAiObjectContext(context);
@@ -278,6 +281,7 @@ std::string PlayerbotHelpMgr::GetStrategyBehaviour(std::string className, Strate
     return behavior;
 }
 
+// 生成各策略的帮助文档条目
 void PlayerbotHelpMgr::GenerateStrategyHelp()
 {
     for (auto& strategyClass : classMap)
@@ -371,6 +375,7 @@ std::string PlayerbotHelpMgr::GetTriggerBehaviour(std::string className, Trigger
     return behavior;
 }
 
+// 生成各触发器的帮助文档条目
 void PlayerbotHelpMgr::GenerateTriggerHelp()
 {
     for (auto& strategyClass : classMap)
@@ -488,6 +493,7 @@ std::string PlayerbotHelpMgr::GetActionBehaviour(std::string className, Action* 
     return behavior;
 }
 
+// 生成各动作的帮助文档条目
 void PlayerbotHelpMgr::GenerateActionHelp()
 {
     for (auto& strategyClass : classMap)
@@ -564,6 +570,7 @@ void PlayerbotHelpMgr::GenerateActionHelp()
     }
 }
 
+// 生成各状态值(Value)的帮助文档条目
 void PlayerbotHelpMgr::GenerateValueHelp()
 {
     AiObjectContext* genericContext = classContext["generic"];
@@ -707,6 +714,7 @@ void PlayerbotHelpMgr::GenerateValueHelp()
     botHelpText["object:value"].m_templateText = valueHelp;
 }
 
+// 生成各聊天过滤器的帮助文档条目
 void PlayerbotHelpMgr::GenerateChatFilterHelp()
 {
     CompositeChatFilter* filter = new CompositeChatFilter(ai);
@@ -802,6 +810,7 @@ void PlayerbotHelpMgr::SaveTemplates()
     }
 }
 
+// 一键生成全部帮助模板并输出覆盖率统计
 void PlayerbotHelpMgr::GenerateHelp()
 {
     coverageMap.clear();
@@ -848,6 +857,7 @@ void PlayerbotHelpMgr::GenerateHelp()
 }
 #endif
 
+// 递归展开帮助文本中的占位符与关联主题链接
 void PlayerbotHelpMgr::FormatHelpTopic(std::string& text)
 {
     //[h:subject:topic|name]
@@ -920,6 +930,7 @@ void PlayerbotHelpMgr::FormatHelpTopics()
     }
 }
 
+// 从 ai_playerbot_help 表加载多语言帮助文本并完成格式化
 void PlayerbotHelpMgr::LoadBotHelpTexts()
 {
     sLog.outBasic("Loading playerbot texts...");
@@ -957,6 +968,7 @@ void PlayerbotHelpMgr::LoadBotHelpTexts()
 
 // general texts
 
+// 根据当前语言优先级获取指定帮助主题文本
 std::string PlayerbotHelpMgr::GetBotText(std::string name)
 {
     if (botHelpText.empty())
@@ -989,6 +1001,7 @@ bool PlayerbotHelpMgr::GetBotText(std::string name, std::string &text)
     return !text.empty();
 }
 
+// 模糊搜索包含关键字的帮助主题列表
 std::vector<std::string> PlayerbotHelpMgr::FindBotText(std::string name)
 {
     std::vector<std::string> found;

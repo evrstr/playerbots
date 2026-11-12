@@ -1,9 +1,11 @@
+// 策略值实现：OperatorValues（布尔组合逻辑与数值比较求值）
 #include "playerbot/playerbot.h"
 #include "playerbot/strategy/Value.h"
 #include "OperatorValues.h"
 
 namespace ai
 {
+    // 逐项求值限定符列表，全部为 true 时返回 true
     bool BoolAndValue::Calculate()
     {
         std::vector<std::string> values = getMultiQualifiers(getQualifier(), ",");
@@ -17,6 +19,7 @@ namespace ai
         return true;
     }
 
+    // 逐项求值限定符列表，任一为 true 时返回 false
     bool NotValue::Calculate()
     {
         std::vector<std::string> values = getMultiQualifiers(getQualifier(), ",");
@@ -30,6 +33,7 @@ namespace ai
         return true;
     }
 
+    // 逐项求值限定符列表，任一为 true 时返回 true
     bool BoolOrValue::Calculate()
     {
         std::vector<std::string> values = getMultiQualifiers(getQualifier(), ",");
@@ -43,6 +47,7 @@ namespace ai
         return false;
     }
 
+    // 解析左右两个操作数（字面量或 AI 值名），返回 lhs > rhs
     bool GT32Value::Calculate()
     {
         std::vector<std::string> values = getMultiQualifiers(getQualifier(), ",");

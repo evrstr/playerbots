@@ -1,9 +1,11 @@
+// 策略值实现：AvoidCreatureListValue（规避生物列表序列化）
 
 #include "playerbot/playerbot.h"
 #include "AvoidCreatureListValue.h"
 
 using namespace ai;
 
+// 将生物 Entry 集合输出为逗号分隔的字符串
 std::string AvoidCreatureListValue::Save()
 {
     std::ostringstream out;
@@ -17,6 +19,7 @@ std::string AvoidCreatureListValue::Save()
     return out.str();
 }
 
+// 解析逗号分隔字符串并重建生物 Entry 集合
 bool AvoidCreatureListValue::Load(std::string text)
 {
     value.clear();

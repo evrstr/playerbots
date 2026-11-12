@@ -1,10 +1,12 @@
-﻿#include "playerbot/playerbot.h"
+/// 世界增益自动旅行（World Buff Travel）触发器实现
+#include "playerbot/playerbot.h"
 #include "WorldBuffTravelTriggers.h"
 #include "playerbot/ServerFacade.h"
 #include "Server/DBCStores.h"
 
 using namespace ai;
 
+/// 检查指定 Entry 的 NPC 是否位于机器人交互距离内
 static bool IsNpcNearby(Player* bot, uint32 npcEntry)
 {
     PlayerbotAI* ai = bot->GetPlayerbotAI();
@@ -25,6 +27,7 @@ static bool IsNpcNearby(Player* bot, uint32 npcEntry)
     return false;
 }
 
+/// 检查是否靠近厄运之槌北门
 static bool IsNearDMNorthDoor(Player* bot)
 {
     PlayerbotAI* ai = bot->GetPlayerbotAI();
@@ -45,6 +48,7 @@ static bool IsNearDMNorthDoor(Player* bot)
     return false;
 }
 
+/// 检查附近是否有名称包含目标关键字的传送门游戏对象
 static bool IsPortalNearby(Player* bot, const char* destKeyword)
 {
     PlayerbotAI* ai = bot->GetPlayerbotAI();
@@ -79,6 +83,7 @@ static bool IsPortalNearby(Player* bot, const char* destKeyword)
     return false;
 }
 
+/// 检查是否靠近费伍德森林轻歌花游戏对象
 static bool IsNearSongflower(Player* bot)
 {
     PlayerbotAI* ai = bot->GetPlayerbotAI();
@@ -98,6 +103,7 @@ static bool IsNearSongflower(Player* bot)
     return false;
 }
 
+/// 检查是否靠近菲拉斯篝火（部落步骤）
 static bool IsNearBonfire(Player* bot)
 {
     PlayerbotAI* ai = bot->GetPlayerbotAI();
@@ -118,6 +124,7 @@ static bool IsNearBonfire(Player* bot)
     return false;
 }
 
+/// 检查所有小队成员是否已抵达厄运传送门目标区域
 static bool AreAllGroupMembersInPortalDestZone(Player* bot)
 {
     PlayerbotAI* ai = bot->GetPlayerbotAI();
@@ -139,6 +146,7 @@ static bool AreAllGroupMembersInPortalDestZone(Player* bot)
     return true;
 }
 
+/// 遍历队伍中除机器人外的其他成员执行回调
 static uint32 ForEachGroupMember(Player* bot, std::function<void(Player*)> callback)
 {
     Group* group = bot->GetGroup();
@@ -158,6 +166,7 @@ static uint32 ForEachGroupMember(Player* bot, std::function<void(Player*)> callb
     return count;
 }
 
+/// 检查队伍中所有其他成员是否均已获得厄运之槌贡品 Buff
 static bool DoAllGroupMembersHaveDMTBuffs(Player* bot)
 {
     Group* group = bot->GetGroup();
@@ -197,6 +206,7 @@ static bool DoAllGroupMembersHaveDMTBuffs(Player* bot)
     return true;
 }
 
+/// 检查队伍中所有其他成员是否均已获得轻歌花风歌夜曲 Buff
 static bool DoAllGroupMembersHaveSongflower(Player* bot)
 {
     Group* group = bot->GetGroup();
@@ -219,6 +229,7 @@ static bool DoAllGroupMembersHaveSongflower(Player* bot)
     return true;
 }
 
+/// 判断机器人当前是否处于指定世界增益旅行步骤的目标区域或NPC旁
 static bool IsInStepZone(Player* bot, WorldBuffTravelStep step)
 {
     uint32 zoneId = 0;
@@ -232,7 +243,7 @@ static bool IsInStepZone(Player* bot, WorldBuffTravelStep step)
     case WorldBuffTravelStep::STEP_STORMWIND:
         return zoneId == GetHomeZone(bot);
     case WorldBuffTravelStep::STEP_GRYPHON_MASTER:
-        // Alliance only — Horde skips this step entirely
+        // Alliance only — Horde skips this step entirely | 仅限联盟，部落完全跳过此步骤
         return horde ? false : IsNpcNearby(bot, NPC_DUNGAR_LONGDRINK);
     case WorldBuffTravelStep::STEP_BOOTY_BAY:
         return areaId == AREA_BOOTY_BAY;
@@ -241,7 +252,7 @@ static bool IsInStepZone(Player* bot, WorldBuffTravelStep step)
     case WorldBuffTravelStep::STEP_THYSSIANA:
         return horde ? IsNpcNearby(bot, NPC_SHYN) : IsNpcNearby(bot, NPC_THYSSIANA);
     case WorldBuffTravelStep::STEP_FEATHERMOON:
-        // Alliance only — Horde skips this step entirely
+        // Alliance only — Horde skips this step entirely | 仅限联盟，部落完全跳过此步骤
         return horde ? false : (zoneId == ZONE_FERALAS);
     case WorldBuffTravelStep::STEP_FORGOTTEN_COAST:
         return horde ? IsNearBonfire(bot) : IsNpcNearby(bot, NPC_ZORBIN_FANDAZZLE);
@@ -261,12 +272,13 @@ static bool IsInStepZone(Player* bot, WorldBuffTravelStep step)
     }
 }
 
+/// 检测当前步骤的目标区域/交互点是否已到达
 bool WorldBuffTravelZoneReachedTrigger::IsActive()
 {
     uint8 step = AI_VALUE(uint8, "world buff travel step");
     WorldBuffTravelStep s = static_cast<WorldBuffTravelStep>(step);
 
-    // Horde skips Alliance-only steps
+    // Horde skips Alliance-only steps | 部落跳过仅限联盟的步骤
     if (IsHordeFaction(bot) && IsAllianceOnlyStep(s))
         return false;
 
@@ -285,6 +297,7 @@ bool WorldBuffTravelZoneReachedTrigger::IsActive()
     return IsInStepZone(bot, s);
 }
 
+/// 检测当前步骤是否需要执行长途移动（非飞行途中且未到达目标点）
 bool WorldBuffTravelNeedMoveTrigger::IsActive()
 {
     if (bot->IsTaxiFlying())
@@ -334,6 +347,7 @@ bool WorldBuffTravelNeedMoveTrigger::IsActive()
     return !IsInStepZone(bot, s);
 }
 
+/// 检测是否已在厄运副本内拿满全部厄运 Buff
 bool WorldBuffTravelDMBuffedTrigger::IsActive()
 {
     uint8 step = AI_VALUE(uint8, "world buff travel step");
@@ -343,6 +357,7 @@ bool WorldBuffTravelDMBuffedTrigger::IsActive()
     return HasAllDMTributeBuffs(bot);
 }
 
+/// 检测是否在离开厄运之槌后仍保有全部厄运 Buff
 bool WorldBuffTravelDMExitedTrigger::IsActive()
 {
     uint8 step = AI_VALUE(uint8, "world buff travel step");
@@ -352,6 +367,7 @@ bool WorldBuffTravelDMExitedTrigger::IsActive()
     return HasAllDMTributeBuffs(bot);
 }
 
+/// 检测法师机器人是否应施放离开厄运区域的传送门
 bool WorldBuffTravelDMPortalCastTrigger::IsActive()
 {
     uint8 step = AI_VALUE(uint8, "world buff travel step");
@@ -376,6 +392,7 @@ bool WorldBuffTravelDMPortalCastTrigger::IsActive()
     return true;
 }
 
+/// 检测附近是否已出现目标传送门供队友点击使用
 bool WorldBuffTravelDMPortalUseTrigger::IsActive()
 {
     uint8 step = AI_VALUE(uint8, "world buff travel step");
@@ -388,6 +405,7 @@ bool WorldBuffTravelDMPortalUseTrigger::IsActive()
     return IsPortalNearby(bot, GetDMPortalKeyword(bot));
 }
 
+/// 检测法师机器人是否应施放回主城的传送门
 bool WorldBuffTravelPortalStepTrigger::IsActive()
 {
     uint8 step = AI_VALUE(uint8, "world buff travel step");
@@ -409,6 +427,7 @@ bool WorldBuffTravelPortalStepTrigger::IsActive()
     return true;
 }
 
+/// 检测附近是否已出现回城传送门供点击
 bool WorldBuffTravelUsePortalTrigger::IsActive()
 {
     uint8 step = AI_VALUE(uint8, "world buff travel step");
@@ -418,6 +437,7 @@ bool WorldBuffTravelUsePortalTrigger::IsActive()
     return IsPortalNearby(bot, GetHomePortalKeyword(bot));
 }
 
+/// 检测世界增益旅行流程是否已全部完成
 bool WorldBuffTravelDoneTrigger::IsActive()
 {
     uint8 step = AI_VALUE(uint8, "world buff travel step");

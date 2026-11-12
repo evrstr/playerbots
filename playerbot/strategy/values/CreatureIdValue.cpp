@@ -1,3 +1,4 @@
+// 策略值实现：CreatureIdValue（生物 Entry ID 提取与校验）
 
 #include "playerbot/playerbot.h"
 #include "CreatureIdValue.h"
@@ -9,10 +10,12 @@
 
 using namespace ai;
 
+// 构造函数：设置 10 秒检查周期并启用限定符
 CreatureIdValue::CreatureIdValue(PlayerbotAI* ai) : CalculatedValue<uint32>(ai, "creature id", 10), Qualified()
 {
 }
 
+// 使用聊天解析器从限定符提取生物 ID，并校验数据库是否存在对应生物信息
 uint32 CreatureIdValue::Calculate()
 {
     std::string namepart = qualifier;

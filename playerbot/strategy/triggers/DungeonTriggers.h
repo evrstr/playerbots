@@ -1,13 +1,15 @@
+/// 副本与首领战斗通用触发器基类定义
 #pragma once
 #include "playerbot/strategy/Trigger.h"
 
 namespace ai
 {
+    /// 触发器：进入指定地图 ID 的地下城或团队副本
     class EnterDungeonTrigger : public Trigger
     {
     public:
-        // You can get the mapID from worlddb > instance_template > map column
-        // or from here https://wow.tools/dbc/?dbc=map&build=1.12.1.5875
+        // You can get the mapID from worlddb > instance_template > map column | 可在 worlddb > instance_template > map 列查询地图 ID
+        // or from here https://wow.tools/dbc/?dbc=map&build=1.12.1.5875 | 或参考 https://wow.tools/dbc/?dbc=map&build=1.12.1.5875
         EnterDungeonTrigger(PlayerbotAI* ai, std::string name, std::string dungeonStrategy, uint32 mapID)
         : Trigger(ai, name, 5)
         , dungeonStrategy(dungeonStrategy)
@@ -20,11 +22,12 @@ namespace ai
         uint32 mapID;
     };
 
+    /// 触发器：离开指定地图 ID 的地下城或团队副本
     class LeaveDungeonTrigger : public Trigger
     {
     public:
-        // You can get the mapID from worlddb > instance_template > map column
-        // or from here https://wow.tools/dbc/?dbc=map&build=1.12.1.5875
+        // You can get the mapID from worlddb > instance_template > map column | 可在 worlddb > instance_template > map 列查询地图 ID
+        // or from here https://wow.tools/dbc/?dbc=map&build=1.12.1.5875 | 或参考 https://wow.tools/dbc/?dbc=map&build=1.12.1.5875
         LeaveDungeonTrigger(PlayerbotAI* ai, std::string name, std::string dungeonStrategy, uint32 mapID)
         : Trigger(ai, name, 5)
         , dungeonStrategy(dungeonStrategy)
@@ -37,6 +40,7 @@ namespace ai
         uint32 mapID;
     };
 
+    /// 触发器：检测到指定 Boss 进入战斗，开启对应首领策略
     class StartBossFightTrigger : public Trigger
     {
     public:
@@ -52,6 +56,7 @@ namespace ai
         uint64 bossID;
     };
 
+    /// 触发器：脱离战斗后结束对应首领策略
     class EndBossFightTrigger : public Trigger
     {
     public:
@@ -67,6 +72,7 @@ namespace ai
         uint64 bossID;
     };
 
+    /// 触发器基类：检测机器人是否靠近持续性危险区域（地面AoE/陷阱等）
     class CloseToHazardTrigger : public Trigger
     {
     public:
@@ -89,6 +95,7 @@ namespace ai
         time_t hazardDuration;
     };
 
+    /// 触发器：靠近特定游戏对象（GameObject）类型的危险区域
     class CloseToGameObjectHazardTrigger : public CloseToHazardTrigger
     {
     public:
@@ -103,6 +110,7 @@ namespace ai
         uint32 gameObjectID;
     };
 
+    /// 触发器：靠近特定生物（Creature）类型的危险区域
     class CloseToCreatureHazardTrigger : public CloseToHazardTrigger
     {
     public:
@@ -118,6 +126,7 @@ namespace ai
         uint32 creatureID;
     };
 
+    /// 触发器：靠近正在攻击的敌对生物危险区域
     class CloseToHostileCreatureHazardTrigger : public CloseToCreatureHazardTrigger
     {
     public:
@@ -128,6 +137,7 @@ namespace ai
         std::list<ObjectGuid> GetPossibleHazards() override;
     };
 
+    /// 触发器：特定生物距离机器人过近
     class CloseToCreatureTrigger : public Trigger
     {
     public:
@@ -145,6 +155,7 @@ namespace ai
         bool ignoreVictim;
     };
 
+    /// 触发器：规避列表中的指定生物距离机器人过近
     class CloseToSpecificCreaturesTrigger : public Trigger
     {
     public:
@@ -158,6 +169,7 @@ namespace ai
         bool ignoreVictim;
     };
 
+    /// 触发器：检查背包中指定物品是否冷却就绪
     class ItemReadyTrigger : public Trigger
     {
     public:
@@ -171,6 +183,7 @@ namespace ai
         uint32 itemID;
     };
 
+    /// 触发器：检查指定增益物品就绪且自身尚未拥有该增益
     class ItemBuffReadyTrigger : public ItemReadyTrigger
     {
     public:

@@ -1,3 +1,4 @@
+// 策略值实现：ItemForSpellValue（根据法术目标物品掩码匹配装备或背包物品）
 
 #include "playerbot/playerbot.h"
 #include "ItemForSpellValue.h"
@@ -13,6 +14,7 @@ inline int strcmpi(const char* s1, const char* s2)
 }
 #endif
 
+// 依次检查特殊法术或随机检查装备槽位及背包物品，寻找符合法术施放条件的物品
 Item* ItemForSpellValue::Calculate()
 {
     uint32 spellid = atoi(qualifier.c_str());
@@ -44,7 +46,7 @@ Item* ItemForSpellValue::Calculate()
         }
     }
 
-    // Workaround as some spells have no item mask (e.g. shaman weapon enhancements)
+    // Workaround as some spells have no item mask (e.g. shaman weapon enhancements) | 针对部分无物品类型掩码的法术（如萨满武器增益）的兼容处理
     if (!strcmpi(spellInfo->SpellName[0], "rockbiter weapon") ||
             !strcmpi(spellInfo->SpellName[0], "flametongue weapon") ||
             !strcmpi(spellInfo->SpellName[0], "earthliving weapon") ||
@@ -100,6 +102,7 @@ Item* ItemForSpellValue::Calculate()
     return NULL;
 }
 
+// 校验指定物品的类别、子类掩码、已有附魔及交易槽限制是否满足法术要求
 Item* ItemForSpellValue::GetItemFitsToSpellRequirements(Item* itemForSpell, SpellEntry const* spellInfo)
 {
     if (!itemForSpell)
@@ -117,6 +120,7 @@ Item* ItemForSpellValue::GetItemFitsToSpellRequirements(Item* itemForSpell, Spel
     return NULL;
 }
 
+// 根据装备槽位获取物品并校验是否符合法术物品要求
 Item* ItemForSpellValue::GetItemFitsToSpellRequirements(uint8 slot, SpellEntry const* spellInfo)
 {
     Item* const itemForSpell = bot->GetItemByPos(INVENTORY_SLOT_BAG_0, slot);    

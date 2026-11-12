@@ -1,14 +1,17 @@
+// 策略值实现：PositionValue（命名位置映射表的序列化、读取与单项维护）
 
 #include "playerbot/playerbot.h"
 #include "PositionValue.h"
 
 using namespace ai;
 
+// 构造函数：绑定内部 positions 映射表
 PositionValue::PositionValue(PlayerbotAI* ai, std::string name)
     : ManualSetValue<ai::PositionMap&>(ai, positions, name)
 {
 }
 
+// 将命名坐标表序列化为 ^ 与 , 分隔的字符串
 std::string PositionValue::Save()
 {
     std::ostringstream out;
@@ -28,6 +31,7 @@ std::string PositionValue::Save()
     return out.str();
 }
 
+// 解析保存的字符串并重建命名坐标映射表
 bool PositionValue::Load(std::string text)
 {
     value.clear();
@@ -51,11 +55,13 @@ bool PositionValue::Load(std::string text)
     return true;
 }
 
+// 根据限定符名称获取对应的 PositionEntry
 PositionEntry SinglePositionValue::Calculate()
 {
     PositionMap& posMap = AI_VALUE(PositionMap&, "position");
     return posMap[getQualifier()];
 }
+// 更新或插入指定名称的坐标条目
 void SinglePositionValue::Set(PositionEntry value)
 {
     PositionMap& posMap = AI_VALUE(PositionMap&,"position");
@@ -63,6 +69,7 @@ void SinglePositionValue::Set(PositionEntry value)
     pos = value;
     posMap[getQualifier()] = pos;
 }
+// 移除指定名称的坐标条目
 void SinglePositionValue::Reset() 
 {
     PositionMap& posMap = AI_VALUE(PositionMap&, "position");

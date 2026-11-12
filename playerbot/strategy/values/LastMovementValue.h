@@ -1,9 +1,11 @@
+// 策略值头文件：LastMovementValue（上一次移动轨迹、停留时间、长途移动与炉石绑定点）
 #pragma once
 #include "playerbot/strategy/Value.h"
 #include "playerbot/TravelNode.h"
 
 namespace ai
 {
+    // 移动记录数据结构：保存上次移动目标、路径点、飞行节点、上马状态及上次长途移动位置
     class LastMovement
     {
     public:
@@ -59,6 +61,7 @@ namespace ai
         Event moveEvent;
     };
 
+    // 手动设置值：持有机器人的 LastMovement 移动状态缓存
     class LastMovementValue : public ManualSetValue<LastMovement&>
     {
     public:
@@ -67,12 +70,14 @@ namespace ai
         LastMovement data = LastMovement();
     };
 
+    // 手动设置值：记录机器人开始原地停留的时间戳
     class StayTimeValue : public ManualSetValue<time_t>
     {
     public:
         StayTimeValue(PlayerbotAI* ai) : ManualSetValue<time_t>(ai, 0) {}
     };
 
+    // 位置计算器：返回机器人在 100 码以上长途移动前保存的起始位置
     class LastLongMoveValue : public CalculatedValue<WorldPosition>
     {
     public:
@@ -82,6 +87,7 @@ namespace ai
     };
 
 
+    // 位置计算器：读取并格式化机器人炉石绑定的旅店世界坐标
     class HomeBindValue : public CalculatedValue<WorldPosition>
     {
     public:

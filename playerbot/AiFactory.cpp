@@ -18,6 +18,7 @@
 #include "playerbot/RandomPlayerbotMgr.h"
 #include "BattleGround/BattleGroundMgr.h"
 
+// 根据角色职业实例化对应的 AI 对象上下文（策略/动作/触发器/状态值工厂）
 AiObjectContext* AiFactory::createAiObjectContext(Player* player, PlayerbotAI* ai)
 {
     switch (player->getClass())
@@ -49,6 +50,7 @@ AiObjectContext* AiFactory::createAiObjectContext(Player* player, PlayerbotAI* a
     return new AiObjectContext(ai);
 }
 
+// 统计角色三系天赋点数并返回主修天赋页索引
 int AiFactory::GetPlayerSpecTab(const Player* bot)
 {
     std::map<uint32, int32> tabs = GetPlayerSpecTabs(bot);
@@ -89,6 +91,7 @@ int AiFactory::GetPlayerSpecTab(const Player* bot)
     }
 }
 
+// 返回角色各天赋页已投入的天赋点数分布
 std::map<uint32, int32> AiFactory::GetPlayerSpecTabs(const Player* bot)
 {
     std::map<uint32, int32> tabs;
@@ -128,6 +131,7 @@ std::map<uint32, int32> AiFactory::GetPlayerSpecTabs(const Player* bot)
     return tabs;
 }
 
+// 根据职业与天赋页映射为坦克/治疗/输出职责标志
 BotRoles AiFactory::GetPlayerRoles(uint8 cls, uint8 tab)
 {
     BotRoles role = BOT_ROLE_NONE;
@@ -233,6 +237,7 @@ BotRoles AiFactory::GetPlayerRoles(uint8 cls, uint8 tab)
     return role;
 }
 
+// 综合装备、姿态与天赋判断玩家当前战斗职责
 BotRoles AiFactory::GetPlayerRoles(const Player* player)
 {
     uint8 cls = player->getClass();
@@ -289,6 +294,7 @@ BotRoles AiFactory::GetPlayerRoles(const Player* player)
     return role;
 }
 
+// 为机器人配置默认战斗引擎策略（职业输出/治疗/坦克循环、战场、跟随及逃跑策略）
 void AiFactory::AddDefaultCombatStrategies(Player* player, PlayerbotAI* const facade, Engine* combatEngine)
 {
     int tab = GetPlayerSpecTab(player);
@@ -398,7 +404,7 @@ void AiFactory::AddDefaultCombatStrategies(Player* player, PlayerbotAI* const fa
             if (tab == 1)
             {
                 combatEngine->addStrategies("protection", "tank assist", "pull", "pull back", "close", NULL);
-			}
+            }
             else if(tab == 0)
             {
                 combatEngine->addStrategies("holy", "dps assist", "flee", "ranged", NULL);
@@ -528,7 +534,7 @@ void AiFactory::AddDefaultCombatStrategies(Player* player, PlayerbotAI* const fa
     }
 
     if (facade->IsRealPlayer() || sRandomPlayerbotMgr.IsFreeBot(player))
-	{
+    {
         combatEngine->addStrategy("roll");
 
         if (!player->GetGroup())
@@ -684,11 +690,12 @@ void AiFactory::AddDefaultCombatStrategies(Player* player, PlayerbotAI* const fa
 
 Engine* AiFactory::createCombatEngine(Player* player, PlayerbotAI* const facade, AiObjectContext* AiObjectContext)
 {
-	Engine* engine = new Engine(facade, AiObjectContext, BotState::BOT_STATE_COMBAT);
+    Engine* engine = new Engine(facade, AiObjectContext, BotState::BOT_STATE_COMBAT);
     AddDefaultCombatStrategies(player, facade, engine);
     return engine;
 }
 
+// 为机器人配置默认非战斗引擎策略（吃喝、上马、拾取、RPG、任务与移动）
 void AiFactory::AddDefaultNonCombatStrategies(Player* player, PlayerbotAI* const facade, Engine* nonCombatEngine)
 {
     const int tab = GetPlayerSpecTab(player);
@@ -1120,11 +1127,12 @@ void AiFactory::AddDefaultNonCombatStrategies(Player* player, PlayerbotAI* const
 
 Engine* AiFactory::createNonCombatEngine(Player* player, PlayerbotAI* const facade, AiObjectContext* AiObjectContext) 
 {
-	Engine* nonCombatEngine = new Engine(facade, AiObjectContext, BotState::BOT_STATE_NON_COMBAT);
+    Engine* nonCombatEngine = new Engine(facade, AiObjectContext, BotState::BOT_STATE_NON_COMBAT);
     AddDefaultNonCombatStrategies(player, facade, nonCombatEngine);
-	return nonCombatEngine;
+    return nonCombatEngine;
 }
 
+// 为机器人配置默认死亡状态策略（自动跑尸/等待复活/战场释放）
 void AiFactory::AddDefaultDeadStrategies(Player* player, PlayerbotAI* const facade, Engine* deadEngine)
 {
     deadEngine->addStrategies("dead", "stay", "default", "follow", "group", "dungeon", NULL);
@@ -1323,6 +1331,7 @@ Engine* AiFactory::createDeadEngine(Player* player, PlayerbotAI* const facade, A
     return deadEngine;
 }
 
+// 为机器人配置默认反应引擎策略（打断/保命/躲避等即时反应）
 void AiFactory::AddDefaultReactionStrategies(Player* player, PlayerbotAI* const facade, ReactionEngine* reactionEngine)
 {
     reactionEngine->addStrategies("react", "chat", "avoid aoe", "avoid specific creatures", "potions", "dungeon", NULL);

@@ -6,6 +6,7 @@
 
 using namespace ai;
 
+/// 执行动作主逻辑（配装方案指令动作）
 bool OutfitAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -115,6 +116,7 @@ bool OutfitAction::Execute(Event& event)
     return true;
 }
 
+/// 保存当前自定义策略或 AI 配置
 void OutfitAction::Save(std::string name, ItemIds items)
 {
     std::list<std::string>& outfits = AI_VALUE(std::list<std::string>&, "outfit list");
@@ -141,6 +143,7 @@ void OutfitAction::Save(std::string name, ItemIds items)
     outfits.push_back(out.str());
 }
 
+/// 按指定条件列出物品、节点或配置列表
 void OutfitAction::List(Player* requester)
 {
     std::list<std::string>& outfits = AI_VALUE(std::list<std::string>&, "outfit list");
@@ -164,6 +167,7 @@ void OutfitAction::List(Player* requester)
     }
 }
 
+/// 刷新并应用配置或策略变更
 void OutfitAction::Update(std::string name)
 {
     ListItemsVisitor visitor;
@@ -176,6 +180,7 @@ void OutfitAction::Update(std::string name)
     Save(name, items);
 }
 
+/// 根据职业与抗性类型生成对应的抗性战斗策略名称
 static std::string ResistStrategyFor(uint8 cls, const std::string& school)
 {
     if (cls == CLASS_PALADIN)
@@ -201,6 +206,7 @@ static std::string ResistStrategyFor(uint8 cls, const std::string& school)
     return "";
 }
 
+/// 返回抗性策略相关的占位名称文本
 static std::string ResistStrategyPlaceholder(const std::string& strategy)
 {
     if (strategy.compare(0, 5, "aura ") == 0)
@@ -212,6 +218,7 @@ static std::string ResistStrategyPlaceholder(const std::string& strategy)
     return "";
 }
 
+/// 检查机器人是否已装备给定集合中的任意一件物品
 static bool IsAnyItemEquipped(Player* bot, const ItemIds& ids)
 {
     for (uint8 slot = EQUIPMENT_SLOT_START; slot < EQUIPMENT_SLOT_END; slot++)
@@ -224,6 +231,7 @@ static bool IsAnyItemEquipped(Player* bot, const ItemIds& ids)
     return false;
 }
 
+/// 查找或匹配针对特定元素抗性的配装方案
 std::string ResistAction::FindResistOutfit(const std::string& school)
 {
     if (school.empty())
@@ -239,6 +247,7 @@ std::string ResistAction::FindResistOutfit(const std::string& school)
     return "";
 }
 
+/// 检查机器人当前是否穿戴了抗性配装
 bool ResistAction::WearsResistOutfit()
 {
     const std::vector<std::string> schools = { "fire", "frost", "nature", "shadow" };
@@ -252,6 +261,7 @@ bool ResistAction::WearsResistOutfit()
     return false;
 }
 
+/// 根据抗性装备状态切换对应的战斗策略
 void ResistAction::ChangeResistStrategy(const std::string& previousSchool, const std::string& school)
 {
     const uint8 cls = bot->getClass();
@@ -310,6 +320,7 @@ void ResistAction::ChangeResistStrategy(const std::string& previousSchool, const
         ai->ChangeStrategy("+" + next, states[i]);
 }
 
+/// 返回去除首尾空白字符后的字符串副本
 static std::string TrimCopy(const std::string& text)
 {
     const size_t first = text.find_first_not_of(' ');
@@ -319,6 +330,7 @@ static std::string TrimCopy(const std::string& text)
     return text.substr(first, last - first + 1);
 }
 
+/// 执行动作主逻辑（抗性配装指令动作）
 bool ResistAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();

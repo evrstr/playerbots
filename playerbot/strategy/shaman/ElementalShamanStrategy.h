@@ -1,8 +1,10 @@
+// 萨满祭司 - 元素萨满祭司策略头文件 (ElementalShamanStrategy.h)
 #pragma once
 #include "ShamanStrategy.h"
 
 namespace ai
 {
+    // 元素萨满祭司专精占位策略：用于专精识别与占位的策略类
     class ElementalShamanPlaceholderStrategy : public SpecPlaceholderStrategy
     {
     public:
@@ -11,6 +13,7 @@ namespace ai
         std::string getName() override { return "elemental"; }
     };
 
+    // 元素萨满祭司策略：定义该专精/场景下的触发器与默认行为
     class ElementalShamanStrategy : public ShamanStrategy
     {
     public:
@@ -25,6 +28,7 @@ namespace ai
         virtual NextAction** GetDefaultCombatActions() override;
     };
 
+    // 元素萨满祭司PVE策略：定义该专精/场景下的触发器与默认行为
     class ElementalShamanPveStrategy : public ElementalShamanStrategy
     {
     public:
@@ -38,6 +42,7 @@ namespace ai
         void InitDeadTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 元素萨满祭司PVP策略：定义该专精/场景下的触发器与默认行为
     class ElementalShamanPvpStrategy : public ElementalShamanStrategy
     {
     public:
@@ -51,6 +56,7 @@ namespace ai
         void InitDeadTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 元素萨满祭司团队副本策略：定义该专精/场景下的触发器与默认行为
     class ElementalShamanRaidStrategy : public ElementalShamanStrategy
     {
     public:
@@ -64,6 +70,7 @@ namespace ai
         void InitDeadTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 元素萨满祭司AOE群体策略：定义该专精/场景下的触发器与默认行为
     class ElementalShamanAoeStrategy : public ShamanAoeStrategy
     {
     public:
@@ -74,6 +81,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 元素萨满祭司AOE群体PVE策略：定义该专精/场景下的触发器与默认行为
     class ElementalShamanAoePveStrategy : public ElementalShamanAoeStrategy
     {
     public:
@@ -85,6 +93,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 元素萨满祭司AOE群体PVP策略：定义该专精/场景下的触发器与默认行为
     class ElementalShamanAoePvpStrategy : public ElementalShamanAoeStrategy
     {
     public:
@@ -96,6 +105,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 元素萨满祭司AOE群体团队副本策略：定义该专精/场景下的触发器与默认行为
     class ElementalShamanAoeRaidStrategy : public ElementalShamanAoeStrategy
     {
     public:
@@ -107,6 +117,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 元素萨满祭司控制(CC)策略：定义该专精/场景下的触发器与默认行为
     class ElementalShamanCcStrategy : public ShamanCcStrategy
     {
     public:
@@ -117,6 +128,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 元素萨满祭司控制(CC)PVE策略：定义该专精/场景下的触发器与默认行为
     class ElementalShamanCcPveStrategy : public ElementalShamanCcStrategy
     {
     public:
@@ -128,6 +140,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 元素萨满祭司控制(CC)PVP策略：定义该专精/场景下的触发器与默认行为
     class ElementalShamanCcPvpStrategy : public ElementalShamanCcStrategy
     {
     public:
@@ -139,6 +152,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 元素萨满祭司控制(CC)团队副本策略：定义该专精/场景下的触发器与默认行为
     class ElementalShamanCcRaidStrategy : public ElementalShamanCcStrategy
     {
     public:
@@ -150,6 +164,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 元素萨满祭司驱散净化策略：定义该专精/场景下的触发器与默认行为
     class ElementalShamanCureStrategy : public ShamanCureStrategy
     {
     public:
@@ -160,6 +175,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 元素萨满祭司驱散净化PVE策略：定义该专精/场景下的触发器与默认行为
     class ElementalShamanCurePveStrategy : public ElementalShamanCureStrategy
     {
     public:
@@ -171,6 +187,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 元素萨满祭司驱散净化PVP策略：定义该专精/场景下的触发器与默认行为
     class ElementalShamanCurePvpStrategy : public ElementalShamanCureStrategy
     {
     public:
@@ -182,6 +199,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 元素萨满祭司驱散净化团队副本策略：定义该专精/场景下的触发器与默认行为
     class ElementalShamanCureRaidStrategy : public ElementalShamanCureStrategy
     {
     public:
@@ -193,6 +211,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 元素萨满祭司图腾策略：定义该专精/场景下的触发器与默认行为
     class ElementalShamanTotemsStrategy : public ShamanTotemsStrategy
     {
     public:
@@ -203,6 +222,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 元素萨满祭司图腾PVE策略：定义该专精/场景下的触发器与默认行为
     class ElementalShamanTotemsPveStrategy : public ElementalShamanTotemsStrategy
     {
     public:
@@ -214,6 +234,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 元素萨满祭司图腾PVP策略：定义该专精/场景下的触发器与默认行为
     class ElementalShamanTotemsPvpStrategy : public ElementalShamanTotemsStrategy
     {
     public:
@@ -225,6 +246,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 元素萨满祭司图腾团队副本策略：定义该专精/场景下的触发器与默认行为
     class ElementalShamanTotemsRaidStrategy : public ElementalShamanTotemsStrategy
     {
     public:
@@ -236,6 +258,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 元素萨满祭司增益Buff策略：定义该专精/场景下的触发器与默认行为
     class ElementalShamanBuffStrategy : public ShamanBuffStrategy
     {
     public:
@@ -246,6 +269,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 元素萨满祭司增益BuffPVE策略：定义该专精/场景下的触发器与默认行为
     class ElementalShamanBuffPveStrategy : public ElementalShamanBuffStrategy
     {
     public:
@@ -257,6 +281,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 元素萨满祭司增益BuffPVP策略：定义该专精/场景下的触发器与默认行为
     class ElementalShamanBuffPvpStrategy : public ElementalShamanBuffStrategy
     {
     public:
@@ -268,6 +293,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 元素萨满祭司增益Buff团队副本策略：定义该专精/场景下的触发器与默认行为
     class ElementalShamanBuffRaidStrategy : public ElementalShamanBuffStrategy
     {
     public:
@@ -279,6 +305,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 元素萨满祭司爆发增益策略：定义该专精/场景下的触发器与默认行为
     class ElementalShamanBoostStrategy : public ShamanBoostStrategy
     {
     public:
@@ -289,6 +316,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 元素萨满祭司爆发增益PVE策略：定义该专精/场景下的触发器与默认行为
     class ElementalShamanBoostPveStrategy : public ElementalShamanBoostStrategy
     {
     public:
@@ -300,6 +328,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 元素萨满祭司爆发增益PVP策略：定义该专精/场景下的触发器与默认行为
     class ElementalShamanBoostPvpStrategy : public ElementalShamanBoostStrategy
     {
     public:
@@ -311,6 +340,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 元素萨满祭司爆发增益团队副本策略：定义该专精/场景下的触发器与默认行为
     class ElementalShamanBoostRaidStrategy : public ElementalShamanBoostStrategy
     {
     public:

@@ -1,3 +1,4 @@
+// 圣骑士 - 动作实现文件 (PaladinActions.cpp)：定义圣骑士专用技能施放与战斗动作
 
 #include "playerbot/playerbot.h"
 #include "PaladinActions.h"
@@ -18,6 +19,7 @@ namespace
     }
 }
 
+// 执行动作逻辑 (ProtSealAction)
 bool ProtSealAction::Execute(Event& event)
 {
     bool isEncounter = false;
@@ -42,6 +44,7 @@ bool ProtSealAction::Execute(Event& event)
     return CastBuffSpellAction::Execute(event);
 }
 
+// 执行动作逻辑 (CastPaladinAuraAction)
 bool CastPaladinAuraAction::Execute(Event& event)
 {
     std::vector<std::string> altAuras;
@@ -84,11 +87,13 @@ bool CastPaladinAuraAction::Execute(Event& event)
     return false;
 }
 
+// 获取动作/触发器目标单位 (CastBlessingAction)
 Unit* CastBlessingAction::GetTarget()
 {
     return bot;
 }
 
+// 检查动作当前是否满足施放条件 (CastBlessingAction)
 bool CastBlessingAction::isPossible()
 {
     Unit* target = GetTarget();
@@ -105,6 +110,7 @@ bool CastBlessingAction::isPossible()
     return false;
 }
 
+// CastBlessingAction::GetBlessingForTarget 获取相关配置或目标
 std::string CastBlessingAction::GetBlessingForTarget(Unit* target)
 {
     std::string chosenBlessing = "";
@@ -135,6 +141,7 @@ std::string CastBlessingAction::GetBlessingForTarget(Unit* target)
     return chosenBlessing;
 }
 
+// CastPveBlessingAction::GetPossibleBlessingsForTarget 获取相关配置或目标
 std::vector<std::string> CastPveBlessingAction::GetPossibleBlessingsForTarget(Unit* target) const
 {
     std::vector<std::string> blessings;
@@ -172,6 +179,7 @@ std::vector<std::string> CastPveBlessingAction::GetPossibleBlessingsForTarget(Un
     return blessings;
 }
 
+// CastPvpBlessingAction::GetPossibleBlessingsForTarget 获取相关配置或目标
 std::vector<std::string> CastPvpBlessingAction::GetPossibleBlessingsForTarget(Unit* target) const
 {
     std::vector<std::string> blessings;
@@ -209,6 +217,7 @@ std::vector<std::string> CastPvpBlessingAction::GetPossibleBlessingsForTarget(Un
     return blessings;
 }
 
+// CastRaidBlessingAction::GetPossibleBlessingsForTarget 获取相关配置或目标
 std::vector<std::string> CastRaidBlessingAction::GetPossibleBlessingsForTarget(Unit* target) const
 {
     std::vector<std::string> blessings;
@@ -246,6 +255,7 @@ std::vector<std::string> CastRaidBlessingAction::GetPossibleBlessingsForTarget(U
     return blessings;
 }
 
+// 获取动作/触发器目标单位 (CastBlessingOnPartyAction)
 Unit* CastBlessingOnPartyAction::GetTarget()
 {
     std::vector<std::string> altBlessings;
@@ -284,6 +294,7 @@ Unit* CastBlessingOnPartyAction::GetTarget()
     return ai->GetUnit(AI_VALUE2(ObjectGuid, "party member without my aura", blessList));
 }
 
+// 检查动作当前是否满足施放条件 (CastBlessingOnPartyAction)
 bool CastBlessingOnPartyAction::isPossible()
 {
     Unit* target = GetTarget();
@@ -300,6 +311,7 @@ bool CastBlessingOnPartyAction::isPossible()
     return false;
 }
 
+// CastBlessingOnPartyAction::GetBlessingForTarget 获取相关配置或目标
 std::string CastBlessingOnPartyAction::GetBlessingForTarget(Unit* target)
 {
     std::string chosenBlessing = "";
@@ -318,6 +330,7 @@ std::string CastBlessingOnPartyAction::GetBlessingForTarget(Unit* target)
             if (greater && blessing == "blessing of salvation" && target->IsPlayer())
             {
                 const uint8 playerClass = ((Player*)target)->getClass();
+// 巫妖王之怒 (WotLK 80级) 版本逻辑
 #ifdef MANGOSBOT_TWO
                 if (playerClass == CLASS_PALADIN || playerClass == CLASS_WARRIOR || playerClass == CLASS_DRUID || playerClass == CLASS_DEATH_KNIGHT)
 #else
@@ -344,6 +357,7 @@ std::string CastBlessingOnPartyAction::GetBlessingForTarget(Unit* target)
     return chosenBlessing;
 }
 
+// CastPveBlessingOnPartyAction::GetPossibleBlessingsForTarget 获取相关配置或目标
 std::vector<std::string> CastPveBlessingOnPartyAction::GetPossibleBlessingsForTarget(Unit* target) const
 {
     std::vector<std::string> blessings;
@@ -397,6 +411,7 @@ std::vector<std::string> CastPveBlessingOnPartyAction::GetPossibleBlessingsForTa
     return blessings;
 }
 
+// CastPvpBlessingOnPartyAction::GetPossibleBlessingsForTarget 获取相关配置或目标
 std::vector<std::string> CastPvpBlessingOnPartyAction::GetPossibleBlessingsForTarget(Unit* target) const
 {
     std::vector<std::string> blessings;
@@ -450,6 +465,7 @@ std::vector<std::string> CastPvpBlessingOnPartyAction::GetPossibleBlessingsForTa
     return blessings;
 }
 
+// CastRaidBlessingOnPartyAction::GetPossibleBlessingsForTarget 获取相关配置或目标
 std::vector<std::string> CastRaidBlessingOnPartyAction::GetPossibleBlessingsForTarget(Unit* target) const
 {
     std::vector<std::string> blessings;

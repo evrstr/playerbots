@@ -1,3 +1,4 @@
+// 策略值实现：LootStrategyValue（拾取策略解析与物品拾取许可判定）
 
 #include "playerbot/playerbot.h"
 #include "LootStrategyValue.h"
@@ -5,9 +6,10 @@
 
 using namespace ai;
 
+// 更新拾取策略字符串（兼容旧版数值参数格式）
 void LootStrategyValue::Set(std::string newValue)
 {
-    //Backwards compatibility
+    //Backwards compatibility | 向后兼容旧版拾取策略枚举值
     if (newValue == "normal")
         newValue = "equip,vendor,quest,skill,use";
     if(newValue == "disenchant")
@@ -20,6 +22,7 @@ void LootStrategyValue::Set(std::string newValue)
     SubStrategyValue::Set(newValue);
 }
 
+// 根据物品用途及当前启用的拾取策略子项判断是否允许拾取该物品
 bool LootStrategyValue::CanLoot(ItemQualifier& itemQualifier, PlayerbotAI* ai)
 {
     AiObjectContext* context = ai->GetAiObjectContext();
@@ -40,7 +43,7 @@ bool LootStrategyValue::CanLoot(ItemQualifier& itemQualifier, PlayerbotAI* ai)
 
     std::vector<std::string> strategies = StrSplit(AI_VALUE(std::string, "loot strategy"), ",");
     
-    for (std::string& strategy : strategies) //equip,quest,skill,disenchant,use,vendor,trash
+    for (std::string& strategy : strategies) //equip,quest,skill,disenchant,use,vendor,trash | 按配置项匹配：装备、任务、技能、分解、使用、卖店、垃圾
     {
         if (strategy == "equip" && usage == ItemUsage::ITEM_USAGE_EQUIP)
             return true;

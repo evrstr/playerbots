@@ -6,10 +6,13 @@
 
 namespace ai
 {
+    /// 前往区域触发器动作：移动至副本传送门等区域触发器位置
     class ReachAreaTriggerAction : public MovementAction {
     public:
+        /// 构造函数：初始化前往区域触发器动作
         ReachAreaTriggerAction(PlayerbotAI* ai) : MovementAction(ai, "reach area trigger") {}
 
+        /// 执行动作主逻辑（前往区域触发器动作）
         virtual bool Execute(Event& event) override;
 
 #ifdef GenerateBotHelp
@@ -24,10 +27,13 @@ namespace ai
 #endif 
     };
 
+    /// 区域触发器交互动作：到达传送门等区域触发器后执行进入或触发操作
     class AreaTriggerAction : public MovementAction {
     public:
+        /// 构造函数：初始化区域触发器交互动作
         AreaTriggerAction(PlayerbotAI* ai) : MovementAction(ai, "area trigger") {}
 
+        /// 执行动作主逻辑（区域触发器交互动作）
         virtual bool Execute(Event& event) override;
 
 #ifdef GenerateBotHelp

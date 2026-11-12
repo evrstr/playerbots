@@ -10,6 +10,7 @@
 
 namespace ai
 {
+    /// 无类型 AI 状态值基类，提供重置、格式化、序列化与过期检测接口
     class UntypedValue : public AiNamedObject
     {
     public:
@@ -33,6 +34,7 @@ namespace ai
 #endif 
     };
 
+    /// 强类型 AI 状态值读取/写入泛型接口
     template<class T>
     class Value
     {
@@ -45,6 +47,7 @@ namespace ai
     };
 
     template<class T>
+    /// 按检查间隔(checkInterval)缓存并惰性重算的状态值基类
     class CalculatedValue : public UntypedValue, public Value<T>
     {
     public:
@@ -88,6 +91,7 @@ namespace ai
         T value;
     };
 
+    /// 仅在首次访问或重置后计算一次的单次计算值
     template <class T> class SingleCalculatedValue : public CalculatedValue<T>
     {
     public:
@@ -107,6 +111,7 @@ namespace ai
         }
     };
 
+    /// 带历史值变化追踪与变化速率(GetDelta)的计算值模板
     template<class T> class MemoryCalculatedValue : public CalculatedValue<T>
     {
     public:
@@ -133,6 +138,7 @@ namespace ai
         time_t lastChangeTime;
     };
 
+    /// 记录近期数值时间序列日志并支持窗口期变化率计算的模板
     template<class T> class LogCalculatedValue : public MemoryCalculatedValue<T>
     {
     public:
@@ -155,6 +161,7 @@ namespace ai
         uint8 logLength = 10; //Maxium number of values recorded.
     };
 
+    /// uint8 类型计算值
     class Uint8CalculatedValue : public CalculatedValue<uint8>
     {
     public:
@@ -168,6 +175,7 @@ namespace ai
         }
     };
 
+    /// uint32 类型计算值
     class Uint32CalculatedValue : public CalculatedValue<uint32>
     {
     public:
@@ -181,6 +189,7 @@ namespace ai
         }
     };
 
+    /// float 类型计算值
     class FloatCalculatedValue : public CalculatedValue<float>
     {
     public:
@@ -194,6 +203,7 @@ namespace ai
         }
     };
 
+    /// bool 类型计算值
     class BoolCalculatedValue : public CalculatedValue<bool>
     {
     public:
@@ -206,6 +216,7 @@ namespace ai
         }
     };
 
+    /// std::string 类型计算值
     class StringCalculatedValue : public CalculatedValue<std::string>
     {
     public:
@@ -218,6 +229,7 @@ namespace ai
         }
     };
 
+    /// 单位 ObjectGuid 计算值
     class UnitCalculatedValue : public CalculatedValue<ObjectGuid>
     {
     public:
@@ -226,6 +238,7 @@ namespace ai
         virtual std::string Format() override;
     };
 
+    /// CreatureDataPair 指针计算值
     class CDPairCalculatedValue : public CalculatedValue<CreatureDataPair const*>
     {
     public:
@@ -243,6 +256,7 @@ namespace ai
         }
     };
 
+    /// CreatureDataPair 指针列表计算值
     class CDPairListCalculatedValue : public CalculatedValue<std::list<CreatureDataPair const*>>
     {
     public:
@@ -263,6 +277,7 @@ namespace ai
         }
     };
 
+    /// ObjectGuid 计算值
     class ObjectGuidCalculatedValue : public CalculatedValue<ObjectGuid>
     {
     public:
@@ -272,6 +287,7 @@ namespace ai
         virtual std::string Format() override;
     };
 
+    /// ObjectGuid 列表计算值
     class ObjectGuidListCalculatedValue : public CalculatedValue<std::list<ObjectGuid> >
     {
     public:
@@ -281,6 +297,7 @@ namespace ai
         virtual std::string Format() override;
     };
 
+    /// GuidPosition 计算值
     class GuidPositionCalculatedValue : public CalculatedValue<GuidPosition>
     {
     public:
@@ -290,6 +307,7 @@ namespace ai
         virtual std::string Format() override;
     };
 
+    /// GuidPosition 列表计算值
     class GuidPositionListCalculatedValue : public CalculatedValue<std::list<GuidPosition> >
     {
     public:
@@ -300,6 +318,7 @@ namespace ai
     };
 
     template<class T>
+    /// 手动设置并支持重置为默认值的状态值模板
     class ManualSetValue : public UntypedValue, public Value<T>
     {
     public:
@@ -319,6 +338,7 @@ namespace ai
         T defaultValue;
     };
 
+    /// 手动设置的单位 ObjectGuid 状态值
     class UnitManualSetValue : public ManualSetValue<ObjectGuid>
     {
     public:
@@ -328,6 +348,7 @@ namespace ai
         virtual std::string Format() override;
     };
 
+    /// 手动设置的 GuidPosition 状态值
     class GuidPositionManualSetValue : public ManualSetValue<GuidPosition>
     {
     public:
@@ -337,6 +358,7 @@ namespace ai
         virtual std::string Format() override;
     };
 
+    /// 带参数限定符的手动设置布尔状态值
     class BoolManualSetValue : public ManualSetValue<bool>, public Qualified
     {
     public:
@@ -348,6 +370,7 @@ namespace ai
         }
     };
 
+    /// 带参数限定符的手动设置整型状态值
     class IntManualSetValue : public ManualSetValue<int32>, public Qualified
     {
     public:
@@ -359,6 +382,7 @@ namespace ai
         }
     };
 
+    /// 支持数据库持久化保存/读取的整型状态值
     class IntManualSetSavedValue : public IntManualSetValue
     {
     public:
@@ -373,6 +397,7 @@ namespace ai
         virtual bool Load(std::string text) override { value = stoi(text); return true; }
     };
 
+    /// 带参数限定符的手动设置字符串状态值
     class StringManualSetValue : public ManualSetValue<std::string>, public Qualified
     {
     public:
@@ -384,6 +409,7 @@ namespace ai
         }
     };
 
+    /// 支持数据库持久化保存/读取的字符串状态值
     class StringManualSetSavedValue : public ManualSetValue<std::string>, public Qualified
     {
     public:
@@ -396,6 +422,7 @@ namespace ai
         virtual bool Load(std::string text) override { value = text; return true; }
     };
 
+    /// 带参数限定符的手动设置时间戳状态值
     class TimeManualSetValue : public ManualSetValue<time_t>, public Qualified
     {
     public:

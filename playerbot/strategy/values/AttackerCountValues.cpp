@@ -1,3 +1,4 @@
+// 策略值实现：AttackerCountValues（攻击者计数、仇恨判定与战力平衡计算）
 
 #include "playerbot/playerbot.h"
 #include "AttackerCountValues.h"
@@ -6,19 +7,21 @@
 
 using namespace ai;
 
+// 返回当前直接以机器人为攻击目标的单位数量
 uint8 MyAttackerCountValue::Calculate()
 {
     return bot->getAttackers().size();
 }
 
+// 检查目标的仇恨列表及当前第一目标是否为机器人本体
 bool HasAggroValue::Calculate()
 {
     Unit* target = GetTarget();
 
-    // Player targets don't have aggro
+    // Player targets don't have aggro | 玩家目标没有仇恨机制
     if (target && !target->IsPlayer())
     {
-        // Shade of Aran has a threat table but he casts randomly anyway, so don't worry about aggro
+        // Shade of Aran has a threat table but he casts randomly anyway, so don't worry about aggro | 埃兰之影虽有仇恨表但随机施法，无需关注仇恨
         if (target->GetEntry() == 16524)
             return false;
         HostileReference* ref = sServerFacade.GetHostileRefManager(bot).getFirst();
@@ -46,6 +49,7 @@ bool HasAggroValue::Calculate()
                 Unit* victim = ref->getTarget();
                 return victim && (victim == bot);
 
+                // 注释：以下为保留的历史调试代码
                 /*
                 // What is the purpose of this?
                 if (victim)
@@ -61,26 +65,31 @@ bool HasAggroValue::Calculate()
     return false;
 }
 
+// 获取 attackers 列表并返回数量
 uint8 AttackersCountValue::Calculate()
 {
     return context->GetValue<std::list<ObjectGuid>>("attackers")->Get().size();
 }
 
+// 获取 possible attack targets 列表并返回数量
 uint8 PossibleAttackTargetsCountValue::Calculate()
 {
     return context->GetValue<std::list<ObjectGuid>>("possible attack targets")->Get().size();
 }
 
+// 判断 attackers 列表是否非空
 bool HasAttackersValue::Calculate()
 {
     return !context->GetValue<std::list<ObjectGuid>>("attackers", 1)->Get().empty();
 }
 
+// 判断 possible attack targets 列表是否非空
 bool HasPossibleAttackTargetsValue::Calculate()
 {
     return !context->GetValue<std::list<ObjectGuid>>("possible attack targets", 1)->Get().empty();
 }
 
+// 汇总范围内友方等级与敌方加权等级（精英/首领/玩家按倍数折算），返回友方战力占比
 uint8 BalancePercentValue::Calculate()
 {
     float playerLevel = 0,

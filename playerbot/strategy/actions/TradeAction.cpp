@@ -6,6 +6,7 @@
 
 using namespace ai;
 
+/// 执行动作主逻辑（交易指令动作）
 bool TradeAction::Execute(Event& event)
 {
     std::string text = event.getParam();
@@ -78,6 +79,7 @@ bool TradeAction::Execute(Event& event)
     return true;
 }
 
+/// 将指定物品放入交易窗口槽位
 bool TradeAction::TradeItem(const Item& item, int8 slot)
 {
     int8 tradeSlot = -1;

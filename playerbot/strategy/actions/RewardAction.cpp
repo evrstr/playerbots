@@ -6,6 +6,7 @@
 
 using namespace ai;
 
+/// 执行动作主逻辑（选择任务奖励动作）
 bool RewardAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -18,6 +19,7 @@ bool RewardAction::Execute(Event& event)
     }
 
     uint32 itemId = *itemIds.begin();
+    // 遍历附近 NPC 列表
     std::list<ObjectGuid> npcs = AI_VALUE(std::list<ObjectGuid>, "nearest npcs");
     for (std::list<ObjectGuid>::iterator i = npcs.begin(); i != npcs.end(); i++)
     {
@@ -28,6 +30,7 @@ bool RewardAction::Execute(Event& event)
         }
     }
 
+    // 遍历附近游戏对象列表
     std::list<ObjectGuid> gos = AI_VALUE(std::list<ObjectGuid>, "nearest game objects no los");
     for (std::list<ObjectGuid>::iterator i = gos.begin(); i != gos.end(); i++)
     {
@@ -49,6 +52,7 @@ bool RewardAction::Execute(Event& event)
     return false;
 }
 
+/// 提交任务并领取指定的任务奖励
 bool RewardAction::Reward(Player* requester, uint32 itemId, Object* questGiver)
 {
     QuestMenu& questMenu = bot->GetPlayerMenu()->GetQuestMenu();

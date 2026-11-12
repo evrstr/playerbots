@@ -5,6 +5,7 @@
 
 using namespace ai;
 
+/// 执行动作主逻辑（状态统计指令动作）
 bool StatsAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -31,11 +32,13 @@ bool StatsAction::Execute(Event& event)
     return true;
 }
 
+/// 汇报机器人当前拥有的金币数量
 void StatsAction::ListGold(std::ostringstream &out)
 {
     out << chat->formatMoney(bot->GetMoney());
 }
 
+/// 汇报机器人当前装备评分或战斗力统计
 void StatsAction::ListPower(std::ostringstream& out)
 {
     uint32 totalPower = 0;
@@ -77,10 +80,11 @@ void StatsAction::ListPower(std::ostringstream& out)
     out << "|h|c" << color << "|h" << std::to_string(totalPower) << "|h|cffffffff|h Pwr";
 }
 
+/// 详细列出背包与银行各个槽位中存放的物品
 void StatsAction::ListBagSlots(std::ostringstream &out)
 {
     uint32 totalused = 0, total = 16;
-    // list out items in main backpack
+    // list out items in main backpack (列出主行囊中的物品)
     for (uint8 slot = INVENTORY_SLOT_ITEM_START; slot < INVENTORY_SLOT_ITEM_END; slot++)
     {
         const Item* const pItem = bot->GetItemByPos(INVENTORY_SLOT_BAG_0, slot);
@@ -88,7 +92,7 @@ void StatsAction::ListBagSlots(std::ostringstream &out)
             totalused++;
     }
     uint32 totalfree = 16 - totalused;
-    // list out items in other removable backpacks
+    // list out items in other removable backpacks (列出其余可拆卸背包中的物品)
     for (uint8 bag = INVENTORY_SLOT_BAG_START; bag < INVENTORY_SLOT_BAG_END; ++bag)
     {
         const Bag* const pBag = (Bag*) bot->GetItemByPos(INVENTORY_SLOT_BAG_0, bag);
@@ -105,13 +109,14 @@ void StatsAction::ListBagSlots(std::ostringstream &out)
     }
 
     std::string color = "ff00ff00";
-	if (totalfree < total / 2)
-		color = "ffffff00";
-	if (totalfree < total / 4)
-		color = "ffff0000";
+    if (totalfree < total / 2)
+        color = "ffffff00";
+    if (totalfree < total / 4)
+        color = "ffff0000";
     out << "|h|c" << color << totalfree << "/" << total << "|h|cffffffff Bag";
 }
 
+/// 汇报当前等级经验值进度与预计升级时间
 void StatsAction::ListXP(std::ostringstream& out)
 {
     uint32 curXP = bot->GetUInt32Value(PLAYER_XP);
@@ -132,6 +137,7 @@ void StatsAction::ListXP(std::ostringstream& out)
     out << "|cff00ff00" << xpPercent << "|cffffd333/|cff00ff00" << restPercent << "%|cffffffff XP";
 }
 
+/// 汇报当前全部装备的修理费用明细
 void StatsAction::ListRepairCost(std::ostringstream &out)
 {
     uint32 totalCost = 0;
@@ -161,6 +167,7 @@ void StatsAction::ListRepairCost(std::ostringstream &out)
     out << "|c" << color << (uint32)ceil(repairPercent) << "% (" << chat->formatMoney(totalCost) << ")|cffffffff Dur";
 }
 
+/// 估算修理全部受损装备所需的金币费用
 uint32 StatsAction::EstRepair(uint16 pos)
 {
     Item* item = bot->GetItemByPos(pos);
@@ -198,7 +205,7 @@ uint32 StatsAction::EstRepair(uint16 pos)
         uint32 dmultiplier = dcost->multiplier[ItemSubClassToDurabilityMultiplierId(ditemProto->Class,ditemProto->SubClass)];
         uint32 costs = uint32(LostDurability*dmultiplier*double(dQualitymodEntry->quality_mod));
 
-        if (costs==0)                                   //fix for ITEM_QUALITY_ARTIFACT
+        if (costs==0)                                   // fix for ITEM_QUALITY_ARTIFACT (神器品质（ITEM_QUALITY_ARTIFACT）的兼容修复)
             costs = 1;
 
         TotalCost = costs;
@@ -206,6 +213,7 @@ uint32 StatsAction::EstRepair(uint16 pos)
     return TotalCost;
 }
 
+/// 计算当前全身装备的剩余耐久度百分比
 double StatsAction::RepairPercent(uint16 pos)
 {
     Item* item = bot->GetItemByPos(pos);

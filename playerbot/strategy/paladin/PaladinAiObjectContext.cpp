@@ -1,3 +1,4 @@
+// 圣骑士 - AI对象上下文实现文件 (PaladinAiObjectContext.cpp)：定义并注册该职业的策略、动作、触发器与乘数
 #include "playerbot/playerbot.h"
 #include "PaladinActions.h"
 #include "PaladinTriggers.h"
@@ -11,6 +12,7 @@ namespace ai
 {
     namespace paladin
     {
+        // 策略工厂：注册非战斗、反应、拉怪与AOE等通用策略
         class StrategyFactoryInternal : public NamedObjectContext<Strategy>
         {
         public:
@@ -23,15 +25,18 @@ namespace ai
                 creators["offheal"] = [](PlayerbotAI* ai) { return new OffhealPlaceholderStrategy(ai); };
                 creators["boost"] = [](PlayerbotAI* ai) { return new BoostPlaceholderStrategy(ai); };
                 creators["pull"] = [](PlayerbotAI* ai) {
+// 巫妖王之怒 (WotLK 80级) 版本逻辑
 #ifdef MANGOSBOT_TWO
                     return new PullStrategy(ai, "judgement of light", "seal of righteousness");
 #endif
+// 燃烧的远征 (TBC 70级) 版本逻辑
 #ifdef MANGOSBOT_ONE
                     if (ai->HasSpell(31935))
                         return new PullStrategy(ai, "avenger's shield", "seal of wisdom"); 
                     else
                         return new PullStrategy(ai, "judgement", "seal of righteousness");
 #endif
+// 经典旧世 (Vanilla 60级) 版本逻辑
 #ifdef MANGOSBOT_ZERO
                     return new PullStrategy(ai, "judgement", "seal of righteousness");      
 #endif
@@ -39,6 +44,7 @@ namespace ai
             }
         };
 
+        // AoeSituationStrategyFactoryInternal
         class AoeSituationStrategyFactoryInternal : public NamedObjectContext<Strategy>
         {
         public:
@@ -56,6 +62,7 @@ namespace ai
             }
         };
 
+        // CureSituationStrategyFactoryInternal
         class CureSituationStrategyFactoryInternal : public NamedObjectContext<Strategy>
         {
         public:
@@ -73,6 +80,7 @@ namespace ai
             }
         };
 
+        // BuffSituationStrategyFactoryInternal
         class BuffSituationStrategyFactoryInternal : public NamedObjectContext<Strategy>
         {
         public:
@@ -90,6 +98,7 @@ namespace ai
             }
         };
 
+        // BoostSituationStrategyFactoryInternal
         class BoostSituationStrategyFactoryInternal : public NamedObjectContext<Strategy>
         {
         public:
@@ -107,6 +116,7 @@ namespace ai
             }
         };
 
+        // OffhealSituationStrategyFactoryInternal
         class OffhealSituationStrategyFactoryInternal : public NamedObjectContext<Strategy>
         {
         public:
@@ -118,6 +128,7 @@ namespace ai
             }
         };
 
+        // CcSituationStrategyFactoryInternal
         class CcSituationStrategyFactoryInternal : public NamedObjectContext<Strategy>
         {
         public:
@@ -135,6 +146,7 @@ namespace ai
             }
         };
 
+        // ClassStrategyFactoryInternal
         class ClassStrategyFactoryInternal : public NamedObjectContext<Strategy>
         {
         public:
@@ -148,6 +160,7 @@ namespace ai
             }
         };
 
+        // ClassSituationStrategyFactoryInternal
         class ClassSituationStrategyFactoryInternal : public NamedObjectContext<Strategy>
         {
         public:
@@ -165,6 +178,7 @@ namespace ai
             }
         };
 
+        // AuraManualStrategyFactoryInternal
         class AuraManualStrategyFactoryInternal : public NamedObjectContext<Strategy>
         {
         public:
@@ -182,6 +196,7 @@ namespace ai
             }
         };
 
+        // AuraSituationStrategyFactoryInternal
         class AuraSituationStrategyFactoryInternal : public NamedObjectContext<Strategy>
         {
         public:
@@ -199,6 +214,7 @@ namespace ai
             }
         };
 
+        // BlessingManualStrategyFactoryInternal
         class BlessingManualStrategyFactoryInternal : public NamedObjectContext<Strategy>
         {
         public:
@@ -214,6 +230,7 @@ namespace ai
             }
         };
 
+        // BlessingSituationStrategyFactoryInternal
         class BlessingSituationStrategyFactoryInternal : public NamedObjectContext<Strategy>
         {
         public:
@@ -231,6 +248,7 @@ namespace ai
             }
         };
 
+        // 触发器工厂：注册职业专属条件触发器
         class TriggerFactoryInternal : public NamedObjectContext<Trigger>
         {
         public:
@@ -306,6 +324,7 @@ namespace ai
             }
         };
 
+        // 内部 AI 对象上下文容器：组合并管理各类对象工厂
         class AiObjectContextInternal : public NamedObjectContext<Action>
         {
         public:
@@ -426,6 +445,7 @@ namespace ai
     };
 };
 
+// 构造函数：注册圣骑士的所有内部工厂到上下文
 PaladinAiObjectContext::PaladinAiObjectContext(PlayerbotAI* ai) : AiObjectContext(ai)
 {
     strategyContexts.Add(new ai::paladin::StrategyFactoryInternal());

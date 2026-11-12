@@ -1,9 +1,11 @@
+/// 战斗喊话提示（Say）策略实现
 
 #include "playerbot/playerbot.h"
 #include "SayStrategy.h"
 
 using namespace ai;
 
+/// 初始化战斗触发器：在危急血量、低血低蓝、群嘲或高密度 AoE 时发送战斗喊话
 void SayStrategy::InitCombatTriggers(std::list<TriggerNode*> &triggers)
 {
     triggers.push_back(new TriggerNode(

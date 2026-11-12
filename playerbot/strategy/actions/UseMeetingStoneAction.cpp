@@ -13,22 +13,24 @@
 
 using namespace MaNGOS;
 
+/// 执行动作主逻辑（使用集合石动作）
 bool UseMeetingStoneAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
     if (!requester)
         return false;
 
+    // 解析事件携带的网络封包数据
     WorldPacket p(event.getPacket());
     p.rpos(0);
     ObjectGuid guid;
     p >> guid;
 
-	if (requester->GetSelectionGuid() && requester->GetSelectionGuid() != bot->GetObjectGuid())
-		return false;
+    if (requester->GetSelectionGuid() && requester->GetSelectionGuid() != bot->GetObjectGuid())
+        return false;
 
-	if (!requester->GetSelectionGuid() && requester->GetGroup() != bot->GetGroup())
-		return false;
+    if (!requester->GetSelectionGuid() && requester->GetGroup() != bot->GetGroup())
+        return false;
 
     if (requester->IsBeingTeleported())
         return false;
@@ -47,13 +49,14 @@ bool UseMeetingStoneAction::Execute(Event& event)
     if (!gameObject)
         return false;
 
-	const GameObjectInfo* goInfo = gameObject->GetGOInfo();
-	if (!goInfo || goInfo->type != GAMEOBJECT_TYPE_SUMMONING_RITUAL)
+    const GameObjectInfo* goInfo = gameObject->GetGOInfo();
+    if (!goInfo || goInfo->type != GAMEOBJECT_TYPE_SUMMONING_RITUAL)
         return false;
 
     return Teleport(requester, requester, bot);
 }
 
+/// 范围内游戏对象检测器：用于网格搜索指定半径内符合条件的游戏对象
 class AnyGameObjectInObjectRangeCheck
 {
 public:
@@ -72,6 +75,7 @@ private:
     float i_range;
 };
 
+/// 执行动作主逻辑（集合石/术士召唤移动动作）
 bool SummonAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -108,7 +112,7 @@ bool SummonAction::Execute(Event& event)
         return chargeSummon(Teleport(requester, requester, bot));
     }
 
-    if(bot->GetMapId() == requester->GetMapId() && !WorldPosition(bot).canPathTo(requester, bot) && bot->GetDistance(requester) < sPlayerbotAIConfig.sightDistance) //We can't walk to requester so fine to short-range teleport.
+    if(bot->GetMapId() == requester->GetMapId() && !WorldPosition(bot).canPathTo(requester, bot) && bot->GetDistance(requester) < sPlayerbotAIConfig.sightDistance) // We can't walk to requester so fine to short-range teleport. (无法步行到达请求者位置，允许执行短距离传送。)
         return Teleport(requester, requester, bot);
 
     if (bot->IsTaxiFlying())
@@ -135,6 +139,7 @@ bool SummonAction::Execute(Event& event)
     return false;
 }
 
+/// 利用附近的集合石等游戏对象执行召唤队友操作
 bool SummonAction::SummonUsingGos(Player* requester, Player *summoner, Player *player)
 {
     std::list<GameObject*> targets;
@@ -153,6 +158,7 @@ bool SummonAction::SummonUsingGos(Player* requester, Player *summoner, Player *p
     return false;
 }
 
+/// 利用相关 NPC 执行召唤队友操作
 bool SummonAction::SummonUsingNpcs(Player* requester, Player *summoner, Player *player)
 {
     if (!sPlayerbotAIConfig.summonAtInnkeepersEnabled)
@@ -179,7 +185,7 @@ bool SummonAction::SummonUsingNpcs(Player* requester, Player *summoner, Player *
                 return false;
             }
 
-            // Trigger cooldown
+            // Trigger cooldown (触发冷却时间)
             SpellEntry const* spellInfo = sServerFacade.LookupSpellInfo(8690);
             if (!spellInfo)
                 return false;
@@ -201,6 +207,7 @@ bool SummonAction::SummonUsingNpcs(Player* requester, Player *summoner, Player *
     return false;
 }
 
+/// 执行传送法术或安全坐标传送操作
 bool SummonAction::Teleport(Player* requester, Player *summoner, Player *player)
 {
     if (!summoner->IsBeingTeleported() && !player->IsBeingTeleported() && summoner != player)
@@ -232,10 +239,10 @@ bool SummonAction::Teleport(Player* requester, Player *summoner, Player *player)
                     resurrectPlayer = true;
                 }
 
-                // Dead target: a summon request cannot be accepted, so send a resurrect request
-                // instead - the target teleports itself to the spot and resurrects itself. Alive
-                // target: a normal summon request. Only a transport boarding or a rejected request
-                // falls back to a direct, thread-safe teleport on the acting bot's own thread.
+                // Dead target: a summon request cannot be accepted, so send a resurrect request (目标已死亡：无法接受召唤请求，改为发送复活请求)
+                // instead - the target teleports itself to the spot and resurrects itself. Alive (相反，由目标自行传送至该点并复活；存活时)
+                // target: a normal summon request. Only a transport boarding or a rejected request (目标：普通召唤请求；仅当登船或拒绝请求时)
+                // falls back to a direct, thread-safe teleport on the acting bot's own thread. (在执行机器人自身线程上回退为线程安全的直接传送。)
                 ObjectGuid summonerGuid = summoner->GetObjectGuid();
                 bool moveOnTransport = (summoner->GetTransport() != nullptr);
 
@@ -272,11 +279,11 @@ bool SummonAction::Teleport(Player* requester, Player *summoner, Player *player)
                             {
                                 if (GenericTransport* transport = s->GetTransport())
                                 {
-                                    // Board on the summoner's spot. We do this explicitly instead of
-                                    // passing the transport to TeleportTo: that path is client-oriented
-                                    // (it wants local coords on a far teleport but world coords on a near
-                                    // one). UpdatePassengerPosition skips us until we are on the
-                                    // transport's map, so boarding a still-teleporting player is safe.
+                                    // Board on the summoner's spot. We do this explicitly instead of (在召唤者位置登船/上车，显式执行而非)
+                                    // passing the transport to TeleportTo: that path is client-oriented (向 TeleportTo 传入 transport：该路径主要面向客户端同步)
+                                    // (it wants local coords on a far teleport but world coords on a near (（远距离传送需要局部坐标，而近距离需要世界坐标)
+                                    // one). UpdatePassengerPosition skips us until we are on the (一）。在我们登上载具前 UpdatePassengerPosition 会跳过位置更新)
+                                    // transport's map, so boarding a still-teleporting player is safe. (载具所在地图，因此登上仍在传送中的玩家载具是安全的。)
                                     p->m_movementInfo.t_pos = s->m_movementInfo.GetTransportPos();
                                     transport->AddPassenger(p, false);
                                 }
@@ -303,8 +310,10 @@ bool SummonAction::Teleport(Player* requester, Player *summoner, Player *player)
     return false;
 }
 
+/// 执行动作主逻辑（接受召唤动作）
 bool AcceptSummonAction::Execute(Event& event)
 {
+    // 解析事件携带的网络封包数据
     WorldPacket p(event.getPacket());
     p.rpos(0);
     ObjectGuid summonerGuid;

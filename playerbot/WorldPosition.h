@@ -17,7 +17,7 @@ namespace G3D
 
 namespace ai
 {
-    //Constructor types for WorldPosition
+    //Constructor types for WorldPosition | WorldPosition 聚合构造模式枚举
     enum WorldPositionConst
     {
         WP_RANDOM = 0,
@@ -26,6 +26,7 @@ namespace ai
         WP_CLOSEST = 3
     };
 
+    /// 按离散权重分布对区间元素执行随机加权洗牌
     template <class D, class W, class URBG>
     inline void WeightedShuffle
     (D first, D last
@@ -51,7 +52,7 @@ namespace ai
 
     typedef std::pair<int, int> mGridPair;
 
-    //Extension of WorldLocation with distance functions.
+    //Extension of WorldLocation with distance functions. | 扩展 WorldLocation 的三维世界坐标类（含距离计算、寻路、地形/VMap/MMap 检查）
     class WorldPosition : public WorldLocation
     {
     public:
@@ -377,7 +378,7 @@ namespace ai
         return b;
     }
 
-    //Generic creature finder
+    //Generic creature finder | 通用范围生物数据查找仿函数
     class FindPointCreatureData
     {
     public:
@@ -393,7 +394,7 @@ namespace ai
         std::vector<CreatureDataPair const*> data;
     };
 
-    //Generic gameObject finder
+    //Generic gameObject finder | 通用范围游戏物体数据查找仿函数
     class FindPointGameObjectData
     {
     public:

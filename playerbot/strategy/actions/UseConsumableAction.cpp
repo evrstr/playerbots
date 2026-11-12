@@ -1,4 +1,4 @@
-﻿#include "playerbot/playerbot.h"
+#include "playerbot/playerbot.h"
 #include "UseConsumableAction.h"
 #include "playerbot/ServerFacade.h"
 #include "playerbot/PlayerbotAIConfig.h"
@@ -6,44 +6,45 @@
 
 using namespace ai;
 
-// Flasks vanilla
+// Flasks vanilla (经典旧世合剂)
 const std::vector<uint32> UseConsumableAction::knownFlaskAuras = {
-    17626,  // Flask of the Titans
-    17627,  // Flask of Distilled Wisdom
-    17628,  // Flask of Supreme Power
-    17629,  // Flask of Chromatic Resistance
-    17624,  // Flask of Petrification
+    17626,  // Flask of the Titans (泰坦合剂)
+    17627,  // Flask of Distilled Wisdom (精炼智慧合剂)
+    17628,  // Flask of Supreme Power (超级能量合剂)
+    17629,  // Flask of Chromatic Resistance (多重抗性合剂)
+    17624,  // Flask of Petrification (化石合剂)
 };
 
-// Food buffs vanilla
+// Food buffs vanilla (经典旧世食物增益)
 const std::vector<uint32> UseConsumableAction::knownFoodBuffAuras = {
-    18230,  // Grilled Squid
-    25660,  // Dirge's Kickin' Chimaerok Chops
-    24800,  // Smoked Desert Dumplings
-    18233,  // Nightfin Soup
-    22731,  // Runn Tum Tuber Surprise
-    18140,  // Blessed Sunfruit Juice
-    18124,  // Blessed Sunfruit
-    18191,  // Increased Stamina
+    18230,  // Grilled Squid (烤鱿鱼)
+    25660,  // Dirge's Kickin' Chimaerok Chops (迪尔格的超美味奇美拉肉片)
+    24800,  // Smoked Desert Dumplings (沙漠肉丸)
+    18233,  // Nightfin Soup (夜鳞鱼汤)
+    22731,  // Runn Tum Tuber Surprise (洛恩塔姆薯块)
+    18140,  // Blessed Sunfruit Juice (神圣太阳果汁)
+    18124,  // Blessed Sunfruit (神圣太阳果)
+    18191,  // Increased Stamina (耐力提升)
 };
 
 const std::vector<uint32> UseConsumableAction::alcoholItemIds = {
     21151,
 };
 
-// Never use these items 
+// Never use these items (绝不使用这些物品)
 const std::vector<uint32> UseConsumableAction::excludedItemIds = {
-    13455,  // Greater Stoneshield Potion
-    13461,  // Mighty Rage Potion
-    5634,   // Free Action Potion
-    13457,  // Greater Fire Protection Potion
-    13456,  // Greater Frost Protection Potion
-    13460,  // Greater Holy Protection Potion
-    13458,  // Greater Nature Protection Potion
-    13459,  // Greater Shadow Protection Potion
-    13462,  // Greater Arcane Protection Potion
+    13455,  // Greater Stoneshield Potion (强效石盾药水)
+    13461,  // Mighty Rage Potion (强效怒气药水)
+    5634,   // Free Action Potion (自由行动药水)
+    13457,  // Greater Fire Protection Potion (强效火焰防护药水)
+    13456,  // Greater Frost Protection Potion (强效冰霜防护药水)
+    13460,  // Greater Holy Protection Potion (强效神圣防护药水)
+    13458,  // Greater Nature Protection Potion (强效自然防护药水)
+    13459,  // Greater Shadow Protection Potion (强效暗影防护药水)
+    13462,  // Greater Arcane Protection Potion (强效奥术防护药水)
 };
 
+/// 判断物品是否为元素防护药水类消耗品
 bool UseConsumableAction::IsProtectionConsumable(const ItemPrototype* proto) const
 {
     for (int i = 0; i < MAX_ITEM_PROTO_SPELLS; ++i)
@@ -84,6 +85,7 @@ bool UseConsumableAction::IsProtectionConsumable(const ItemPrototype* proto) con
     return false;
 }
 
+/// 判断物品是否属于共享药水冷却的药水类消耗品
 bool UseConsumableAction::IsPotionLike(const ItemPrototype* proto) const
 {
     for (int i = 0; i < MAX_ITEM_PROTO_SPELLS; ++i)
@@ -102,6 +104,7 @@ bool UseConsumableAction::IsPotionLike(const ItemPrototype* proto) const
     return false;
 }
 
+/// 判断物品原型是否为恢复生命或法力的食物/饮水
 bool UseConsumableAction::IsFoodOrDrink(const ItemPrototype* proto) const
 {
     if (proto->Class != ITEM_CLASS_CONSUMABLE)
@@ -116,6 +119,7 @@ bool UseConsumableAction::IsFoodOrDrink(const ItemPrototype* proto) const
     return false;
 }
 
+/// 判断法术是否为提供基础属性加成的增益法术
 bool UseConsumableAction::IsStatBuffSpell(uint32 spellId) const
 {
     const SpellEntry* spellInfo = sServerFacade.LookupSpellInfo(spellId);
@@ -175,6 +179,7 @@ bool UseConsumableAction::IsStatBuffSpell(uint32 spellId) const
     return false;
 }
 
+/// 将增益法术 ID 解析为其实际生效的光环 Spell ID
 uint32 UseConsumableAction::ResolveBuffAuraSpellId(uint32 spellId) const
 {
     const SpellEntry* spellInfo = sServerFacade.LookupSpellInfo(spellId);
@@ -221,6 +226,7 @@ uint32 UseConsumableAction::ResolveBuffAuraSpellId(uint32 spellId) const
     return spellId;
 }
 
+/// 收集给定技能或消耗品可能施加的所有光环 Spell ID
 void UseConsumableAction::CollectPossibleAuraIds(uint32 spellId, std::vector<uint32>& outIds) const
 {
     outIds.push_back(spellId);
@@ -236,6 +242,7 @@ void UseConsumableAction::CollectPossibleAuraIds(uint32 spellId, std::vector<uin
     }
 }
 
+/// 将背包物品分类为生命药水、法力药水、食物、绷带等消耗品类型
 bool UseConsumableAction::ClassifyConsumable(const ItemPrototype* proto, ConsumableType& outType, uint32& outSpellId) const
 {
     if (!proto || proto->Class != ITEM_CLASS_CONSUMABLE)
@@ -396,6 +403,7 @@ bool UseConsumableAction::ClassifyConsumable(const ItemPrototype* proto, Consuma
     return false;
 }
 
+/// 检查机器人当前是否已拥有合剂类持续增益效果
 bool UseConsumableAction::HasActiveFlask() const
 {
     for (uint32 id : knownFlaskAuras)
@@ -404,13 +412,14 @@ bool UseConsumableAction::HasActiveFlask() const
     return false;
 }
 
+/// 检查机器人当前是否已拥有进食增益（如充分进食）
 bool UseConsumableAction::HasActiveFoodBuff() const
 {
     for (uint32 id : knownFoodBuffAuras)
         if (ai->HasAura(id, bot))
             return true;
 
-    // Well-fed
+    // Well-fed (充分进食)
     if (ai->HasAura(19705, bot))
         return true;
 
@@ -423,6 +432,7 @@ bool UseConsumableAction::HasActiveFoodBuff() const
     return false;
 }
 
+/// 检查目标是否已存在任一候选增益光环
 bool UseConsumableAction::HasAnyCandidateAura(const ConsumableCandidate& candidate) const
 {
     std::vector<uint32> auraIds;
@@ -449,6 +459,7 @@ bool UseConsumableAction::HasAnyCandidateAura(const ConsumableCandidate& candida
     return false;
 }
 
+/// 根据天赋与策略确定机器人的战斗角色定位（坦克/治疗/近战/法系）
 BotConsumableRole UseConsumableAction::GetBotRole() const
 {
     const uint8 cls = bot->getClass();
@@ -456,82 +467,83 @@ BotConsumableRole UseConsumableAction::GetBotRole() const
 
     switch (cls)
     {
-        // --- Warrior -----------------------------------------------------------
+        // --- Warrior ----------------------------------------------------------- (战士相关)
     case CLASS_WARRIOR:
-        if (tab == 2)                           // Protection
+        if (tab == 2)                           // Protection (防护)
             return BotConsumableRole::Tank;
-        return BotConsumableRole::MeleeDps;     // Arms / Fury
+        return BotConsumableRole::MeleeDps;     // Arms / Fury (武器 / 狂怒)
 
-        // --- Paladin -----------------------------------------------------------
+        // --- Paladin ----------------------------------------------------------- (圣骑士相关)
     case CLASS_PALADIN:
-        if (tab == 0)                           // Holy
+        if (tab == 0)                           // Holy (神圣)
             return BotConsumableRole::Healer;
-        if (tab == 1)                           // Protection
+        if (tab == 1)                           // Protection (防护)
             return BotConsumableRole::Tank;
-        return BotConsumableRole::MeleeDps;     // Retribution
+        return BotConsumableRole::MeleeDps;     // Retribution (惩戒)
 
-        // --- Hunter ------------------------------------------------------------
+        // --- Hunter ------------------------------------------------------------ (猎人相关)
     case CLASS_HUNTER:
-        return BotConsumableRole::RangedPhysDps; // All specs
+        return BotConsumableRole::RangedPhysDps; // All specs (全专精)
 
-        // --- Rogue -------------------------------------------------------------
+        // --- Rogue ------------------------------------------------------------- (潜行者相关)
     case CLASS_ROGUE:
-        return BotConsumableRole::MeleeDps;     // All specs
+        return BotConsumableRole::MeleeDps;     // All specs (全专精)
 
-        // --- Priest ------------------------------------------------------------
+        // --- Priest ------------------------------------------------------------ (牧师相关)
     case CLASS_PRIEST:
-        if (tab == 2)                           // Shadow
+        if (tab == 2)                           // Shadow (暗影)
             return BotConsumableRole::CasterDps;
-        return BotConsumableRole::Healer;       // Discipline / Holy
+        return BotConsumableRole::Healer;       // Discipline / Holy (戒律 / 神圣)
 
-        // --- Shaman ------------------------------------------------------------
+        // --- Shaman ------------------------------------------------------------ (萨满祭司相关)
     case CLASS_SHAMAN:
-        if (tab == 0)                           // Elemental
+        if (tab == 0)                           // Elemental (元素)
             return BotConsumableRole::CasterDps;
-        if (tab == 1)                           // Enhancement
+        if (tab == 1)                           // Enhancement (增强)
             return BotConsumableRole::MeleeDps;
-        return BotConsumableRole::Healer;       // Restoration
+        return BotConsumableRole::Healer;       // Restoration (恢复)
 
-        // --- Mage --------------------------------------------------------------
+        // --- Mage -------------------------------------------------------------- (法师相关)
     case CLASS_MAGE:
-        return BotConsumableRole::CasterDps;    // All specs
+        return BotConsumableRole::CasterDps;    // All specs (全专精)
 
-        // --- Warlock -----------------------------------------------------------
+        // --- Warlock ----------------------------------------------------------- (术士相关)
     case CLASS_WARLOCK:
-        return BotConsumableRole::CasterDps;    // All specs
+        return BotConsumableRole::CasterDps;    // All specs (全专精)
 
-        // --- Druid -------------------------------------------------------------
+        // --- Druid ------------------------------------------------------------- (德鲁伊相关)
     case CLASS_DRUID:
-        if (tab == 0)                           // Balance
+        if (tab == 0)                           // Balance (平衡)
             return BotConsumableRole::CasterDps;
-        if (tab == 1)                           // Feral
+        if (tab == 1)                           // Feral (野性战斗)
         {
-            // Thick Hide / feral tank talents → tank; otherwise melee DPS
+            // Thick Hide / feral tank talents → tank; otherwise melee DPS (若点出厚皮或熊坦天赋则判定为坦克；否则判定为近战输出)
             if (ai->IsTank(bot))
                 return BotConsumableRole::Tank;
             return BotConsumableRole::MeleeDps;
         }
-        return BotConsumableRole::Healer;       // Restoration
+        return BotConsumableRole::Healer;       // Restoration (恢复)
 
     default:
         return BotConsumableRole::MeleeDps;
     }
 }
 
+/// 根据机器人职业定位计算各属性（力量/敏捷/耐力/智力/精神等）权重
 float UseConsumableAction::GetStatWeight(uint32 statType) const
 {
     const BotConsumableRole role = GetBotRole();
 
-    //                              STR   AGI   STA   INT   SPI
-    // MeleeDps  — wants str/agi  1.0   1.0   0.3   0.1   0.05
-    // RangedPhysDps — agi focus  0.1   1.0   0.3   0.3   0.05
-    // CasterDps — int/sp         0.05  0.05  0.3   1.0   0.4
-    // Healer    — int/spi/+heal  0.05  0.05  0.3   1.0   0.6
-    // Tank      — sta/str/agi    0.6   0.8   1.0   0.1   0.05
+    //                              STR   AGI   STA   INT   SPI (力量  敏捷  耐力  智力  精神)
+    // MeleeDps  — wants str/agi  1.0   1.0   0.3   0.1   0.05 (近战输出 — 侧重力量/敏捷权重)
+    // RangedPhysDps — agi focus  0.1   1.0   0.3   0.3   0.05 (远程物理输出 — 侧重敏捷权重)
+    // CasterDps — int/sp         0.05  0.05  0.3   1.0   0.4 (法系输出 — 侧重智力/法伤权重)
+    // Healer    — int/spi/+heal  0.05  0.05  0.3   1.0   0.6 (治疗定位 — 侧重智力/精神/治疗加成权重)
+    // Tank      — sta/str/agi    0.6   0.8   1.0   0.1   0.05 (坦克定位 — 侧重耐力/力量/敏捷权重)
 
     switch (statType)
     {
-    case 0: // Strength
+    case 0: // Strength (力量)
         switch (role)
         {
         case BotConsumableRole::MeleeDps:       return 1.0f;
@@ -542,7 +554,7 @@ float UseConsumableAction::GetStatWeight(uint32 statType) const
         }
         break;
 
-    case 1: // Agility
+    case 1: // Agility (敏捷)
         switch (role)
         {
         case BotConsumableRole::MeleeDps:       return 1.0f;
@@ -553,7 +565,7 @@ float UseConsumableAction::GetStatWeight(uint32 statType) const
         }
         break;
 
-    case 2: // Stamina
+    case 2: // Stamina (耐力)
         switch (role)
         {
         case BotConsumableRole::MeleeDps:       return 0.3f;
@@ -564,7 +576,7 @@ float UseConsumableAction::GetStatWeight(uint32 statType) const
         }
         break;
 
-    case 3: // Intellect
+    case 3: // Intellect (智力)
         switch (role)
         {
         case BotConsumableRole::MeleeDps:       return 0.1f;
@@ -575,7 +587,7 @@ float UseConsumableAction::GetStatWeight(uint32 statType) const
         }
         break;
 
-    case 4: // Spirit
+    case 4: // Spirit (精神)
         switch (role)
         {
         case BotConsumableRole::MeleeDps:       return 0.05f;
@@ -590,6 +602,7 @@ float UseConsumableAction::GetStatWeight(uint32 statType) const
     return 0.1f;
 }
 
+/// 根据职业属性权重为技能或装备附带属性评分
 float UseConsumableAction::ScoreSpellStats(uint32 spellId) const
 {
     const SpellEntry* spellInfo = sServerFacade.LookupSpellInfo(spellId);
@@ -610,7 +623,7 @@ float UseConsumableAction::ScoreSpellStats(uint32 spellId) const
         case SPELL_AURA_MOD_STAT:
         {
             int32 stat = spellInfo->EffectMiscValue[i];
-            if (stat == -1) // all stats
+            if (stat == -1) // all stats (全属性)
             {
                 for (uint32 s = 0; s < 5; ++s)
                     score += amount * GetStatWeight(s);
@@ -684,6 +697,7 @@ float UseConsumableAction::ScoreSpellStats(uint32 spellId) const
     return score;
 }
 
+/// 按角色定位、恢复量与冷却效率为消耗品候选项评分
 float UseConsumableAction::ScoreCandidate(const ConsumableCandidate& candidate) const
 {
     float base = ScoreSpellStats(candidate.spellId);
@@ -702,6 +716,7 @@ float UseConsumableAction::ScoreCandidate(const ConsumableCandidate& candidate) 
     return base;
 }
 
+/// 扫描背包收集所有符合条件的可用消耗品候选列表
 std::vector<ConsumableCandidate> UseConsumableAction::CollectCandidates()
 {
     std::vector<ConsumableCandidate> results;
@@ -768,11 +783,13 @@ std::vector<ConsumableCandidate> UseConsumableAction::CollectCandidates()
     return results;
 }
 
+/// 判断执行该动作的前置条件是否满足（智能使用消耗品动作）
 bool UseConsumableAction::isPossible()
 {
     return !bot->InBattleGround() && !bot->IsTaxiFlying();
 }
 
+/// 判断当前状态下该动作是否可用/有效（智能使用消耗品动作）
 bool UseConsumableAction::isUseful()
 {
     if (bot->IsInCombat())
@@ -790,6 +807,7 @@ bool UseConsumableAction::isUseful()
     return true;
 }
 
+/// 执行动作主逻辑（智能使用消耗品动作）
 bool UseConsumableAction::Execute(Event& event)
 {
     selectedItemId = 0;

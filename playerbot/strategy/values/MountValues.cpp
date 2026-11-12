@@ -1,3 +1,4 @@
+// 策略值实现：MountValues（坐骑速度判定、地图可用性检查、骑术与商人筛选）
 #include "MountValues.h"
 #include "playerbot/ChatHelper.h"
 #include "playerbot/strategy/AiObjectContext.h"
@@ -6,6 +7,7 @@
 
 using namespace ai;
 
+// 根据法术光环计算坐骑提供的地面或飞行移速加成（未解锁飞行则返回 0）
 uint32 MountValue::GetSpeed(uint32 spellId, bool canFly)
 {
 #ifdef MANGOSBOT_ZERO
@@ -18,22 +20,22 @@ uint32 MountValue::GetSpeed(uint32 spellId, bool canFly)
     if (!spellInfo)
         return 0;
 
-    switch (spellInfo->Id) //Aura's hard coded in spell.cpp
+    switch (spellInfo->Id) //Aura's hard coded in spell.cpp | 以下法术的速度光环逻辑在核心 spell.cpp 中硬编码处理
     {
-    case 783:  //travel form
-    case 2645: //ghost wolf   
+    case 783:  //travel form | 德鲁伊旅行形态
+    case 2645: //ghost wolf    | 萨满幽魂之狼
         if(!canFly)
         return 39;
         break;
-    case 33943: //flight form
+    case 33943: //flight form | 德鲁伊飞行形态
         if (canFly)
             return 59;
         break;
-    case 40120: //swift flight form
+    case 40120: //swift flight form | 德鲁伊迅捷飞行形态
         if (canFly)
             return 279;
         break;
-    case 26656: //Black AQ mount
+    case 26656: //Black AQ mount | 黑色其拉作战坦克
         if (!canFly)
             return 99;
     }
@@ -52,7 +54,7 @@ uint32 MountValue::GetSpeed(uint32 spellId, bool canFly)
         return 0;
 
 #ifndef MANGOSBOT_ZERO
-    //This part stops bots from mounting flying mounts when they can't fly. This should be tweaked if bots ever are able to normally ride flying mounts in the old-world.
+    //This part stops bots from mounting flying mounts when they can't fly. This should be tweaked if bots ever are able to normally ride flying mounts in the old-world. | 阻止机器人在无法飞行的地区误用飞行坐骑
     if (isMount && !canFly)
     {
         for (int i = 0; i < 3; i++)
@@ -68,7 +70,7 @@ uint32 MountValue::GetSpeed(uint32 spellId, bool canFly)
 #ifdef MANGOSBOT_ZERO
     uint32 effect = SPELL_AURA_MOD_INCREASE_MOUNTED_SPEED;
 #else
-    uint32 effect = canFly ? SPELL_AURA_MOD_FLIGHT_SPEED_MOUNTED : SPELL_AURA_MOD_INCREASE_MOUNTED_SPEED; //If we can fly only look at flight speed. Normal mounts then don't get any speed.
+    uint32 effect = canFly ? SPELL_AURA_MOD_FLIGHT_SPEED_MOUNTED : SPELL_AURA_MOD_INCREASE_MOUNTED_SPEED; //If we can fly only look at flight speed. Normal mounts then don't get any speed. | 若允许飞行则仅检查飞行速度，地面坐骑此时不计飞行速度
 #endif
 
     if (isMount)
@@ -85,6 +87,7 @@ uint32 MountValue::GetSpeed(uint32 spellId, bool canFly)
     return 0;
 }
 
+// 从坐骑物品原型中提取其召唤坐骑的法术 ID
 uint32 MountValue::GetMountSpell(uint32 itemId)
 {
     const ItemPrototype* proto = sObjectMgr.GetItemPrototype(itemId);
@@ -105,9 +108,10 @@ uint32 MountValue::GetMountSpell(uint32 itemId)
     return 0;
 }
 
+// 校验当前地图与区域（外域/诺森德/安其拉等）是否允许召唤该坐骑
 bool MountValue::IsValidLocation(Player* bot)
 {
-    if (GetSpeed(true)) //Flying mount
+    if (GetSpeed(true)) //Flying mount | 飞行坐骑需检测当前是否位于可飞行区域
     {
         if (bot->GetMapId() != 530 && bot->GetMapId() != 571)
             return false;
@@ -134,14 +138,14 @@ bool MountValue::IsValidLocation(Player* bot)
 
     switch (spellInfo->Id)
     {
-    case 25863:    // spell used by ingame item for Black Qiraji mount (legendary reward)
-    case 26655:    // spells also related to Black Qiraji mount but use/trigger unknown
+    case 25863:    // spell used by ingame item for Black Qiraji mount (legendary reward) | 黑色其拉共振水晶触发的坐骑法术（传说奖励）
+    case 26655:    // spells also related to Black Qiraji mount but use/trigger unknown | 与黑色其拉坐骑相关的备用触发法术
     case 26656:
     case 31700:
         if (bot->GetMapId() == 531)
             isAQ40Mounted = true;
         break;
-    case 25953:    // spells of the 4 regular AQ40 mounts
+    case 25953:    // spells of the 4 regular AQ40 mounts | 4 种常规安其拉神殿内部其拉作战坦克法术
     case 26054:
     case 26055:
     case 26056:
@@ -151,25 +155,26 @@ bool MountValue::IsValidLocation(Player* bot)
             break;
         }
         else
-            return false; //SPELL_FAILED_NOT_HERE;
+            return false; //SPELL_FAILED_NOT_HERE; | 当前区域禁止使用该坐骑
     default:
         break;
     }
 
-    // Ignore map check if spell have AreaId. AreaId already checked and this prevent special mount spells
+    // Ignore map check if spell have AreaId. AreaId already checked and this prevent special mount spells | 若法术绑定了特定 AreaId 则已通过区域检测，跳过常规地图检查
     if (bot->GetTypeId() == TYPEID_PLAYER &&
-        !isAQ40Mounted &&   // [-ZERO] && !m_spellInfo->AreaId)
+        !isAQ40Mounted &&   // [-ZERO] && !m_spellInfo->AreaId) | 跳过安其拉坐骑或专属区域坐骑的通用地图禁用检查
         !bot->GetMap()->IsMountAllowed())
     {
-        return false;  //SPELL_FAILED_NO_MOUNTS_ALLOWED;
+        return false;  //SPELL_FAILED_NO_MOUNTS_ALLOWED; | 该地图/副本禁止骑乘
     }
 
     if (bot->GetAreaId() == 35)
-        return false; //SPELL_FAILED_NO_MOUNTS_ALLOWED;
+        return false; //SPELL_FAILED_NO_MOUNTS_ALLOWED; | 该区域禁止骑乘
 
     return true;
 }
 
+// 检查目标身上的坐骑速度光环，返回当前最高骑乘速度加成
 uint32 CurrentMountSpeedValue::Calculate()
 {
     Unit* unit = ai->GetUnit(AI_VALUE(ObjectGuid, getQualifier()));
@@ -206,6 +211,7 @@ uint32 CurrentMountSpeedValue::Calculate()
     return mountSpeed;
 }
 
+// 扫描全库物品与法术，建立完整的坐骑目录缓存
 std::vector<MountValue> FullMountListValue::Calculate()
 {
     std::vector<MountValue> mounts;
@@ -239,12 +245,13 @@ std::vector<MountValue> FullMountListValue::Calculate()
     return mounts;
 }
 
+// 收集机器人背包内坐骑物品与法术书内已学坐骑法术
 std::vector<MountValue> MountListValue::Calculate()
 {
     std::vector<MountValue> mounts;
 
-	for (auto& mount : AI_VALUE2(std::list<Item*>, "inventory items", "mount"))
-		mounts.push_back(MountValue(mount));
+    for (auto& mount : AI_VALUE2(std::list<Item*>, "inventory items", "mount"))
+        mounts.push_back(MountValue(mount));
 
     for (PlayerSpellMap::iterator itr = bot->GetSpellMap().begin(); itr != bot->GetSpellMap().end(); ++itr)
         if (itr->second.state != PLAYERSPELL_REMOVED && !itr->second.disabled && !IsPassiveSpell(itr->first))
@@ -254,6 +261,7 @@ std::vector<MountValue> MountListValue::Calculate()
     return mounts;
 }
 
+// 遍历已拥有坐骑列表计算可达到的最大移速加成
 uint32 MaxMountSpeedValue::Calculate()
 {
     bool canFly = !qualifier.empty();
@@ -268,6 +276,7 @@ uint32 MaxMountSpeedValue::Calculate()
     return maxSpeed;
 }
 
+// 将可用坐骑及速度信息格式化为聊天可读字符串
 std::string MountListValue::Format()
 {
     std::ostringstream out; out << "{";
@@ -285,6 +294,7 @@ std::string MountListValue::Format()
     return out.str();
 }
 
+// 结合角色等级与所属资料片状态计算对应的骑术技能需求阶段
 uint32 MountSkillTypeValue::Calculate()
 {
 #ifdef MANGOSBOT_ZERO
@@ -322,6 +332,7 @@ uint32 MountSkillTypeValue::Calculate()
 #endif
 }
 
+// 从全局坐骑列表中筛选机器人可装备升级且有商人出售的坐骑卖家
 std::vector<int32> AvailableMountVendors::Calculate()
 {
     std::vector<int32> mountVendors;
@@ -347,6 +358,7 @@ std::vector<int32> AvailableMountVendors::Calculate()
     return mountVendors;
 }
 
+// 判断金币预算是否足够学习下一级骑术
 bool CanTrainMountValue::Calculate()
 {
     if (bot->GetSkill(AI_VALUE(uint32, "mount skilltype"), true, true) >= bot->GetSkill(AI_VALUE(uint32, "mount skilltype"), true, true, true))
@@ -358,6 +370,7 @@ bool CanTrainMountValue::Calculate()
     return true;
 }
 
+// 综合判断坐骑资金预算、商人可用性与技能等级是否满足购骑需求
 bool CanBuyMountValue::Calculate()
 {
 #ifdef MANGOSBOT_ZERO

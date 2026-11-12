@@ -6,6 +6,7 @@
 
 using namespace ai;
 
+/// 查找增益物品遍历器：遍历背包筛选可用的增益卷轴或药水道具
 class FindBuffVisitor : public IterateItemsVisitor {
 public:
     FindBuffVisitor(Player* bot) : IterateItemsVisitor(), bot(bot)
@@ -60,6 +61,7 @@ private:
     Player* bot;
 };
 
+/// 输出列表汇报的头部标题信息
 void BuffAction::TellHeader(uint32 subClass, Player* requester)
 {
     switch (subClass)
@@ -82,6 +84,7 @@ void BuffAction::TellHeader(uint32 subClass, Player* requester)
     }
 }
 
+/// 执行动作主逻辑（增益法术指令动作）
 bool BuffAction::Execute(Event& event)
 {
     std::string text = event.getParam();

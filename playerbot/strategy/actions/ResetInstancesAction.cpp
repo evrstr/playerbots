@@ -4,6 +4,7 @@
 
 using namespace ai;
 
+/// 执行动作主逻辑（重置副本指令动作）
 bool ResetInstancesAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -14,6 +15,7 @@ bool ResetInstancesAction::Execute(Event& event)
     return true;
 }
 
+/// 执行动作主逻辑（重置团队副本指令动作）
 bool ResetRaidsAction::Execute(Event& event)
 {
 #ifndef MANGOSBOT_ZERO

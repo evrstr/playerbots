@@ -19,6 +19,7 @@ constexpr std::string_view LOS_GOS_PARAM = "los gos";
 std::vector<std::string> split(const std::string& s, char delim);
 char* strstri(const char* haystack, const char* needle);
 
+/// 执行动作主逻辑（前往指定位置指令动作）
 bool GoAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -167,6 +168,7 @@ bool GoAction::Execute(Event& event)
     return false;
 }
 
+/// 输出机器人当前坐标位置与移动状态调试信息
 inline void TellPosition(PlayerbotAI* ai, Player* requester)
 {
     Player* bot = ai->GetBot();
@@ -219,6 +221,7 @@ inline void TellPosition(PlayerbotAI* ai, Player* requester)
     ai->TellPlayerNoFacing(requester, out, PlayerbotSecurityLevel::PLAYERBOT_SECURITY_TALK, false);
 }
 
+/// 输出机器人当前移动卡死状态诊断信息
 inline bool TellStuck(PlayerbotAI* ai, Player* requester)
 {
     Player* bot = ai->GetBot();
@@ -238,7 +241,7 @@ inline bool TellStuck(PlayerbotAI* ai, Player* requester)
         return false;
     }
 
-    //Todo unify code here with code in stucktrigger
+    // Todo unify code here with code in stucktrigger (待办：将此处逻辑与 StuckTrigger 中的代码统一)
 
     if (ai->GetState() == BotState::BOT_STATE_COMBAT)
     {
@@ -290,6 +293,7 @@ inline bool TellStuck(PlayerbotAI* ai, Player* requester)
     return false;
 }
 
+/// 输出机器人当前组队与跟随成员状态信息
 inline bool TellGrouped(PlayerbotAI* ai, Player* requester)
 {
     Player* bot = ai->GetBot();
@@ -345,6 +349,7 @@ inline bool TellGrouped(PlayerbotAI* ai, Player* requester)
     return true;
 }
 
+/// 输出机器人当前战斗目标与攻击状态调试信息
 inline void TellCombat(PlayerbotAI* ai, Player* requester)
 {
     WorldPosition botPos(ai->GetBot());
@@ -398,6 +403,7 @@ inline void TellCombat(PlayerbotAI* ai, Player* requester)
     ai->TellPlayerNoFacing(requester, out, PlayerbotSecurityLevel::PLAYERBOT_SECURITY_TALK, false);
 }
 
+/// 输出机器人死亡与跑尸复活状态调试信息
 inline void TellDead(PlayerbotAI* ai, Player* requester)
 {
     Player* bot = ai->GetBot();
@@ -446,6 +452,7 @@ inline void TellDead(PlayerbotAI* ai, Player* requester)
     ai->TellPlayerNoFacing(requester, out, PlayerbotSecurityLevel::PLAYERBOT_SECURITY_TALK, false);
 }
 
+/// 输出机器人非战斗状态（RPG/旅行/动作）调试信息
 inline void TellNonCombat(PlayerbotAI* ai, Player* requester)
 {
     AiObjectContext* context = ai->GetAiObjectContext();
@@ -497,6 +504,7 @@ inline void TellNonCombat(PlayerbotAI* ai, Player* requester)
     ai->TellPlayerNoFacing(requester, out, PlayerbotSecurityLevel::PLAYERBOT_SECURITY_TALK, false);
 }
 
+/// 告知主人或队友目标任务/地点的大致方位
 bool GoAction::TellWhereToGo(std::string& param, Player* requester) const
 {
     TellPosition(ai, requester);
@@ -504,6 +512,7 @@ bool GoAction::TellWhereToGo(std::string& param, Player* requester) const
     TravelTarget* travelTarget = AI_VALUE(TravelTarget*, "travel target");
 
     if (!TellGrouped(ai, requester) && travelTarget->IsActive())
+        /// 向主人或调试频道汇报当前旅行目标与预计距离
         ChooseTravelTargetAction::ReportTravelTarget(bot, requester, travelTarget, nullptr);
 
     TellStuck(ai, requester);
@@ -524,11 +533,13 @@ bool GoAction::TellWhereToGo(std::string& param, Player* requester) const
     return true;
 }
 
+/// 检查队长是否已经处于前往同一旅行目标的途中
 bool GoAction::LeaderAlreadyTraveling(TravelDestination* dest) const
 {
     return AI_VALUE(bool, "travel target traveling");
 }
 
+/// 说明前往指定目的地所需的交通路线或坐标指引
 bool GoAction::TellHowToGo(TravelDestination* dest, Player* requester) const
 {
     WorldPosition botPos = WorldPosition(bot);
@@ -605,6 +616,7 @@ bool GoAction::TellHowToGo(TravelDestination* dest, Player* requester) const
     return true;
 }
 
+/// 设置旅行目标并启动前往指定目的地的长途移动
 bool GoAction::TravelTo(TravelDestination* dest, Player* requester) const
 {
     TravelTarget* target = AI_VALUE(TravelTarget*, "travel target");
@@ -636,6 +648,7 @@ bool GoAction::TravelTo(TravelDestination* dest, Player* requester) const
     }
 }
 
+/// 移动至指定游戏对象所在位置
 bool GoAction::MoveToGo(std::string& param, Player* requester)
 {
    auto loopthroughobjects = [&](const std::list<GameObject*>& gos) -> bool
@@ -685,9 +698,11 @@ bool GoAction::MoveToGo(std::string& param, Player* requester)
     return false;
 }
 
+/// 移动至目标单位附近（动态追踪其位置）
 bool GoAction::MoveToUnit(std::string& param, Player* requester)
 {
     std::list<ObjectGuid> units;
+    // 遍历附近 NPC 列表
     std::list<ObjectGuid> npcs = AI_VALUE(std::list<ObjectGuid>, "nearest npcs");
     units.insert(units.end(), npcs.begin(), npcs.end());
     std::list<ObjectGuid> players = AI_VALUE(std::list<ObjectGuid>, "nearest friendly players");
@@ -706,6 +721,7 @@ bool GoAction::MoveToUnit(std::string& param, Player* requester)
     return false;
 }
 
+/// 移动至指定 GPS 坐标位置
 bool GoAction::MoveToGps(std::string& param, Player* requester)
 {
     if (param.find(";") != std::string::npos)
@@ -764,6 +780,7 @@ bool GoAction::MoveToGps(std::string& param, Player* requester)
     return false;
 }
 
+/// 跨地图或指定地图 ID 移动至目标 GPS 坐标
 bool GoAction::MoveToMapGps(std::string& param, Player* requester)
 {
     if (param.find(",") != std::string::npos)
@@ -815,6 +832,7 @@ bool GoAction::MoveToMapGps(std::string& param, Player* requester)
     return false;
 }
 
+/// 移动至保存的命名坐标位置
 bool GoAction::MoveToPosition(std::string& param, Player* requester)
 {
     PositionEntry pos = context->GetValue<PositionMap&>("position")->Get()[param];
@@ -833,6 +851,7 @@ bool GoAction::MoveToPosition(std::string& param, Player* requester)
     return false;
 }
 
+/// 更新与移动策略（如停留/警戒）关联的基准坐标
 void GoAction::UpdateStrategyPosition(const WorldPosition& position)
 {
    if (ai->HasStrategy("stay", ai->GetState()))

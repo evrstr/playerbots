@@ -5,6 +5,7 @@
 
 using namespace ai;
 
+/// 执行动作主逻辑（修改战斗策略指令动作）
 bool ChangeCombatStrategyAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -100,6 +101,7 @@ bool ChangeCombatStrategyAction::Execute(Event& event)
     return true;
 }
 
+/// 执行动作主逻辑（修改非战斗策略指令动作）
 bool ChangeNonCombatStrategyAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -138,6 +140,7 @@ bool ChangeNonCombatStrategyAction::Execute(Event& event)
     return true;
 }
 
+/// 执行动作主逻辑（修改死亡策略指令动作）
 bool ChangeDeadStrategyAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -154,6 +157,7 @@ bool ChangeDeadStrategyAction::Execute(Event& event)
     return true;
 }
 
+/// 执行动作主逻辑（修改反应策略指令动作）
 bool ChangeReactionStrategyAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -170,6 +174,7 @@ bool ChangeReactionStrategyAction::Execute(Event& event)
     return true;
 }
 
+/// 执行动作主逻辑（修改全状态策略指令动作）
 bool ChangeAllStrategyAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();

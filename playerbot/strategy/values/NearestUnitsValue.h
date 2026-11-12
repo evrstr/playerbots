@@ -1,3 +1,4 @@
+// 策略值头文件：NearestUnitsValue（附近单位基类与附近潜行单位检测）
 #pragma once
 #include "playerbot/strategy/Value.h"
 #include "playerbot/PlayerbotAIConfig.h"
@@ -9,13 +10,14 @@
 
 namespace ai
 {
+    // 单位列表计算器抽象基类：统一实现单位扫描、视线校验及模板方法 AcceptUnit 过滤
     class NearestUnitsValue : public ObjectGuidListCalculatedValue
-	{
-	public:
+    {
+    public:
         NearestUnitsValue(PlayerbotAI* ai, std::string name = "nearest units", float range = sPlayerbotAIConfig.sightDistance, bool ignoreLos = false) :
             ObjectGuidListCalculatedValue(ai, name, 2), range(range), ignoreLos(ignoreLos) {}
 
-	public:
+    public:
         virtual std::list<ObjectGuid> Calculate() override
         {
             std::list<Unit*> targets;
@@ -41,8 +43,9 @@ namespace ai
     protected:
         float range;
         bool ignoreLos;
-	};
+    };
 
+    // 单位列表计算器：查找附近处于潜行状态但尚未被侦测到的非友方单位
     class NearestStealthedUnitsValue : public NearestUnitsValue
     {
     public:
@@ -63,6 +66,7 @@ namespace ai
 
             return unit->HasAuraType(SPELL_AURA_MOD_STEALTH) || unit->HasAuraType(SPELL_AURA_MOD_INVISIBILITY);
 
+            // 注释：预留的驱散/破潜检测逻辑
             /*uint32 dispelMask = 0;
             dispelMask |= GetDispellMask(DispelType(DISPEL_STEALTH));
             dispelMask |= GetDispellMask(DispelType(DISPEL_INVISIBILITY));
@@ -71,6 +75,7 @@ namespace ai
         }
     };
 
+    // 目标值计算器：从附近潜行单位列表中随机选取一个潜行目标
     class NearestStealthedSingleUnitValue : public UnitCalculatedValue
     {
     public:

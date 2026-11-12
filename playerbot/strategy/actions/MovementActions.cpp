@@ -19,6 +19,7 @@
 
 using namespace ai;
 
+/// 在世界坐标召唤一个临时路标光球用于可视化调试路径点
 void MovementAction::CreateWp(Player* wpOwner, float x, float y, float z, float o, uint32 entry, bool important)
 {
     float dist = wpOwner->GetDistance(x, y, z);
@@ -34,22 +35,26 @@ void MovementAction::CreateWp(Player* wpOwner, float x, float y, float z, float 
         wpCreature->SetObjectScale(0.5f);
 }
 
+/// 判断执行该动作的前置条件是否满足（移动动作基类）
 bool MovementAction::isPossible()
 {
     return ai->CanMove();
 }
 
+/// 判断当前状态下该动作是否可用/有效（移动动作基类）
 bool MovementAction::isUseful()
 {
     return !ai->HasStrategy("stay", ai->GetState());
 }
 
+/// 移动至指定坐标或对象周围一定半径内的可达点
 bool MovementAction::MoveNear(uint32 mapId, float x, float y, float z, float distance)
 {
     float angle = GetFollowAngle();
     return MoveTo(mapId, x + cos(angle) * distance, y + sin(angle) * distance, z);
 }
 
+/// 移动至指定坐标或对象周围一定半径内的可达点
 bool MovementAction::MoveNear(WorldObject* target, float distance)
 {
     if (!target)
@@ -85,9 +90,10 @@ bool MovementAction::MoveNear(WorldObject* target, float distance)
     return false;
 }
 
+/// 在飞行状态下沿直线向目标坐标飞去
 bool MovementAction::FlyDirect(const WorldPosition &startPosition, const WorldPosition &endPosition, WorldPosition& movePosition, TravelPath movePath)
 {
-    //Fly directly.
+    // Fly directly. (直线飞行前往。)
 #ifdef MANGOSBOT_ZERO
     return false;
 #else
@@ -97,19 +103,19 @@ bool MovementAction::FlyDirect(const WorldPosition &startPosition, const WorldPo
     if (!startPosition.isOutside())
         return false;
 
-    float totalDistance = startPosition.fDist(endPosition);  //Total distance to where we want to go
-    float minDist = sPlayerbotAIConfig.targetPosRecalcDistance; //Minium distance a bot should move.
-    float maxDist = sPlayerbotAIConfig.reactDistance;           //Maxium distance a bot can move in one single action.
+    float totalDistance = startPosition.fDist(endPosition);  // Total distance to where we want to go (前往目标位置的总距离)
+    float minDist = sPlayerbotAIConfig.targetPosRecalcDistance; // Minium distance a bot should move. (机器人单次应移动的最小距离。)
+    float maxDist = sPlayerbotAIConfig.reactDistance;           // Maxium distance a bot can move in one single action. (单次移动动作允许的最大移动距离。)
 
     if (totalDistance < maxDist && !bot->IsFlying())
         return false;
 
     movePosition = endPosition;
 
-    if (movePosition.getMapId() != startPosition.getMapId() || !movePosition.isOutside() || !movePosition.canFly()) //We can not fly to the end directly.
+    if (movePosition.getMapId() != startPosition.getMapId() || !movePosition.isOutside() || !movePosition.canFly()) // We can not fly to the end directly. (无法直线飞抵终点。)
     {
         std::vector<WorldPosition> path;
-        if (movePath.empty()) //Make a path starting at the end backwards to see if we can walk to some better place.
+        if (movePath.empty()) // Make a path starting at the end backwards to see if we can walk to some better place. (从路径末端反向尝试寻路，寻找更优的可步行位置。)
         {
             path = endPosition.getPathTo(startPosition, bot);            
         }
@@ -124,7 +130,7 @@ bool MovementAction::FlyDirect(const WorldPosition &startPosition, const WorldPo
 
 
 
-        for (auto& p : path) //Find the furtest point where we can fly to directly.
+        for (auto& p : path) // Find the furtest point where we can fly to directly. (查找能够直线飞往的最远路径点。)
             if (p.getMapId() == startPosition.getMapId() && p.isOutside() && p.canFly())
             {
                 movePosition = p;
@@ -205,7 +211,7 @@ bool MovementAction::FlyDirect(const WorldPosition &startPosition, const WorldPo
             movePosition = movePosition.limit(startPosition, maxDist);
     }
 
-    if (totalDistance > maxDist && !detailedMove && !ai->HasPlayerNearby(movePosition)) //Why walk if you can fly?
+    if (totalDistance > maxDist && !detailedMove && !ai->HasPlayerNearby(movePosition)) // Why walk if you can fly? (能飞则不走（优先飞行前往）。)
     {
         time_t now = time(0);
 
@@ -216,7 +222,7 @@ bool MovementAction::FlyDirect(const WorldPosition &startPosition, const WorldPo
 
     MotionMaster& mm = *bot->GetMotionMaster();
 
-    //Clean movement if not already moving the same way.
+    // Clean movement if not already moving the same way. (若未朝同一方向移动，则清理当前移动状态。)
     
     if (mm.GetCurrent()->GetMovementGeneratorType() != POINT_MOTION_TYPE)
     {
@@ -234,6 +240,7 @@ bool MovementAction::FlyDirect(const WorldPosition &startPosition, const WorldPo
 #endif
 }
 
+/// 与飞行管理员交互并乘骑指定的飞行路线
 bool MovementAction::UseTaxi(PlayerbotAI* ai, uint32 entry, bool needNpc)
 {
     AiObjectContext* context = ai->GetAiObjectContext();
@@ -247,7 +254,7 @@ bool MovementAction::UseTaxi(PlayerbotAI* ai, uint32 entry, bool needNpc)
         bot->OnTaxiFlightEject(true);
         ai->Unmount();
 #endif
-        bool goClick = ai->HandleSpellClick(entry); //Source gryphon of ebonhold.
+        bool goClick = ai->HandleSpellClick(entry); // Source gryphon of ebonhold. (黑锋要塞起始狮鹫载具。)
         return goClick;
     }
 
@@ -255,6 +262,7 @@ bool MovementAction::UseTaxi(PlayerbotAI* ai, uint32 entry, bool needNpc)
 
     if (needNpc)
     {
+        // 遍历附近 NPC 列表
         std::list<ObjectGuid> npcs = AI_VALUE(std::list<ObjectGuid>, "nearest npcs");
         for (std::list<ObjectGuid>::iterator i = npcs.begin(); i != npcs.end(); i++)
         {
@@ -294,6 +302,7 @@ bool MovementAction::UseTaxi(PlayerbotAI* ai, uint32 entry, bool needNpc)
     return goTaxi;
 }
 
+/// 从码头或陆地移动登上停靠中的船只或飞艇载具
 bool MovementAction::MoveOnTransport(PlayerbotAI* ai, GenericTransport* transport, bool doTeleport)
 {
     AiObjectContext* context = ai->GetAiObjectContext();
@@ -374,6 +383,7 @@ bool MovementAction::MoveOnTransport(PlayerbotAI* ai, GenericTransport* transpor
     return true;
 }
 
+/// 从船只或飞艇等移动载具上移动下船至陆地路径点
 bool MovementAction::MoveOffTransport(PlayerbotAI* ai, WorldPosition exitPos, bool doTeleport)
 {
     AiObjectContext* context = ai->GetAiObjectContext();
@@ -421,21 +431,22 @@ bool MovementAction::MoveOffTransport(PlayerbotAI* ai, WorldPosition exitPos, bo
     return true;
 }
 
+/// 处理乘坐船只、飞艇或电梯等交通载具的上下船与等待逻辑
 bool MovementAction::UseTransport(PlayerbotAI* ai, uint32 entry, WorldPosition dockPosition, WorldPosition exitPosition, bool doTeleport)
 {
     AiObjectContext* context = ai->GetAiObjectContext();
     Player* bot = ai->GetBot();
     WorldPosition botPos(bot);
 
-    // Mesa elevators move vertically while their X/Y position remains
-    // effectively unchanged. Use 3D distance so upper and lower stops
-    // are not treated as the same dock position.
+    // Mesa elevators move vertically while their X/Y position remains (高台电梯垂直上下升降，而其 X/Y 平面坐标保持不变)
+    // effectively unchanged. Use 3D distance so upper and lower stops (实际未变；改用三维距离以区分上下两层停靠点)
+    // are not treated as the same dock position. (不会被视为同一个码头停靠位置。)
     auto dockDistanceSq = [&dockPosition](GenericTransport* trans) -> float
     {
         GameObjectInfo const* info =
             sGOStorage.LookupEntry<GameObjectInfo>(trans->GetEntry());
 
-        if (info && info->displayId == 360) // Elevatorcar.m2
+        if (info && info->displayId == 360) // Elevatorcar.m2 (电梯模型（Elevatorcar.m2）)
             return dockPosition.sqDistance(WorldPosition(trans));
 
         return dockPosition.sqDistance2d(WorldPosition(trans));
@@ -465,8 +476,8 @@ bool MovementAction::UseTransport(PlayerbotAI* ai, uint32 entry, WorldPosition d
         return false;
     }
 
-    // The bot can only board on its own map, and the objects of another map
-    // belong to the thread that updates that map: do not read them.
+    // The bot can only board on its own map, and the objects of another map (机器人只能登上自身当前所在地图的载具，而另一张地图的对象)
+    // belong to the thread that updates that map: do not read them. (归属于更新该地图的线程：禁止跨线程读取。)
     if (dockPosition.mapid != bot->GetMapId())
     {
         ai->TellDebug(ai->GetMaster(), "Waiting for transport on different map.", "debug move");
@@ -508,6 +519,7 @@ bool MovementAction::UseTransport(PlayerbotAI* ai, uint32 entry, WorldPosition d
     return false;
 }
 
+/// 执行最小位移微调以脱离危险区域或碰撞
 bool MovementAction::MinimalMove(PlayerbotAI* ai)
 {
     if (!sPlayerbotAIConfig.enableMinimalMove)
@@ -530,7 +542,7 @@ bool MovementAction::MinimalMove(PlayerbotAI* ai)
     if (lastMove.nextTeleport > now)
         return false;
 
-    lastMove.nextTeleport = now + sPlayerbotAIConfig.passiveDelay/1000; //For teleports/transports/ect 
+    lastMove.nextTeleport = now + sPlayerbotAIConfig.passiveDelay/1000; // For teleports/transports/ect (用于传送/交通载具等场景)
 
     std::vector<PathNodePoint>& path = lastMove.lastPath.getPath();
 
@@ -538,7 +550,7 @@ bool MovementAction::MinimalMove(PlayerbotAI* ai)
 
     bool doDelay = true;
 
-    //Taxi handling: Start taxi and remove path until it ends.
+    // Taxi handling: Start taxi and remove path until it ends. (飞行处理：开启飞行路线并移除至飞行结束前的步行路径。)
     if (nextStep->type == PathNodeType::NODE_FLIGHTPATH)
     {
         if (nextStep->point.sqDistance(bot) > INTERACTION_DISTANCE * INTERACTION_DISTANCE)
@@ -555,14 +567,14 @@ bool MovementAction::MinimalMove(PlayerbotAI* ai)
             if (step.type == PathNodeType::NODE_FLIGHTPATH && step.entry == nextStep->entry)
                 continue;
 
-            lastMove.lastPath.cutTo(step, false); //Remove path until next walk or taxi.
+            lastMove.lastPath.cutTo(step, false); // Remove path until next walk or taxi. (移除直到下一段步行或飞行点之间的路径。)
             break;
         }
 
         return true;
     }
 
-   //Transport handling: If not on transport wait for transport and teleport on it when it's near (and cut to last transport point). If on transport wait until it is near exit and teleport to exit.
+   // Transport handling: If not on transport wait for transport and teleport on it when it's near (and cut to last transport point). If on transport wait until it is near exit and teleport to exit. (载具乘坐处理：未上船时等待靠岸后登船，已在船上时等待靠近终点后下船。)
     if (nextStep != path.end() && nextStep->type == PathNodeType::NODE_TRANSPORT)
     {
         auto exitStep = std::next(nextStep);
@@ -571,12 +583,12 @@ bool MovementAction::MinimalMove(PlayerbotAI* ai)
 
         bool didTransport = UseTransport(ai, nextStep->entry, nextStep->point, exitPos, true);
 
-        if (!didTransport) //We did not board yet or are on the transport so just wait.
+        if (!didTransport) // We did not board yet or are on the transport so just wait. (尚未登船或已在船上，保持原地等待。)
         {
             return true;
         }
 
-        if (bot->GetTransport()) //Just boarded
+        if (bot->GetTransport()) // Just boarded (刚刚登上交通载具)
         {
             PathNodePoint lastStep = *nextStep;
 
@@ -591,13 +603,13 @@ bool MovementAction::MinimalMove(PlayerbotAI* ai)
                 break;
             }
 
-            lastMove.lastPath.cutTo(lastStep, false); //Remove path up to last transport point.
+            lastMove.lastPath.cutTo(lastStep, false); // Remove path up to last transport point. (截断并移除直到上一个交通载具节点前的路径。)
 
             return true;
         }
 
-        //Ready to exit
-        lastMove.lastPath.cutTo(*nextStep, true); //Removing boarding point.
+        // Ready to exit (准备离开)
+        lastMove.lastPath.cutTo(*nextStep, true); // Removing boarding point. (移除登船点位。)
 
         nextStep = path.begin();
 
@@ -606,7 +618,7 @@ bool MovementAction::MinimalMove(PlayerbotAI* ai)
         return true;
     }
 
-    //Skip over stuff we don't walk.
+    // Skip over stuff we don't walk. (跳过不需要步行经过的路径点。)
     if (!nextStep->isWalkable())
     {
         auto it = std::find_if(std::next(nextStep), path.end(), [](const auto& step) {
@@ -653,11 +665,12 @@ bool MovementAction::MinimalMove(PlayerbotAI* ai)
     return true;
 }
 
+/// 在码头或站点等待目标交通载具靠岸
 bool MovementAction::WaitForTransport()
 {
     LastMovement& lastMove = AI_VALUE(LastMovement&, "last movement");
 
-    // Check if we need to resume transport journey
+    // Check if we need to resume transport journey (检查是否需要恢复此前的交通载具行程)
     if (!lastMove.lastTransportEntry)
         return false;
 
@@ -684,12 +697,13 @@ bool MovementAction::WaitForTransport()
     return false;
 }
 
+/// 通过寻路引擎解析并生成前往目标点的完整路径点序列
 TravelPath MovementAction::ResolveMovePath(const WorldPosition& startPosition, const WorldPosition& endPosition, Unit* mover, LastMovement& lastMove)    
 {
     float totalDistance = startPosition.distance(endPosition);
     float maxDistChange = totalDistance * 0.1f;
 
-    // Last long path still leads to roughly the same destination.
+    // Last long path still leads to roughly the same destination. (上一次计算的长途路径仍大致通向同一目的地。)
     if (!lastMove.lastPath.empty() && lastMove.lastPath.getBack().distance(endPosition) < maxDistChange)
     {
         return lastMove.lastPath;
@@ -710,11 +724,11 @@ TravelPath MovementAction::ResolveMovePath(const WorldPosition& startPosition, c
 
     if (needsLongPath && sTravelNodeMap.hasNodes() && !bot->InBattleGround())
     {
-        outMovePath = sTravelNodeMap.getFullPath(startPosition, endPosition, bot); //Pathfind using nodes.
+        outMovePath = sTravelNodeMap.getFullPath(startPosition, endPosition, bot); // Pathfind using nodes. (利用导航节点进行路径规划。)
     }
     else
     {
-        std::vector<WorldPosition> path = startPosition.getPathTo(endPosition, bot); //Navemesh pathfinding only.
+        std::vector<WorldPosition> path = startPosition.getPathTo(endPosition, bot); // Navemesh pathfinding only. (仅使用寻路网格（NavMesh）寻路。)
 
         outMovePath.addPath(path);
     }
@@ -724,8 +738,8 @@ TravelPath MovementAction::ResolveMovePath(const WorldPosition& startPosition, c
 
     if (outMovePath.empty())
     {
-        // No route. MovePoint ignores the map, and the navmesh pathfinder can't build a path this long, so the bot
-        // would walk a straight line toward the destination's coordinates and height, through terrain and under the map.
+        // No route. MovePoint ignores the map, and the navmesh pathfinder can't build a path this long, so the bot (无可用路线：MovePoint 会忽略地图限制且寻路网格无法构建超长路径，因此机器人)
+        // would walk a straight line toward the destination's coordinates and height, through terrain and under the map. (会直接沿直线穿墙穿地走向目标坐标与高度。)
         if (startPosition.getMapId() != endPosition.getMapId() || (!bot->InBattleGround() && sServerFacade.IsDistanceGreaterThan(totalDistance, sPlayerbotAIConfig.sightDistance * 3)))
         {
             if (mover == bot)
@@ -742,6 +756,7 @@ TravelPath MovementAction::ResolveMovePath(const WorldPosition& startPosition, c
     return outMovePath;
 }
 
+/// 处理跨交通工具、跳跃捷径等特殊移动逻辑
 bool MovementAction::HandleSpecialMovement(TravelPath& path)
 {
     PathNodePoint currentPoint = path.getPath().front();
@@ -749,7 +764,7 @@ bool MovementAction::HandleSpecialMovement(TravelPath& path)
     if (path.getPath().size() > 1)
         nextPoint = *std::next(path.getPath().begin());
 
-    //Game object portals
+    // Game object portals (游戏对象传送门)
     if (currentPoint.type == PathNodeType::NODE_STATIC_PORTAL && currentPoint.entry)
     {
         GameObjectInfo const* goInfo = sGOStorage.LookupEntry<GameObjectInfo>(currentPoint.entry);
@@ -800,7 +815,7 @@ bool MovementAction::HandleSpecialMovement(TravelPath& path)
             return bot->TeleportTo(nextPoint.point.getMapId(), nextPoint.point.getX(), nextPoint.point.getY(), nextPoint.point.getZ(), nextPoint.point.getO(), 0) ? true : false;
     }
 
-    //We are getting 'on' transport.
+    // We are getting 'on' transport. (正在登上传送/交通载具。)
     if (nextPoint.type == PathNodeType::NODE_TRANSPORT)
     {
         bool usedTransport = UseTransport(ai, nextPoint.entry, nextPoint.point, WorldPosition(), sPlayerbotAIConfig.transportTeleportType > 0);
@@ -814,7 +829,7 @@ bool MovementAction::HandleSpecialMovement(TravelPath& path)
         return true;
     }
 
-    if (currentPoint.type == PathNodeType::NODE_TRANSPORT && sPlayerbotAIConfig.transportTeleportType == 2) //Instant teleport case
+    if (currentPoint.type == PathNodeType::NODE_TRANSPORT && sPlayerbotAIConfig.transportTeleportType == 2) // Instant teleport case (瞬时传送情况)
     {
         return bot->TeleportTo(nextPoint.point.getMapId(), nextPoint.point.getX(), nextPoint.point.getY(), nextPoint.point.getZ(), nextPoint.point.getO(), 0);
     }
@@ -852,7 +867,7 @@ bool MovementAction::HandleSpecialMovement(TravelPath& path)
     {
         bool canCastNow = !bot->IsFlying() || WorldPosition(bot).currentHeight() < 10.0f;
 
-        if (nextPoint.entry == 8690) // Hearthstone
+        if (nextPoint.entry == 8690) // Hearthstone (炉石)
         {
             if (AI_VALUE2(bool, "action useful", "hearthstone") && canCastNow)
                 return ai->DoSpecificAction("hearthstone", Event("move action"), true) ? true : false;
@@ -880,6 +895,7 @@ bool MovementAction::HandleSpecialMovement(TravelPath& path)
     return false;
 }
 
+/// 根据当前地形与移动模式更新飞行状态标志
 void MovementAction::UpdateFlyingState(
     WorldPosition& movePosition,
     float totalDistance,
@@ -893,7 +909,7 @@ void MovementAction::UpdateFlyingState(
     bool needFly = false;
     bool needLand = false;
 
-    // Ascend when the next walking waypoint is far and in clear LOS overhead.
+    // Ascend when the next walking waypoint is far and in clear LOS overhead. (当下一步行路径点较远且上方视野无遮挡时升空飞行。)
     if (totalDistance > maxDist && isWalking)
     {
         isFar = true;
@@ -921,7 +937,7 @@ void MovementAction::UpdateFlyingState(
                 float botHeight = terrain->GetHeightStatic(bot->GetPositionX(), bot->GetPositionY(), bot->GetPositionZ());
                 float botGround = terrain->GetWaterOrGroundLevel(bot->GetPositionX(), bot->GetPositionY(), bot->GetPositionZ(), botHeight);
 
-                // Fly up if the ground isn't blocking the path (skip tunnels).
+                // Fly up if the ground isn't blocking the path (skip tunnels). (若上方无地形阻挡（跳过隧道等室内区域）则升空飞行。)
                 if (totalDistance > maxDist && destGround <= movePosition.getZ())
                     movePosition.setZ(std::min(std::max(destGround, botGround) + 100.0f,
                         std::max(movePosition.getZ() + 10.0f, bot->GetPositionZ() + 10.0f)));
@@ -931,11 +947,11 @@ void MovementAction::UpdateFlyingState(
         }
     }
 
-    // Ascend toward a raised destination even when not far (e.g. ledge above).
+    // Ascend toward a raised destination even when not far (e.g. ledge above). (即使距离不远，只要目的地位于上方（如高台）也向上飞升。)
     if (!isFar && !isFly && originalZ > bot->GetPositionZ() && (originalZ - bot->GetPositionZ()) > 5.0f)
         needFly = true;
 
-    // Descend when close to the ground-level destination.
+    // Descend when close to the ground-level destination. (接近地面目的地时降低高度降落。)
     if (!isFar && isFly)
     {
         if (const TerrainInfo* terrain = bot->GetTerrain())
@@ -947,7 +963,7 @@ void MovementAction::UpdateFlyingState(
         }
     }
 
-    // Apply FLYING flags.
+    // Apply FLYING flags. (应用飞行移动标志位。)
     if (needFly && !isFly)
     {
         WorldPacket data(SMSG_SPLINE_MOVE_SET_FLYING, 9);
@@ -962,7 +978,7 @@ void MovementAction::UpdateFlyingState(
             bot->m_movementInfo.AddMovementFlag(MOVEFLAG_LEVITATING);
     }
 
-    // Remove FLYING flags on landing.
+    // Remove FLYING flags on landing. (降落时移除飞行移动标志位。)
     if (needLand)
     {
         WorldPacket data(SMSG_SPLINE_MOVE_UNSET_FLYING, 9);
@@ -979,6 +995,7 @@ void MovementAction::UpdateFlyingState(
 #endif // !MANGOSBOT_ZERO
 }
 
+/// 根据距离、地形与载具状态分发具体的移动执行方式
 void MovementAction::DispatchMovement(TravelPath movePath, bool generatePath, bool masterWalking)
 {
     MotionMaster& mm = *bot->GetMotionMaster();
@@ -1064,6 +1081,7 @@ void MovementAction::DispatchMovement(TravelPath movePath, bool generatePath, bo
 }
 
 
+/// 获取当前实际控制移动的单位（机器人自身或所乘载具）
 Unit* MovementAction::GetMover(Player* bot)
 {
 #ifdef MANGOSBOT_TWO
@@ -1085,6 +1103,7 @@ Unit* MovementAction::GetMover(Player* bot)
     return bot;
 }
 
+/// 使用备用或分段寻路逻辑移动至目标位置
 bool MovementAction::MoveTo2(const WorldPosition& endPos, bool idle, bool react, bool noPath, bool ignoreEnemyTargets)
 {
     if (!endPos.isValid())
@@ -1153,7 +1172,7 @@ bool MovementAction::MoveTo2(const WorldPosition& endPos, bool idle, bool react,
     if (movePath.empty())
     {
         lastMove.setPath(movePath);
-        return true; // Path collapsed — will rebuild next tick.
+        return true; // Path collapsed — will rebuild next tick. (路径已坍缩失效，将在下一帧重新构建。)
     }
 
 
@@ -1165,7 +1184,7 @@ bool MovementAction::MoveTo2(const WorldPosition& endPos, bool idle, bool react,
     if (specialMovement)
         return HandleSpecialMovement(movePath);
     
-    if (bot->GetTransport()) //Transports needed to be handled before now.
+    if (bot->GetTransport()) // Transports needed to be handled before now. (交通载具应在抵达此阶段之前完成处理。)
         return false;
 
     if (!movePath.empty())
@@ -1192,9 +1211,9 @@ bool MovementAction::MoveTo2(const WorldPosition& endPos, bool idle, bool react,
         return false;
     }
 
-    // Only touch points on the map the bot is actually on, so a cross-map destination can never
-    // resolve another map's terrain/VMap. (The old front-map guard did not imply the bot's map.)
-    // Keep the "don't surface a deliberate dive" rule, but only for a destination on our own map.
+    // Only touch points on the map the bot is actually on, so a cross-map destination can never (仅处理机器人当前所在地图的路径点，避免跨地图目的地错误)
+    // resolve another map's terrain/VMap. (The old front-map guard did not imply the bot's map.) (解析其他地图的地形/VMap（旧的地图守卫未覆盖机器人自身地图）)
+    // Keep the "don't surface a deliberate dive" rule, but only for a destination on our own map. (保留“主动下潜时不自动浮出水面”的规则，但仅限于目的地在同一张地图时。)
     bool endUnderwater = endPos.getMapId() == bot->GetMapId() && endPos.isUnderWater();
     for (auto& p : movePath.getPath())
     {
@@ -1260,14 +1279,14 @@ bool MovementAction::MoveTo2(const WorldPosition& endPos, bool idle, bool react,
         }
 
         WorldPosition movePosition = movePath.getBack();
-        //Todo fix this for paths.
+        // Todo fix this for paths. (待办：针对路径逻辑修复此处。)
         UpdateFlyingState(movePosition, totalDistance, startPos.getZ(), sPlayerbotAIConfig.reactDistance, isWalking);
     }
 #endif
 
 
-    // DEBUG: Check for Ironforge AH roof climbing bug
-    // IF Auction House is at approx -4900, -950, 500 (Military Ward)
+    // DEBUG: Check for Ironforge AH roof climbing bug (调试：检查铁炉堡拍卖行屋顶攀爬路径异常)
+    // IF Auction House is at approx -4900, -950, 500 (Military Ward) (铁炉堡拍卖行大致位于军事区 (-4900, -950, 500))
     /**
     const float IF_AH_X = -4900.0f;
     const float IF_AH_Y = -950.0f;
@@ -1329,7 +1348,7 @@ bool MovementAction::MoveTo2(const WorldPosition& endPos, bool idle, bool react,
         }
     }
     */
-    // END DEBUG
+    // END DEBUG (结束调试输出)
 
     DispatchMovement(movePath, generatePath, masterWalking);
 
@@ -1339,6 +1358,7 @@ bool MovementAction::MoveTo2(const WorldPosition& endPos, bool idle, bool react,
     return true;
 }
 
+/// 规划路径并控制机器人移动至目标地图坐标
 bool MovementAction::MoveTo(uint32 mapId, float x, float y, float z, bool idle, bool react, bool noPath, bool ignoreEnemyTargets)
 {
     return MoveTo2(WorldPosition(mapId, x, y, z), idle, react, noPath, ignoreEnemyTargets);
@@ -1376,16 +1396,16 @@ bool MovementAction::MoveTo(uint32 mapId, float x, float y, float z, bool idle, 
     if (!detailedMove)
     {
         time_t now = time(0);
-        if (AI_VALUE(LastMovement&, "last movement").nextTeleport > now) //We can not teleport yet. Wait.
+        if (AI_VALUE(LastMovement&, "last movement").nextTeleport > now) // We can not teleport yet. Wait. (当前尚无法执行传送，继续等待。)
         {
             SetDuration((AI_VALUE(LastMovement&, "last movement").nextTeleport - now) * 1000);
             return true;
         }
     }
 
-    float minDist = sPlayerbotAIConfig.targetPosRecalcDistance; //Minimum distance a bot should move.
-    float maxDist = sPlayerbotAIConfig.sightDistance;           //Maximum distance a bot can move in one single action.
-    float originalZ = z;                                        // save original destination height to check if bot needs to fly up
+    float minDist = sPlayerbotAIConfig.targetPosRecalcDistance; // Minimum distance a bot should move. (机器人单次应移动的最小距离。)
+    float maxDist = sPlayerbotAIConfig.sightDistance;           // Maximum distance a bot can move in one single action. (单次移动动作允许的最大移动距离。)
+    float originalZ = z;                                        // save original destination height to check if bot needs to fly up (保存原始目的地高度，用于判断是否需要升空飞行)
 
     bool generatePath = !bot->IsFlying() && !bot->HasMovementFlag(MOVEFLAG_SWIMMING) && !bot->IsInWater() && !sServerFacade.IsUnderwater(bot);
     if (noPath)
@@ -1408,11 +1428,11 @@ bool MovementAction::MoveTo(uint32 mapId, float x, float y, float z, bool idle, 
     if (WaitForTransport())
         return true;
 
-    WorldPosition startPosition = WorldPosition(bot); //Current location of the bot
+    WorldPosition startPosition = WorldPosition(bot); // Current location of the bot (机器人当前所在位置)
     WorldPosition movePosition;
 
-    float totalDistance = startPosition.distance(endPosition); //Total distance to where we want to go
-    float maxDistChange = totalDistance * 0.1;                 //Maximum change between previous destination before needing a recalculation
+    float totalDistance = startPosition.distance(endPosition); // Total distance to where we want to go (前往目标位置的总距离)
+    float maxDistChange = totalDistance * 0.1;                 // Maximum change between previous destination before needing a recalculation (触发路径重算前目标位置允许的最大偏移距离)
     TravelPath movePath;
 
     if (totalDistance < minDist)
@@ -1428,12 +1448,12 @@ bool MovementAction::MoveTo(uint32 mapId, float x, float y, float z, bool idle, 
 
     bool isWalking = false;
 
-    if (FlyDirect(startPosition, endPosition, movePosition, lastMove.lastPath)) //Try flying in a straight line to target.
+    if (FlyDirect(startPosition, endPosition, movePosition, lastMove.lastPath)) // Try flying in a straight line to target. (尝试沿直线飞行前往目标。)
         return true;
 
-    if (lastMove.lastMoveShort.distance(endPosition) < maxDistChange && startPosition.distance(lastMove.lastMoveShort) < maxDist && !bot->GetTransport()) //The last short movement was to the same place we want to move now.
+    if (lastMove.lastMoveShort.distance(endPosition) < maxDistChange && startPosition.distance(lastMove.lastMoveShort) < maxDist && !bot->GetTransport()) // The last short movement was to the same place we want to move now. (上一次短距离移动的目的地与当前目标位置相同。)
         movePosition = endPosition;
-    else if (!lastMove.lastPath.empty() && lastMove.lastPath.getBack().distance(endPosition) < maxDistChange) //The last long movement was to the same place we want to move now.
+    else if (!lastMove.lastPath.empty() && lastMove.lastPath.getBack().distance(endPosition) < maxDistChange) // The last long movement was to the same place we want to move now. (上一次长距离移动的目的地与当前目标位置相同。)
     {
         movePath = lastMove.lastPath;
     }
@@ -1447,7 +1467,7 @@ bool MovementAction::MoveTo(uint32 mapId, float x, float y, float z, bool idle, 
             {
                 movePath = sTravelNodeMap.getFullPath(startPosition, endPosition, bot);
 
-                // DEBUG: Log travel node path result - use TellDebug for debug move
+                // DEBUG: Log travel node path result - use TellDebug for debug move (调试：记录旅行节点路径计算结果)
                 if (ai->HasStrategy("debug move", BotState::BOT_STATE_NON_COMBAT))
                 {
                     std::ostringstream out;
@@ -1460,7 +1480,7 @@ bool MovementAction::MoveTo(uint32 mapId, float x, float y, float z, bool idle, 
 
                 if (movePath.empty())
                 {
-                    // Debug path issues - use TellDebug for debug move
+                    // Debug path issues - use TellDebug for debug move (调试路径计算问题（使用 TellDebug 输出移动调试）)
                     if (ai->HasStrategy("debug move", BotState::BOT_STATE_NON_COMBAT))
                     {
                         std::shared_lock<std::shared_timed_mutex> nodeLock(sTravelNodeMap.m_nMapMtx);
@@ -1474,7 +1494,7 @@ bool MovementAction::MoveTo(uint32 mapId, float x, float y, float z, bool idle, 
                         ai->TellDebug(ai->GetMaster(), out.str(), "debug move");
                     }
 
-                    //We have no path. Beyond 450yd the standard pathfinder will probably move the wrong way.
+                    // We have no path. Beyond 450yd the standard pathfinder will probably move the wrong way. (无有效路径；超过 450 码后标准寻路器极易迷路绕远。)
                     if (sServerFacade.IsDistanceGreaterThan(totalDistance, maxDist * 3))
                     {
                         movePath.clear();
@@ -1513,7 +1533,7 @@ bool MovementAction::MoveTo(uint32 mapId, float x, float y, float z, bool idle, 
             }
             else
             {
-                //Use standard pathfinder to find a route.
+                // Use standard pathfinder to find a route. (使用标准寻路器寻找行进路线。)
                 movePosition = endPosition;
             }
         }
@@ -1521,7 +1541,7 @@ bool MovementAction::MoveTo(uint32 mapId, float x, float y, float z, bool idle, 
 
     if (movePath.empty() && movePosition.distance(startPosition) > maxDist)
     {
-        // DEBUG: Before VMaps pathfinder - use TellDebug for debug move
+        // DEBUG: Before VMaps pathfinder - use TellDebug for debug move (调试：VMap 寻路之前（使用 TellDebug 输出移动调试信息）)
         if (ai->HasStrategy("debug move", BotState::BOT_STATE_NON_COMBAT))
         {
             std::ostringstream out;
@@ -1531,12 +1551,12 @@ bool MovementAction::MoveTo(uint32 mapId, float x, float y, float z, bool idle, 
         }
 
         PathFinder pathfinder(mover);
-        //Use standard pathfinder to find a route.
+        // Use standard pathfinder to find a route. (使用标准寻路器寻找行进路线。)
         pathfinder.calculate(movePosition.getX(), movePosition.getY(), movePosition.getZ(), false);
         PathType type = pathfinder.getPathType();
         PointsArray& points = pathfinder.getPath();
 
-        // DEBUG: After VMaps pathfinder - use TellDebug for debug move
+        // DEBUG: After VMaps pathfinder - use TellDebug for debug move (调试：VMap 寻路之后（使用 TellDebug 输出移动调试信息）)
         if (ai->HasStrategy("debug move", BotState::BOT_STATE_NON_COMBAT))
         {
             std::ostringstream out;
@@ -1548,7 +1568,7 @@ bool MovementAction::MoveTo(uint32 mapId, float x, float y, float z, bool idle, 
         movePath.addPath(startPosition.fromPointsArray(points));
     }
 
-    if (!lastMove.lastPath.empty() && !movePath.empty() && lastMove.lastPath.getBack().distance(endPosition) <= movePath.getBack().distance(endPosition)) //new path is worse than the last path. Keep going the old path.
+    if (!lastMove.lastPath.empty() && !movePath.empty() && lastMove.lastPath.getBack().distance(endPosition) <= movePath.getBack().distance(endPosition)) // new path is worse than the last path. Keep going the old path. (新路径不如旧路径，继续沿旧路径行进。)
     {
         movePath = lastMove.lastPath;
     }
@@ -1584,7 +1604,7 @@ bool MovementAction::MoveTo(uint32 mapId, float x, float y, float z, bool idle, 
 
             if (pathType == PathNodeType::NODE_STATIC_PORTAL && entry) // && !ai->isRealPlayer())
             {
-                //Log bot movement
+                // Log bot movement (记录机器人移动日志)
                 if (sPlayerbotAIConfig.hasLog("bot_movement.csv"))
                 {
                     WorldPosition telePos;
@@ -1654,7 +1674,7 @@ bool MovementAction::MoveTo(uint32 mapId, float x, float y, float z, bool idle, 
 
             if (pathType == PathNodeType::NODE_AREA_TRIGGER)
             {
-                //Log bot movement
+                // Log bot movement (记录机器人移动日志)
                 if (sPlayerbotAIConfig.hasLog("bot_movement.csv"))
                 {
                     WorldPosition telePos;
@@ -1886,7 +1906,7 @@ bool MovementAction::MoveTo(uint32 mapId, float x, float y, float z, bool idle, 
         //if (!isTransport && bot->GetTransport())
         //    bot->GetTransport()->RemovePassenger(bot);
     }
-    else if (bot->GetTransport()) //Wait until we can recalculate.
+    else if (bot->GetTransport()) // Wait until we can recalculate. (等待直到满足路径重算条件。)
         return false;
 
     if (!movePath.empty() && movePath.getBack().distance(movePath.getFront()) > maxDist)
@@ -1908,7 +1928,7 @@ bool MovementAction::MoveTo(uint32 mapId, float x, float y, float z, bool idle, 
     }
 
     if (movePosition.distance(startPosition) > maxDist && !bot->GetTransport())
-    { //Use standard pathfinder to find a route.
+    { // Use standard pathfinder to find a route. (使用标准寻路器寻找行进路线。)
         PathFinder path(mover);
         path.calculate(movePosition.getX(), movePosition.getY(), movePosition.getZ(), false);
         PathType type = path.getPathType();
@@ -1921,7 +1941,7 @@ bool MovementAction::MoveTo(uint32 mapId, float x, float y, float z, bool idle, 
         movePosition = movePath.getBack();
     }
 
-    //Stop the path when we might get aggro.
+    // Stop the path when we might get aggro. (路径前方可能引到怪物仇恨时提前停步。)
     if (!ai->IsStateActive(BotState::BOT_STATE_COMBAT) && !bot->IsDead() && !ignoreEnemyTargets)
     {
         std::list<ObjectGuid> targets = AI_VALUE_LAZY(std::list<ObjectGuid>, "possible attack targets");
@@ -1986,7 +2006,7 @@ bool MovementAction::MoveTo(uint32 mapId, float x, float y, float z, bool idle, 
         return false;
     }
 
-    if (movePosition.getMapId() == endPosition.getMapId() && movePosition.isUnderWater() && !endPosition.isUnderWater()) //Try to swim on the surface.
+    if (movePosition.getMapId() == endPosition.getMapId() && movePosition.isUnderWater() && !endPosition.isUnderWater()) // Try to swim on the surface. (尝试浮上水面游泳。)
     {
         movePosition.setZ(movePosition.getHeight(true));
 
@@ -1994,7 +2014,7 @@ bool MovementAction::MoveTo(uint32 mapId, float x, float y, float z, bool idle, 
             ai->TellPlayerNoFacing(GetMaster(), "Setting movePosition to water surface.");
     }
 
-    //Visual waypoints
+    // Visual waypoints (可视化路标点)
     if (ai->HasStrategy("debug move", BotState::BOT_STATE_NON_COMBAT))
     {
         if (!movePath.empty())
@@ -2009,7 +2029,7 @@ bool MovementAction::MoveTo(uint32 mapId, float x, float y, float z, bool idle, 
             CreateWp(bot, movePosition.getX(), movePosition.getY(), movePosition.getZ(), 0, 2334, true);
     }
 
-    //Log bot movement
+    // Log bot movement (记录机器人移动日志)
     if (sPlayerbotAIConfig.hasLog("bot_movement.csv") && lastMove.lastMoveShort != movePosition)
     {
         std::ostringstream out;
@@ -2051,6 +2071,7 @@ bool MovementAction::MoveTo(uint32 mapId, float x, float y, float z, bool idle, 
 
     MotionMaster& mm = *mover->GetMotionMaster();
 
+    /// 历史遗留停步检查逻辑（已注释保留）
     /* Why do we do this?
     if (lastMove.lastMoveShort.distance(movePosition) < minDist)
     {
@@ -2059,7 +2080,7 @@ bool MovementAction::MoveTo(uint32 mapId, float x, float y, float z, bool idle, 
     }
     */
 
-    // Clean movement if not already moving the same way.
+    // Clean movement if not already moving the same way. (若未朝同一方向移动，则清理当前移动状态。)
     if (mm.GetCurrent()->GetMovementGeneratorType() != POINT_MOTION_TYPE || movePosition.fDist(lastMove.lastMoveShort) > 5.0f)
     {
         if (mover == bot)
@@ -2068,7 +2089,7 @@ bool MovementAction::MoveTo(uint32 mapId, float x, float y, float z, bool idle, 
             mover->InterruptMoving(true);
     }
 
-    if (totalDistance > maxDist && !detailedMove && !ai->HasPlayerNearby(movePosition)) //Why walk if you can fly?
+    if (totalDistance > maxDist && !detailedMove && !ai->HasPlayerNearby(movePosition)) // Why walk if you can fly? (能飞则不走（优先飞行前往）。)
     {
         time_t now = time(0);
 
@@ -2077,7 +2098,7 @@ bool MovementAction::MoveTo(uint32 mapId, float x, float y, float z, bool idle, 
         return bot->TeleportTo(movePosition.getMapId(), movePosition.getX(), movePosition.getY(), movePosition.getZ(), startPosition.getAngleTo(movePosition));
     }
 
-    // walk if master walks and is close
+    // walk if master walks and is close (若主人正在步行且距离较近则同步步行)
     bool masterWalking = false;
     Unit* master = ai->GetMaster();
     if (master && sServerFacade.IsFriendlyTo(bot, master))
@@ -2086,7 +2107,7 @@ bool MovementAction::MoveTo(uint32 mapId, float x, float y, float z, bool idle, 
             masterWalking = true;
     }
 
-    // Prevent moving if requested to move into a hazard
+    // Prevent moving if requested to move into a hazard (当目标位置处于危险区域内时阻止移动)
     if (IsHazardNearPosition(movePosition))
     {
         if (!react)
@@ -2102,7 +2123,7 @@ bool MovementAction::MoveTo(uint32 mapId, float x, float y, float z, bool idle, 
 #else
     if (!bot->IsFreeFlying())
     {
-        // water transition
+        // water transition (水陆过渡处理)
         if (bot->HasMovementFlag(MOVEFLAG_SWIMMING) && startPosition.isInWater() && !startPosition.isUnderWater() && !movePosition.isInWater())
             generatePath = true;
 
@@ -2120,7 +2141,7 @@ bool MovementAction::MoveTo(uint32 mapId, float x, float y, float z, bool idle, 
         {
             isFar = true;
             needFly = true;
-            // only use in clear LOS betweek points
+            // only use in clear LOS betweek points (仅在两点间视线无遮挡时使用)
             Position pos = bot->GetPosition();
 #ifdef MANGOSBOT_TWO
             if (!movePosition.isFinite() || !std::isfinite(pos.x) || !std::isfinite(pos.y) || !std::isfinite(pos.z))
@@ -2137,15 +2158,15 @@ bool MovementAction::MoveTo(uint32 mapId, float x, float y, float z, bool idle, 
             {
                 if (needFly)
                 {
-                    // get ground level data at next waypoint
+                    // get ground level data at next waypoint (获取下一路径点处的地面高度数据)
                     float height = terrain->GetHeightStatic(movePosition.getX(), movePosition.getY(), movePosition.getZ());
                     float ground = terrain->GetWaterOrGroundLevel(movePosition.getX(), movePosition.getY(), movePosition.getZ(), height);
 
                     float botheight = terrain->GetHeightStatic(bot->GetPositionX(), bot->GetPositionY(), bot->GetPositionZ());
                     float botground = terrain->GetWaterOrGroundLevel(bot->GetPositionX(), bot->GetPositionY(), bot->GetPositionZ(), botheight);
 
-                    // fly up if destination is far
-                    if (totalDistance > maxDist && ground <= movePosition.getZ()) // check if ground level is not higher than path (tunnels)
+                    // fly up if destination is far (目的地较远时升空飞行)
+                    if (totalDistance > maxDist && ground <= movePosition.getZ()) // check if ground level is not higher than path (tunnels) (检查地形高度是否不高于路径（排除隧道室内）)
                     {
                         movePosition.setZ(std::min(std::max(ground, botground) + 100.0f, std::max(movePosition.getZ() + 10.0f, bot->GetPositionZ() + 10.0f)));
                     }
@@ -2210,6 +2231,7 @@ bool MovementAction::MoveTo(uint32 mapId, float x, float y, float z, bool idle, 
 }
 
 
+/// 规划路径并控制机器人移动至目标地图坐标
 bool MovementAction::MoveTo(Unit* target, float distance)
 {
     if (!target || !target->IsInWorld())
@@ -2270,6 +2292,7 @@ bool MovementAction::MoveTo(Unit* target, float distance)
     return true;
 }
 
+/// 获取机器人相对于跟随目标的期望方位角（结合阵型分布）
 float MovementAction::GetFollowAngle()
 {
     Player* master = GetMaster();
@@ -2291,6 +2314,7 @@ float MovementAction::GetFollowAngle()
     return 0;
 }
 
+/// 检查当前策略与控制状态是否允许机器人移动
 bool MovementAction::IsMovingAllowed(Unit* target)
 {
     if (!target)
@@ -2306,6 +2330,7 @@ bool MovementAction::IsMovingAllowed(Unit* target)
     return ai->CanMove();
 }
 
+/// 检查当前策略与控制状态是否允许机器人移动
 bool MovementAction::IsMovingAllowed(uint32 mapId, float x, float y, float z)
 {
     float distance = bot->GetDistance(x, y, z);
@@ -2315,6 +2340,7 @@ bool MovementAction::IsMovingAllowed(uint32 mapId, float x, float y, float z)
     return ai->CanMove();
 }
 
+/// 按设定距离与跟随角度持续跟随目标单位
 bool MovementAction::Follow(Unit* target, float distance)
 {
     if (!distance)
@@ -2322,16 +2348,17 @@ bool MovementAction::Follow(Unit* target, float distance)
     return Follow(target, distance, GetFollowAngle());
 }
 
+/// 刷新机器人移动状态与移动生成器信息
 void MovementAction::UpdateMovementState()
 {
     if (bot->IsInWater() || sServerFacade.IsUnderwater(bot))
     {
-		bot->m_movementInfo.AddMovementFlag(MOVEFLAG_SWIMMING);
+        bot->m_movementInfo.AddMovementFlag(MOVEFLAG_SWIMMING);
         bot->UpdateSpeed(MOVE_SWIM, true);
     }
     else
     {
-		bot->m_movementInfo.RemoveMovementFlag(MOVEFLAG_SWIMMING);
+        bot->m_movementInfo.RemoveMovementFlag(MOVEFLAG_SWIMMING);
         bot->UpdateSpeed(MOVE_SWIM, true);
     }
 
@@ -2341,6 +2368,7 @@ void MovementAction::UpdateMovementState()
 #endif
 }
 
+/// 按设定距离与跟随角度持续跟随目标单位
 bool MovementAction::Follow(Unit* target, float distance, float angle)
 {
     if (!ai->IsSafe(target))
@@ -2358,7 +2386,7 @@ bool MovementAction::Follow(Unit* target, float distance, float angle)
     WorldPosition botPos(bot);
     WorldPosition tarPos(target);
 
-    //Move to target corpse if alive.
+    // Move to target corpse if alive. (若玩家存活则前往目标尸体位置。)
     if (!target->IsAlive() && bot->IsAlive() && target->GetObjectGuid().IsPlayer())
     {
         Player* pTarget = (Player*)target;
@@ -2385,7 +2413,7 @@ bool MovementAction::Follow(Unit* target, float distance, float angle)
 
             if (ai->IsSafe(player))
             {
-                if (player->GetPlayerbotAI()) //Try to move to where the bot is going if it is closer and in the same direction.
+                if (player->GetPlayerbotAI()) // Try to move to where the bot is going if it is closer and in the same direction. (若中间点更近且方向一致，则尝试向目的地行进。)
                 {
                     WorldPosition longMove = PAI_VALUE(WorldPosition, "last long move");
 
@@ -2396,7 +2424,7 @@ bool MovementAction::Follow(Unit* target, float distance, float angle)
                 }
             }
 
-            if (player->IsTaxiFlying()) //Move to where the player is flying to.
+            if (player->IsTaxiFlying()) // Move to where the player is flying to. (移动到玩家正在飞往的目的地。)
             {
                 const Taxi::Map tMap = player->GetTaxiPathSpline();
                 if (!tMap.empty())
@@ -2412,7 +2440,7 @@ bool MovementAction::Follow(Unit* target, float distance, float angle)
            return MoveTo(target, ai->GetRange("follow"));
     }
 
-    // Handle water transition
+    // Handle water transition (处理水面/水下过渡)
     {
         bool targetInWater = (tarPos.isInWater() || tarPos.isUnderWater()) && !botPos.isInWater() && !botPos.isUnderWater();
         bool selfInWater = (botPos.isInWater() || botPos.isUnderWater()) && !tarPos.isInWater() && !tarPos.isUnderWater();
@@ -2420,7 +2448,7 @@ bool MovementAction::Follow(Unit* target, float distance, float angle)
         bool selfOnSurface = tarPos.isUnderWater() && botPos.isInWater() && !botPos.isUnderWater();
         if ((targetInWater || selfInWater || targetOnSurface || selfOnSurface) && !(tarPos.isUnderWater() && botPos.isUnderWater()))
         {
-            // in or out of water
+            // in or out of water (进水或出水状态)
             WorldPosition moveToPos = (targetInWater || selfOnSurface) ? tarPos : botPos;
             Unit* targetToCheck = (targetInWater || selfOnSurface) ? target : bot;
             if (const TerrainInfo* terrain = moveToPos.getTerrain())
@@ -2432,7 +2460,7 @@ bool MovementAction::Follow(Unit* target, float distance, float angle)
                 if (waterLevel > -200000.0f && waterLevel > bottom)
                 {
                     PathFinder pathfinder(bot);
-                    //Use standard pathfinder to find a route.
+                    // Use standard pathfinder to find a route. (使用标准寻路器寻找行进路线。)
                     WorldPosition prevPoint = botPos;
                     pathfinder.calculate(moveToPos.getVector3(), tarPos.getVector3());
                     Movement::PointsArray& pathPoints = pathfinder.getPath();
@@ -2477,7 +2505,7 @@ bool MovementAction::Follow(Unit* target, float distance, float angle)
     ClearIdleState();
 
 #ifndef MANGOSBOT_ZERO
-    //Land
+    // Land (降落)
     bool needLand = false;
 
     if (const TerrainInfo* terrain = bot->GetTerrain())
@@ -2491,7 +2519,7 @@ bool MovementAction::Follow(Unit* target, float distance, float angle)
     {
         if (!bot->IsFlying() && target->IsFlying())
         {
-            //Take off
+            // Take off (起飞)
             WorldPacket data(SMSG_SPLINE_MOVE_SET_FLYING, 9);
             data << bot->GetPackGUID();
             bot->SendMessageToSet(data, true);
@@ -2555,7 +2583,7 @@ bool MovementAction::Follow(Unit* target, float distance, float angle)
     }
 #endif
 
-    // Find jump shortcut
+    // Find jump shortcut (查找跳跃捷径)
     if (ai->HasStrategy("follow jump", BotState::BOT_STATE_NON_COMBAT) && ai->AllowActivity())
     {
         WorldPosition botPos(bot);
@@ -2578,6 +2606,7 @@ bool MovementAction::Follow(Unit* target, float distance, float angle)
     return true;
 }
 
+/// 计算垂直于线段 AB 且位于指定偏移距离处的避让点坐标
 WorldPosition CalculatePerpendicularPoint(const WorldPosition& A, const WorldPosition& B, float offset, bool left = true)
 {
     WorldPosition direction = (B - A);
@@ -2595,6 +2624,7 @@ WorldPosition CalculatePerpendicularPoint(const WorldPosition& A, const WorldPos
     return B + (perpendicularDirection * offset);
 }
 
+/// 在战斗中持续追击并保持在目标的有效攻击距离内
 bool MovementAction::ChaseTo(WorldObject* obj, float distance, float angle)
 {
     if (!ai->CanMove())
@@ -2621,6 +2651,7 @@ bool MovementAction::ChaseTo(WorldObject* obj, float distance, float angle)
     }
 #endif
 
+    /// 已禁用：当前改由战斗姿态决定近战追击站位
     /* Disabled: the active combat stance determines melee chase positioning.
     if (ai->HasStrategy("behind", BotState::BOT_STATE_COMBAT))
         angle = GetFollowAngle() / 3 + obj->GetOrientation() + M_PI;
@@ -2655,7 +2686,7 @@ bool MovementAction::ChaseTo(WorldObject* obj, float distance, float angle)
         return MoveNear(obj, std::max(ATTACK_DISTANCE, distance));
 #endif
 
-    // Calculate the chase position
+    // Calculate the chase position (计算追击目标的站位坐标)
     const WorldPosition botPosition(bot);
     const WorldPosition targetPosition(obj);
     const Vector3 botPoint = botPosition.getVector3();
@@ -2671,18 +2702,18 @@ bool MovementAction::ChaseTo(WorldObject* obj, float distance, float angle)
     WorldPosition endPosition(obj->GetMapId(), endPoint.x, endPoint.y, endPoint.z);
     endPosition.setZ(endPosition.getHeight());
 
-    // Check if the end position is inside a hazard
+    // Check if the end position is inside a hazard (检查终点坐标是否位于危险区域内部)
     HazardPosition hazardPosition;
     if (IsHazardNearPosition(endPosition, &hazardPosition))
     {
-        // Try to generate a nearby position outside the hazard
+        // Try to generate a nearby position outside the hazard (尝试在附近生成一个位于危险区域之外的安全点)
         const Vector3 hazardPoint = hazardPosition.first.getVector3();
         const float hazardRangeOffset = hazardPosition.second * 1.5f;
 
-        // Generate point translated to the left
+        // Generate point translated to the left (生成向左偏移后的坐标点)
         Vector3 possibleEndPoint = CalculatePerpendicularPoint(endPoint, hazardPoint, hazardRangeOffset, true).getVector3();
 
-        // Check if point is valid
+        // Check if point is valid (检查坐标点是否有效)
         WorldPosition possibleEndPosition(bot->GetMapId(), possibleEndPoint.x, possibleEndPoint.y, possibleEndPoint.z);
         if (IsValidPosition(possibleEndPosition, botPosition))
         {
@@ -2692,7 +2723,7 @@ bool MovementAction::ChaseTo(WorldObject* obj, float distance, float angle)
         }
         else
         {
-            // Generate point translated to the right
+            // Generate point translated to the right (生成向右偏移后的坐标点)
             possibleEndPoint = CalculatePerpendicularPoint(endPoint, hazardPoint, hazardRangeOffset, false).getVector3();
 
             endPosition.coord_x = possibleEndPoint.x;
@@ -2703,7 +2734,7 @@ bool MovementAction::ChaseTo(WorldObject* obj, float distance, float angle)
 
     MotionMaster& mm = *bot->GetMotionMaster();
 
-    // Prevent moving if requested to move into a hazard
+    // Prevent moving if requested to move into a hazard (当目标位置处于危险区域内时阻止移动)
     if (IsValidPosition(endPosition, botPosition))
     {
         std::vector<WorldPosition> path = botPosition.getPathTo(endPosition,bot);
@@ -2729,13 +2760,13 @@ bool MovementAction::ChaseTo(WorldObject* obj, float distance, float angle)
             sServerFacade.GetChaseTarget(bot) == obj && 
             sServerFacade.GetChaseOffset(bot) == distance)
         {
-            bot->SetTarget(obj); //Needed to keep chase going in combat.
-            bot->Attack((Unit*)obj, false); //Needed to keep chase going in combat.
+            bot->SetTarget(obj); // Needed to keep chase going in combat. (用于在战斗中维持对目标的持续追击。)
+            bot->Attack((Unit*)obj, false); // Needed to keep chase going in combat. (用于在战斗中维持对目标的持续追击。)
             return true;
         }
     }
 
-    // charge
+    // charge (冲锋)
     if (bot->GetMotionMaster()->GetCurrentMovementGeneratorType() == EFFECT_MOTION_TYPE && !bot->IsStopped())
     {
         return false;
@@ -2743,7 +2774,7 @@ bool MovementAction::ChaseTo(WorldObject* obj, float distance, float angle)
 
     if (!ai->IsSafe(obj)) return false;
 
-    // Find jump shortcut
+    // Find jump shortcut (查找跳跃捷径)
     if (ai->HasStrategy("follow chase", BotState::BOT_STATE_NON_COMBAT) && ai->AllowActivity())
     {
         bool tryJump = ai->DoSpecificAction("jump::chase", Event(), true);
@@ -2754,8 +2785,8 @@ bool MovementAction::ChaseTo(WorldObject* obj, float distance, float angle)
     if (!endPosition.isValid()) return false;
     if (angle > 20) angle = 0;
 
-    bot->SetTarget(obj); //Needed to keep chase going in combat.
-    bot->Attack((Unit*)obj, false); //Needed to keep chase going in combat.
+    bot->SetTarget(obj); // Needed to keep chase going in combat. (用于在战斗中维持对目标的持续追击。)
+    bot->Attack((Unit*)obj, false); // Needed to keep chase going in combat. (用于在战斗中维持对目标的持续追击。)
 
     mm.MoveChase((Unit*)obj, distance, angle);
     float dist = sServerFacade.GetDistance2d(bot, obj);
@@ -2765,11 +2796,13 @@ bool MovementAction::ChaseTo(WorldObject* obj, float distance, float angle)
     return true;
 }
 
+/// 在移动前处理或等待设定的移动反应延迟
 float MovementAction::MoveDelay(float distance)
 {
     return distance / bot->GetSpeed(MOVE_RUN);
 }
 
+/// 处理目标位于船只或飞艇等移动载具上的跟随逻辑
 bool MovementAction::FollowOnTransport(Unit* target)
 {
     bool const onDifferentTransports = bot->m_movementInfo.t_guid != target->m_movementInfo.t_guid;
@@ -2802,6 +2835,7 @@ bool MovementAction::FollowOnTransport(Unit* target)
 }
 
 
+/// 计算并等待到达目标位置所需的移动时间
 void MovementAction::WaitForReach(float distance)
 {
     float duration = 1000.0f * MoveDelay(distance) + sPlayerbotAIConfig.reactDelay;
@@ -2819,6 +2853,7 @@ void MovementAction::WaitForReach(float distance)
     SetDuration(duration);
 }
 
+/// 计算并等待到达目标位置所需的移动时间
 void MovementAction::WaitForReach(const Movement::PointsArray& path)
 {
     float distance = 0.0f;
@@ -2836,6 +2871,7 @@ void MovementAction::WaitForReach(const Movement::PointsArray& path)
     WaitForReach(distance);
 }
 
+/// 寻找安全逃跑方向并控制机器人脱离当前威胁目标
 bool MovementAction::Flee(Unit *target)
 {
     Player* master = GetMaster();
@@ -2861,7 +2897,7 @@ bool MovementAction::Flee(Unit *target)
     time_t now = time(0);
     uint32 fleeDelay = urand(2, sPlayerbotAIConfig.returnDelay / 1000);
 
-    // let hunter/kiter kite mob
+    // let hunter/kiter kite mob (让猎人或风筝职业风筝怪物)
     if (isTarget && (bot->getClass() == CLASS_HUNTER || ai->HasStrategy("kite", BotState::BOT_STATE_COMBAT)
         || ai->HasStrategy("kite", BotState::BOT_STATE_REACTION)))
     {
@@ -2913,26 +2949,26 @@ bool MovementAction::Flee(Unit *target)
         {
             Player* groupMember = gref->getSource();
 
-            // Ignore group member if is not alive or on a different zone
+            // Ignore group member if is not alive or on a different zone (忽略已死亡或处于不同区域的队友)
             if (!groupMember || groupMember->IsBeingTeleported() || groupMember == bot || groupMember == master || !sServerFacade.IsAlive(groupMember) || bot->GetMapId() != groupMember->GetMapId())
                 continue;
 
-            // Don't flee to group member if too close or too far
+            // Don't flee to group member if too close or too far (若队友过近或过远，则不向其方向撤退)
             float const distanceToGroupMember = sServerFacade.GetDistance2d(bot, groupMember);
             if (distanceToGroupMember < minFleeDistance || distanceToGroupMember > maxFleeDistance)
                 continue;
 
             if (PlayerbotAI* groupMemberBotAi = groupMember->GetPlayerbotAI())
             {
-                // Ignore if the group member is affected by an aoe spell
+                // Ignore if the group member is affected by an aoe spell (若队友正受到范围法术影响则忽略)
                 if (groupMemberBotAi->GetAiObjectContext()->GetValue<bool>("has area debuff", "self target")->Get())
                     continue;
             }
 
-            // If the bot is currently being targeted
+            // If the bot is currently being targeted (若机器人当前正被敌人锁定为目标)
             if(isTarget)
             {
-                // Try to flee to tank
+                // Try to flee to tank (尝试向坦克位置撤退靠拢)
                 if (ai->IsTank(groupMember))
                 {
                     float distanceToTank = sServerFacade.GetDistance2d(bot, groupMember);
@@ -2945,7 +2981,7 @@ bool MovementAction::Flee(Unit *target)
             }
             else
             {
-                // Try to flee to healers (group healers together or approach a healer if needed)
+                // Try to flee to healers (group healers together or approach a healer if needed) (尝试向治疗者位置撤退靠拢)
                 if ((isHealer && ai->IsHeal(groupMember)) || needHealer)
                 {
                     const float distanceToTarget = sServerFacade.GetDistance2d(groupMember, target);
@@ -2954,7 +2990,7 @@ bool MovementAction::Flee(Unit *target)
                         possibleTargets.push_back(groupMember);
                     }
                 }
-                // Try to flee to ranged (group ranged together)
+                // Try to flee to ranged (group ranged together) (尝试向远程输出位置撤退靠拢)
                 else if (isRanged && ai->IsRanged(groupMember))
                 {
                     const float distanceToTarget = sServerFacade.GetDistance2d(groupMember, target);
@@ -2972,10 +3008,10 @@ bool MovementAction::Flee(Unit *target)
         }
         else
         {
-            // If nothing was found, let's try the master
+            // If nothing was found, let's try the master (若未找到，尝试从主人目标或信息获取)
             if (master && sServerFacade.IsAlive(master) && master->IsWithinLOSInMap(target, true))
             {
-                // Don't flee to group member if too close or too far
+                // Don't flee to group member if too close or too far (若队友过近或过远，则不向其方向撤退)
                 float const distanceToMaster = sServerFacade.GetDistance2d(bot, master);
                 if (distanceToMaster > minFleeDistance && distanceToMaster < maxFleeDistance)
                 {
@@ -3002,7 +3038,7 @@ bool MovementAction::Flee(Unit *target)
         succeeded = MoveNear(fleeTarget);
     }
 
-    // Generate a position to flee
+    // Generate a position to flee (生成撤退目标坐标)
     if(!succeeded)
     {
         if (lastFlee && bot->GetGroup())
@@ -3036,8 +3072,8 @@ bool MovementAction::Flee(Unit *target)
         if (!urand(0, 50) && ai->HasStrategy("emote", BotState::BOT_STATE_NON_COMBAT))
         {
             std::vector<uint32> sounds;
-            sounds.push_back(304); // guard
-            sounds.push_back(306); // flee
+            sounds.push_back(304); // guard (警戒守卫)
+            sounds.push_back(306); // flee (逃跑)
             ai->PlayEmote(sounds[urand(0, sounds.size() - 1)]);
         }
 
@@ -3076,12 +3112,14 @@ bool MovementAction::Flee(Unit *target)
     return succeeded;
 }
 
+/// 清除机器人当前的空闲或坐下状态以便开始移动
 void MovementAction::ClearIdleState()
 {
     context->GetValue<time_t>("stay time")->Set(0);
     context->GetValue<ai::PositionMap&>("position")->Get()["random"].Reset();
 }
 
+/// 验证目标位置指针与坐标数据是否有效可达
 bool MovementAction::IsValidPosition(const WorldPosition& position, const WorldPosition& visibleFromPosition)
 {
     const WorldPosition botPosition(bot);
@@ -3091,6 +3129,7 @@ bool MovementAction::IsValidPosition(const WorldPosition& position, const WorldP
            !IsHazardNearPosition(position);
 }
 
+/// 检查指定坐标周围是否存在地面危险区域（如火圈/毒云）
 bool MovementAction::IsHazardNearPosition(const WorldPosition& position, HazardPosition* outHazard)
 {
     AiObjectContext* context = bot->GetPlayerbotAI()->GetAiObjectContext();
@@ -3117,6 +3156,7 @@ bool MovementAction::IsHazardNearPosition(const WorldPosition& position, HazardP
     return false;
 }
 
+/// 生成绕开地面危险区域的替代移动路径
 bool MovementAction::GeneratePathAvoidingHazards(std::vector<WorldPosition>& movePath)
 {
     std::list<HazardPosition> hazards = AI_VALUE(std::list<HazardPosition>, "hazards");
@@ -3126,7 +3166,7 @@ bool MovementAction::GeneratePathAvoidingHazards(std::vector<WorldPosition>& mov
     std::vector<WorldPosition> collidingHazards;
     bool pathModified = false;
 
-    // Start the iteration on the second point (the first and last points can't be modified)
+    // Start the iteration on the second point (the first and last points can't be modified) (从第二个路径点开始遍历（首尾端点不可修改）)
     bool firstPoint = true;
     uint8 pointsInserted = 0;
     const uint8 maxPointsInserted = 20;
@@ -3139,18 +3179,18 @@ bool MovementAction::GeneratePathAvoidingHazards(std::vector<WorldPosition>& mov
         {
             const float hazardRangeOffset = hazardRange * 1.5f;
 
-            // Check if the path point is inside a hazard
+            // Check if the path point is inside a hazard (检查路径点是否位于危险区域内部)
             {
                 const float distanceToHazard = pathPoint.distance(hazardPosition);
                 if (distanceToHazard <= hazardRange)
                 {
                     collidingHazards.push_back(hazardPosition);
 
-                    // Move the point out of the hazard range in perpendicular from previous point
-                    // Generate point translated to the left
+                    // Move the point out of the hazard range in perpendicular from previous point (沿垂直于前一点连线的方向将路径点移出危险区域范围)
+                    // Generate point translated to the left (生成向左偏移后的坐标点)
                     WorldPosition possiblePathPoint = CalculatePerpendicularPoint(previousPosition, hazardPosition, hazardRangeOffset, true);
 
-                    // Check if point is valid
+                    // Check if point is valid (检查坐标点是否有效)
                     WorldPosition possiblePathPosition(bot->GetMapId(), possiblePathPoint.getX(), possiblePathPoint.getY(), possiblePathPoint.getZ());
                     if (IsValidPosition(possiblePathPosition, previousPosition))
                     {
@@ -3159,10 +3199,10 @@ bool MovementAction::GeneratePathAvoidingHazards(std::vector<WorldPosition>& mov
                     }
                     else
                     {
-                        // Generate point translated to the right
+                        // Generate point translated to the right (生成向右偏移后的坐标点)
                         possiblePathPoint = CalculatePerpendicularPoint(previousPosition, hazardPosition, hazardRangeOffset, false);
 
-                        // Check if point is valid
+                        // Check if point is valid (检查坐标点是否有效)
                         WorldPosition possiblePathPosition(bot->GetMapId(), possiblePathPoint.getX(), possiblePathPoint.getY(), possiblePathPoint.getZ());
                         if (IsValidPosition(possiblePathPosition, previousPosition))
                         {
@@ -3173,8 +3213,8 @@ bool MovementAction::GeneratePathAvoidingHazards(std::vector<WorldPosition>& mov
                 }
             }
 
-            // Check if the line between the previous point and the current point goes through a hazard
-            // Don't check for the line between the first point and second
+            // Check if the line between the previous point and the current point goes through a hazard (检查前后两点之间的连线是否穿过危险区域)
+            // Don't check for the line between the first point and second (跳过第一点与第二点之间的连线危险检测)
             if (!firstPoint && (pointsInserted < maxPointsInserted))
             {
                 WorldPosition directionFromPreviousPoint = (pathPoint - previousPosition);
@@ -3182,21 +3222,21 @@ bool MovementAction::GeneratePathAvoidingHazards(std::vector<WorldPosition>& mov
                 directionFromPreviousPoint = directionFromPreviousPoint / distanceToPreviousPoint;
                 WorldPosition inBetweenPathPoint = previousPosition + (directionFromPreviousPoint * distanceToPreviousPoint * 0.5f);
 
-                // Check if the point between path points is inside a hazard
+                // Check if the point between path points is inside a hazard (检查相邻路径点中点是否位于危险区域内)
                 WorldPosition directionFromHazard = (inBetweenPathPoint - hazardPosition);
                 const float distanceToHazard = std::max(directionFromHazard.size(), 0.0001f);
                 if (distanceToHazard <= hazardRange)
                 {
                     collidingHazards.push_back(hazardPosition);
 
-                    // If so generate a new path point to go around it
+                    // If so generate a new path point to go around it (若会穿过危险区域，则生成一个新的绕行路径点)
                     inBetweenPathPoint = hazardPosition + ((directionFromHazard / distanceToHazard) * hazardRangeOffset);
 
-                    // Check if the point is valid
+                    // Check if the point is valid (检查坐标点是否合法有效)
                     WorldPosition inBetweenPathPosition(bot->GetMapId(), inBetweenPathPoint.getX(), inBetweenPathPoint.getY(), inBetweenPathPoint.getZ());
                     if (IsValidPosition(inBetweenPathPosition, previousPosition))
                     {
-                        // Insert the new point to the path (before current point)
+                        // Insert the new point to the path (before current point) (在当前路径点之前插入新的绕行点)
                         pathModified = true;
                         pointInserted = true;
                         movePath.insert(movePath.begin() + i, inBetweenPathPoint);
@@ -3209,7 +3249,7 @@ bool MovementAction::GeneratePathAvoidingHazards(std::vector<WorldPosition>& mov
 
         if (pointInserted)
         {
-            // Go back one step to validate the inserted point and move to next loop
+            // Go back one step to validate the inserted point and move to next loop (回退一步以校验新插入的路径点并进入下一轮循环)
             i--;
         }
         else
@@ -3242,11 +3282,13 @@ bool MovementAction::GeneratePathAvoidingHazards(std::vector<WorldPosition>& mov
     return false;
 }
 
+/// 执行动作主逻辑（逃跑撤退动作）
 bool FleeAction::Execute(Event& event)
 {
     return Flee(ai->GetUnit(AI_VALUE(ObjectGuid, "current target")));
 }
 
+/// 执行动作主逻辑（携宠物撤退动作）
 bool FleeWithPetAction::Execute(Event& event)
 {
     Pet* pet = bot->GetPet();
@@ -3263,11 +3305,13 @@ bool FleeWithPetAction::Execute(Event& event)
     return Flee(ai->GetUnit(AI_VALUE(ObjectGuid, "current target")));
 }
 
+/// 执行动作主逻辑（风筝拉扯动作）
 bool RunAwayAction::Execute(Event& event)
 {
     return Flee(ai->GetUnit(AI_VALUE(ObjectGuid, "master target")));
 }
 
+/// 执行动作主逻辑（移动至战利品动作）
 bool MoveToLootAction::Execute(Event& event)
 {
     LootObject loot = AI_VALUE(LootObject, "loot target");
@@ -3309,6 +3353,7 @@ bool MoveToLootAction::Execute(Event& event)
     return MoveTo(WorldPosition(wo));
 }
 
+/// 执行动作主逻辑（脱离近战接触动作）
 bool MoveOutOfEnemyContactAction::Execute(Event& event)
 {
     Unit* target = ai->GetUnit(AI_VALUE(ObjectGuid, "current target"));
@@ -3318,11 +3363,13 @@ bool MoveOutOfEnemyContactAction::Execute(Event& event)
     return MoveTo(target, sPlayerbotAIConfig.contactDistance);
 }
 
+/// 判断当前状态下该动作是否可用/有效（脱离近战接触动作）
 bool MoveOutOfEnemyContactAction::isUseful()
 {
     return MovementAction::isUseful() && AI_VALUE2(bool, "inside target", "current target");
 }
 
+/// 执行动作主逻辑（面向目标动作）
 bool SetFacingTargetAction::Execute(Event& event)
 {
     Unit* target = ai->GetUnit(AI_VALUE(ObjectGuid, "current target"));
@@ -3337,11 +3384,13 @@ bool SetFacingTargetAction::Execute(Event& event)
     return true;
 }
 
+/// 判断当前状态下该动作是否可用/有效（面向目标动作）
 bool SetFacingTargetAction::isUseful()
 {
     return !AI_VALUE2(bool, "facing", "current target");
 }
 
+/// 判断执行该动作的前置条件是否满足（面向目标动作）
 bool SetFacingTargetAction::isPossible()
 {
     if (sServerFacade.IsFrozen(bot) || bot->IsPolymorphed() ||
@@ -3355,6 +3404,7 @@ bool SetFacingTargetAction::isPossible()
     return true;
 }
 
+/// 执行动作主逻辑（绕背站位动作）
 bool SetBehindTargetAction::Execute(Event& event)
 {
     Unit* target = ai->GetUnit(AI_VALUE(ObjectGuid, "current target"));
@@ -3369,7 +3419,7 @@ bool SetBehindTargetAction::Execute(Event& event)
         z = target->GetPositionZ();
     bot->UpdateGroundPositionZ(x, y, z);
 
-    // prevent going into terrain
+    // prevent going into terrain (防止穿入地形内部)
     float ox, oy, oz;
     target->GetPosition(ox, oy, oz);
 #ifdef MANGOSBOT_TWO
@@ -3393,6 +3443,7 @@ bool SetBehindTargetAction::Execute(Event& event)
     return moved;
 }
 
+/// 判断当前状态下该动作是否可用/有效（绕背站位动作）
 bool SetBehindTargetAction::isUseful()
 {
     if(!MovementAction::isUseful())
@@ -3401,7 +3452,7 @@ bool SetBehindTargetAction::isUseful()
     Unit* target = ai->GetUnit(AI_VALUE(ObjectGuid, "current target"));
     if (target && !bot->IsFacingTargetsBack(target))
     {
-        // Don't move behind if the target is too far away
+        // Don't move behind if the target is too far away (若目标距离过远则不尝试绕背)
         const float distance = bot->GetDistance(target, false);
         return distance <= 15.0f;
     }
@@ -3409,21 +3460,22 @@ bool SetBehindTargetAction::isUseful()
     return false;
 }
 
+/// 判断执行该动作的前置条件是否满足（绕背站位动作）
 bool SetBehindTargetAction::isPossible()
 {
     if(MovementAction::isPossible())
     {
-        // Check if the target is targeting the bot
+        // Check if the target is targeting the bot (检查目标当前是否正在以机器人为目标)
         Unit* target = ai->GetUnit(AI_VALUE(ObjectGuid, "current target"));
         if (target)
         {
-            // If the target is a player
+            // If the target is a player (若目标为玩家)
             Player* playerTarget = dynamic_cast<Player*>(target);
             if(playerTarget)
             {
                 return bot->GetObjectGuid() != playerTarget->GetSelectionGuid();
             }
-            // If the target is a NPC
+            // If the target is a NPC (若目标为 NPC)
             else 
             {
                 return !(target->GetVictim() && (target->GetVictim()->GetObjectGuid() == bot->GetObjectGuid()));
@@ -3434,6 +3486,7 @@ bool SetBehindTargetAction::isPossible()
     return false;
 }
 
+/// 执行动作主逻辑（脱离碰撞重叠动作）
 bool MoveOutOfCollisionAction::Execute(Event& event)
 {
     WorldPosition botPos(bot);
@@ -3458,19 +3511,20 @@ bool MoveOutOfCollisionAction::Execute(Event& event)
         }
     }
 
-    // old style
+    // old style (旧版实现方式)
     float angle = M_PI * 2000 / (float)urand(1, 1000);
     float distance = ai->GetRange("follow");
     return MoveTo(bot->GetMapId(), bot->GetPositionX() + cos(angle) * distance, bot->GetPositionY() + sin(angle) * distance, bot->GetPositionZ());
 }
 
+/// 判断当前状态下该动作是否可用/有效（脱离碰撞重叠动作）
 bool MoveOutOfCollisionAction::isUseful()
 {
     if(!MovementAction::isUseful())
         return false;
 
 #ifdef MANGOSBOT_TWO
-    // do not avoid collision on vehicle
+    // do not avoid collision on vehicle (在载具上时不执行碰撞避让微调)
     if (ai->IsInVehicle())
         return false;
 #endif
@@ -3479,6 +3533,7 @@ bool MoveOutOfCollisionAction::isUseful()
         ai->GetAiObjectContext()->GetValue<std::list<ObjectGuid> >("nearest non bot players")->Get().size() > 0;
 }
 
+/// 执行动作主逻辑（随机移动动作）
 bool MoveRandomAction::Execute(Event& event)
 {
     //uint32 randnum = bot->GetGUIDLow();                            //Semi-random but fixed number for each bot.
@@ -3494,11 +3549,13 @@ bool MoveRandomAction::Execute(Event& event)
     return MoveTo(bot->GetMapId(), bot->GetPositionX() + cos(angle) * distance, bot->GetPositionY() + sin(angle) * distance, bot->GetPositionZ());
 }
 
+/// 判断当前状态下该动作是否可用/有效（随机移动动作）
 bool MoveRandomAction::isUseful()
 {    
     return !ai->HasRealPlayerMaster() && ai->GetAiObjectContext()->GetValue<std::list<ObjectGuid> >("nearest friendly players")->Get().size() > urand(25, 100);
 }
 
+/// 执行动作主逻辑（定点移动动作）
 bool MoveToAction::Execute(Event& event)
 {
     std::list<GuidPosition> guidList = AI_VALUE_SAFE(std::list<GuidPosition>, getQualifier());
@@ -3511,14 +3568,16 @@ bool MoveToAction::Execute(Event& event)
     return MoveTo(guid.getMapId(), guid.getX(), guid.getY(), guid.getZ());
 }
 
+/// 判断当前状态下该动作是否可用/有效（跳跃动作）
 bool JumpAction::isUseful()
 {
     return bot->IsInWorld() && ai->HasPlayerNearby() && !ai->IsJumping();
 }
 
+/// 执行动作主逻辑（跳跃动作）
 bool JumpAction::Execute(ai::Event &event)
 {
-    // don't jump while casting without real player command
+    // don't jump while casting without real player command (没有真实玩家指令时，施法过程中不要跳跃)
     if (!event.getOwner() && bot->IsNonMeleeSpellCasted(false, false, true))
         return false;
 
@@ -3531,24 +3590,24 @@ bool JumpAction::Execute(ai::Event &event)
     bool isRtsc = false;
     bool toPosition = false;
 
-    // only show landing
+    // only show landing (仅显示降落过程)
     if (options.find("show") != std::string::npos && options.size() > 5)
     {
         options = options.substr(5);
         showLanding = true;
     }
-    // to position
+    // to position (前往目标位置)
     if (options.find("position") != std::string::npos && options.size() > 9)
     {
         options = options.substr(9);
         toPosition = true;
     }
-    // rtsc stuff
+    // rtsc stuff (RTSC 即时战略控制指令)
     if (options == "rtsc")
     {
         isRtsc = true;
     }
-    // handle options
+    // handle options (处理可选参数)
     if (options.empty() || options == "i" || options == "inplace")
     {
         jumpInPlace = true;
@@ -3580,7 +3639,7 @@ bool JumpAction::Execute(ai::Event &event)
             return false;
     }
 
-    // find jump position
+    // find jump position (寻找跳跃点位)
     if (options == "tome" || options == "follow" || options == "chase" || isRtsc || toPosition)
     {
         if (options == "follow" && !(ai->HasStrategy("follow", BotState::BOT_STATE_NON_COMBAT) || ai->HasStrategy("wander", BotState::BOT_STATE_NON_COMBAT)))
@@ -3613,7 +3672,7 @@ bool JumpAction::Execute(ai::Event &event)
                 return false;
             }
 
-            // already have point - movement handled by rtsc jump command
+            // already have point - movement handled by rtsc jump command (已存在目标点：移动交由 RTSC 跳跃指令处理)
             WorldPosition jumpPosition = AI_VALUE2(WorldPosition, "RTSC saved location", "jump point");
             if (jumpPosition)
             {
@@ -3643,7 +3702,7 @@ bool JumpAction::Execute(ai::Event &event)
             bot->GetTransport()))
                 return false;
 
-            // do not try if very close
+            // do not try if very close (距离极近时不尝试)
             Formation* formation = AI_VALUE(Formation*, "formation");
             if (formation)
             {
@@ -3690,15 +3749,15 @@ bool JumpAction::Execute(ai::Event &event)
             distanceFrom = 50.0f;
         }
 
-        // try nearby random points
+        // try nearby random points (尝试附近的随机采样点)
         if (!jumpPoint && ai->AllowActivity())
             jumpPoint = GetPossibleJumpStartForInRange(src, dest, possibleLanding, bot, requiredSpeed, distanceTo, distanceFrom);
-        // try with pathfinder
+        // try with pathfinder (尝试通过寻路器计算路径)
         if (!jumpPoint)
             jumpPoint = GetPossibleJumpStartFor(src, dest, possibleLanding, bot, requiredSpeed, distanceTo, distanceFrom);
         if (jumpPoint && requiredSpeed > 0.f)
         {
-            // check if jumping is much faster
+            // check if jumping is much faster (检查跳跃是否比步行快得多)
             if (options == "follow" || options == "chase" || toPosition)
             {
                 if (!IsJumpFasterThanWalking(src, dest, possibleLanding, bot))
@@ -3706,7 +3765,7 @@ bool JumpAction::Execute(ai::Event &event)
             }
             sLog.outDebug("%s: GetPossibleJumpStartFor success! Jump speed: %f", bot->GetName(), requiredSpeed);
 
-            // move to jump point
+            // move to jump point (移动到起跳点)
             if (src != jumpPoint && src.distance(jumpPoint) > sPlayerbotAIConfig.contactDistance)
             {
                 if (ai->HasStrategy("debug", BotState::BOT_STATE_NON_COMBAT))
@@ -3715,7 +3774,7 @@ bool JumpAction::Execute(ai::Event &event)
                     bot->Say(text, (bot->GetTeam() == ALLIANCE ? LANG_COMMON : LANG_ORCISH));
                 }
 
-                // see spell action will handle the movement
+                // see spell action will handle the movement (移动交由 SeeSpellAction 处理)
                 if (isRtsc)
                 {
                     WorldPosition jumpPosition = AI_VALUE2(WorldPosition, "RTSC saved location", "jump point");
@@ -3741,7 +3800,7 @@ bool JumpAction::Execute(ai::Event &event)
 
                 return MoveTo(jumpPoint.getMapId(), jumpPoint.getX(), jumpPoint.getY(), jumpPoint.getZ());
             }
-            else // jump from current position
+            else // jump from current position (从当前位置起跳)
             {
                 if (ai->HasStrategy("debug", BotState::BOT_STATE_NON_COMBAT))
                 {
@@ -3790,7 +3849,7 @@ bool JumpAction::Execute(ai::Event &event)
 
         if (options == "r" || options == "random")
         {
-            // slow jump
+            // slow jump (缓跳)
             if (urand(0, 1))
                 jumpSpeed = bot->GetSpeed(MOVE_WALK);
         }
@@ -3802,14 +3861,14 @@ bool JumpAction::Execute(ai::Event &event)
     WorldPosition jumpLanding = JumpAction::CalculateJumpParameters(WorldPosition(bot), bot, angle, sPlayerbotAIConfig.jumpVSpeed, jumpSpeed, timeToLand, distToLand, maxHeight, goodLanding, path);
     if (jumpLanding)
     {
-        // not jump randomly in the water
+        // not jump randomly in the water (水中不要随机跳跃)
         if ((options == "r" || options == "random") && !event.getOwner() && (jumpLanding.isInWater() || jumpLanding.isUnderWater()))
         {
             sLog.outDetail("%s: Jump random fail: landing in water!", bot->GetName());
             return false;
         }
 
-        // only show landing
+        // only show landing (仅显示降落过程)
         if (showLanding || ai->HasStrategy("debug move", BotState::BOT_STATE_NON_COMBAT))
         {
             Creature* wpCreature = bot->SummonCreature(2334, jumpLanding.getX(), jumpLanding.getY(), jumpLanding.getZ() - 1, bot->GetOrientation(), TEMPSPAWN_TIMED_DESPAWN, 3000);
@@ -3825,7 +3884,7 @@ bool JumpAction::Execute(ai::Event &event)
             }
         }
 
-        // set highest jump point to relocate
+        // set highest jump point to relocate (记录最高跳跃点作为重定位坐标)
         WorldPosition highestPoint = jumpLanding;
         for (auto& point : path)
         {
@@ -3838,25 +3897,26 @@ bool JumpAction::Execute(ai::Event &event)
     return false;
 }
 
+/// 计算跳跃所需的起跳速度、垂直高度与水平矢量参数
 WorldPosition JumpAction::CalculateJumpParameters(const WorldPosition& src, Unit* jumper, float angle, float vSpeed, float hSpeed, float &timeToLand, float &distanceToLand, float &maxHeight, bool &goodLanding, std::vector<WorldPosition>& path, float maxJumpHeight)
 {
     if (!jumper)
         return WorldPosition();
 
-    // static data
+    // static data (静态配置数据)
     float const m_gravity = 19.2911f;
     float const timeForMaxHeight = vSpeed / m_gravity;
     float velocity = sqrt(vSpeed * vSpeed + hSpeed * hSpeed);
     double jumpVerticalAngle = hSpeed != 0.f ? atan(vSpeed / hSpeed) : 90.f * M_PI / 180;
     maxHeight = vSpeed * timeForMaxHeight - m_gravity * timeForMaxHeight * timeForMaxHeight / 2;  
 
-    // jump in place
+    // jump in place (原地跳跃)
     if (hSpeed == 0.f)
     {
         timeToLand = timeForMaxHeight * 2;
         distanceToLand = 0.f;
 
-        // calculate collision up
+        // calculate collision up (向上检测头顶碰撞阻挡)
         float ox, oy, oz;
         ox = src.getX();
         oy = src.getY();
@@ -3870,7 +3930,7 @@ WorldPosition JumpAction::CalculateJumpParameters(const WorldPosition& src, Unit
         if (jumper->GetMap()->GetHitPosition(ox, oy, oz, fx, fy, fz, -0.5f))
 #endif
         {
-            // hit object above
+            // hit object above (上方撞到障碍物体)
             goodLanding = false;
             timeToLand = JumpAction::CalculateJumpTime(fz - oz, vSpeed, true);
             maxHeight = fz;
@@ -3878,7 +3938,7 @@ WorldPosition JumpAction::CalculateJumpParameters(const WorldPosition& src, Unit
         }
         else
         {
-            // can jump full height and back
+            // can jump full height and back (可完成完整高度跳跃并落回)
             goodLanding = true;
             maxHeight = fz;
             return src;
@@ -3888,10 +3948,10 @@ WorldPosition JumpAction::CalculateJumpParameters(const WorldPosition& src, Unit
     float vsin = sin(angle);
     float vcos = cos(angle);
 
-    // calculate approximate distance on ideal surface
+    // calculate approximate distance on ideal surface (在理想平面上估算近似距离)
     float rough_distance = 2 * timeForMaxHeight * hSpeed;
 
-    // calculate collision
+    // calculate collision (计算垂直碰撞阻挡)
     float const path_part = rough_distance / 10.0f;
     float check_dist = path_part;
     float ox, oy, oz;
@@ -3901,7 +3961,7 @@ WorldPosition JumpAction::CalculateJumpParameters(const WorldPosition& src, Unit
     bool foundCollision = false;
     for (auto i = 1; i <= 30; i++)
     {
-        // not found - calculate very far
+        // not found - calculate very far (未找到目标，按极远距离处理)
         if (i >= 25 && check_dist > (rough_distance + path_part))
         {
             sLog.outDetail("%s: Jump checks too many, possible no collision!", jumper->GetName());
@@ -3912,12 +3972,12 @@ WorldPosition JumpAction::CalculateJumpParameters(const WorldPosition& src, Unit
         float fy = src.getY() + check_dist * vsin;
         float fz = src.getZ() + 0.5f + float((check_dist * tan(jumpVerticalAngle)) - (m_gravity * check_dist * check_dist)/(2 * velocity * velocity * cos(jumpVerticalAngle) * cos(jumpVerticalAngle)));
 
-        // add collision height while ascending
+        // add collision height while ascending (上升飞行时计入碰撞高度余量)
         bool ascending = fz > src.getZ() && check_dist < (rough_distance / 2);
         if (ascending)
             fz += jumper->GetCollisionHeight();
 
-        // add some collision distances
+        // add some collision distances (增加一定的碰撞间距余量)
         fx += jumper->GetCollisionWidth() * vcos;
         fy += jumper->GetCollisionWidth() * vsin;
 
@@ -3929,7 +3989,7 @@ WorldPosition JumpAction::CalculateJumpParameters(const WorldPosition& src, Unit
 
         if (!foundCollision)
         {
-            // check distanct collision
+            // check distanct collision (检查远距离碰撞阻挡)
             if (ascending)
                 fz += jumper->GetCollisionHeight();
 
@@ -3952,15 +4012,15 @@ WorldPosition JumpAction::CalculateJumpParameters(const WorldPosition& src, Unit
 
         path.push_back(WorldPosition(src.getMapId(), fx, fy, fz));
 
-        // vmaps collision not found - check maps (terrain or water)
+        // vmaps collision not found - check maps (terrain or water) (未检测到 VMap 碰撞，进一步检查地图地形与水面高度)
         if (!foundCollision && !ascending)
         {
-            // check ground below current previous point
+            // check ground below current previous point (检查当前点与前一点下方的地面高度)
             float prevGroundZ = oz;
             float nextGroundZ = fz;
             jumper->UpdateAllowedPositionZ(ox, oy, prevGroundZ);
             jumper->UpdateAllowedPositionZ(fx, fy, nextGroundZ);
-            // calculated point is lower than terrain - land on terrain
+            // calculated point is lower than terrain - land on terrain (计算出的坐标低于地面高度，贴合到地形表面)
             if (fz < nextGroundZ && oz > prevGroundZ)
             {
                 foundCollision = true;
@@ -3973,13 +4033,13 @@ WorldPosition JumpAction::CalculateJumpParameters(const WorldPosition& src, Unit
         if (maxJumpHeight > 0.f && fabs(src.getZ() - fz) > maxJumpHeight)
             return WorldPosition();
 
-        // vmaps collision found
+        // vmaps collision found (检测到 VMap 碰撞障碍)
         if (foundCollision)
         {
-            // hit something while ascending
+            // hit something while ascending (上升过程中撞到障碍物)
             if (ascending)
                 goodLanding = false;
-            // reduce landing height by collision height
+            // reduce landing height by collision height (按碰撞高度下调着陆高度)
             float fz_mod = fz - CONTACT_DISTANCE - jumper->GetCollisionHeight();
 #ifdef MANGOSBOT_TWO
             jumper->GetMap()->GetHitPosition(fx, fy, fz, fx, fy, fz_mod, jumper->GetPhaseMask(), -0.5f);
@@ -3996,17 +4056,17 @@ WorldPosition JumpAction::CalculateJumpParameters(const WorldPosition& src, Unit
             distanceToLand = sqrtf(src.sqDistance2d(destination));
             timeToLand = CalculateJumpTime(fz - (src.getZ() + 0.5f), vSpeed, ascending);
 
-            // some error in time calculations - cancel the jump
+            // some error in time calculations - cancel the jump (跳跃时间计算出现异常，取消此次跳跃)
             if (timeToLand <= 0.f)
                 return WorldPosition();
 
-            // maybe hit a wall while descending
+            // maybe hit a wall while descending (下降过程中可能撞到墙壁)
             if (goodLanding)
             {
                 float groundZ = destination.getZ() + 0.5f;
                 if (!destination.isInWater())
                     jumper->UpdateAllowedPositionZ(destination.getX(), destination.getY(), groundZ);
-                // set to fall after land if not at the ground
+                // set to fall after land if not at the ground (若未到达地面则设置为继续下落状态)
                 if (groundZ < destination.getZ() && fabs(oz - destination.getZ()) > 5.0f)
                 {
                     goodLanding = false;
@@ -4030,6 +4090,7 @@ WorldPosition JumpAction::CalculateJumpParameters(const WorldPosition& src, Unit
     return WorldPosition();
 }
 
+/// 计算完成指定跳跃轨迹所需的空中滞空时间
 float JumpAction::CalculateJumpTime(float srcZ, float destZ, float vSpeed, float hSpeed, float distance)
 {
     double jumpVerticalAngle = 48.6717 * M_PI / 180;
@@ -4039,7 +4100,7 @@ float JumpAction::CalculateJumpTime(float srcZ, float destZ, float vSpeed, float
     bool ascending = destZ > srcZ && distance < (rough_distance / 2);
     float jumpTime = 0.f;
     float sqroot = vSpeed * vSpeed - (m_gravity * 2 * (destZ - srcZ));
-    // some collision error allowing jump above max height
+    // some collision error allowing jump above max height (存在碰撞计算误差允许跳至高于最大跳跃高度处)
     if (sqroot < 0.f)
     {
         sLog.outDetail("Jump above max height! srcZ: %f, destZ: %f, distance: %f", srcZ, destZ, distance);
@@ -4056,12 +4117,13 @@ float JumpAction::CalculateJumpTime(float srcZ, float destZ, float vSpeed, float
     return jumpTime;
 }
 
+/// 计算完成指定跳跃轨迹所需的空中滞空时间
 float JumpAction::CalculateJumpTime(float z_diff, float vSpeed, bool ascending)
 {
     float m_gravity = 19.2911f;
     float jumpTime = 0.f;
     float sqroot = vSpeed * vSpeed - (m_gravity * 2 * (z_diff));
-    // some collision error allowing jump above max height
+    // some collision error allowing jump above max height (存在碰撞计算误差允许跳至高于最大跳跃高度处)
     if (sqroot < 0.f)
     {
         sLog.outDetail("Jump above max height!");
@@ -4078,11 +4140,13 @@ float JumpAction::CalculateJumpTime(float z_diff, float vSpeed, bool ascending)
     return jumpTime;
 }
 
+/// 检查跳跃轨迹与落点是否安全（避免坠落伤害或跳入深渊）
 bool JumpAction::IsJumpSafe(const WorldPosition &src, const WorldPosition &dest, Unit* jumper)
 {
     return CanLand(dest, jumper) && IsNotMagmaSlime(dest, jumper);
 }
 
+/// 使用寻路器检查从当前位置能否步行到达目标坐标
 bool JumpAction::CanWalkTo(const WorldPosition &src, const WorldPosition &dest, Unit* jumper, float maxDistance)
 {
     if (!src || !dest)
@@ -4102,7 +4166,7 @@ bool JumpAction::CanWalkTo(const WorldPosition &src, const WorldPosition &dest, 
     }
 
     float pathLength = src.getPathLength(path);
-    // todo add config
+    // todo add config (待办：补充配置项)
     if (pathLength > maxDistance)
     {
         sLog.outDetail("%s: Jump CanWalkTo Fail! Path is too big! Max Distance: %f, Path Distance %f", jumper->GetName(), maxDistance, pathLength);
@@ -4112,6 +4176,7 @@ bool JumpAction::CanWalkTo(const WorldPosition &src, const WorldPosition &dest, 
     return true;
 }
 
+/// 判断通过跳跃捷径是否比普通寻路步行更节省时间
 bool JumpAction::IsJumpFasterThanWalking(const WorldPosition& src, const WorldPosition& dest, const WorldPosition& jumpLanding, Unit* jumper, float maxDistance)
 {
     if (!src || !dest || !jumpLanding)
@@ -4120,7 +4185,7 @@ bool JumpAction::IsJumpFasterThanWalking(const WorldPosition& src, const WorldPo
     if (src.getMapId() != dest.getMapId() || src.getMapId() != jumpLanding.getMapId())
         return false;
 
-    // landing too far from destination
+    // landing too far from destination (落点距离目的地过远)
     if (dest.fDist(jumpLanding) > maxDistance)
         return false;
 
@@ -4144,9 +4209,10 @@ bool JumpAction::IsJumpFasterThanWalking(const WorldPosition& src, const WorldPo
     return false;
 }
 
+/// 判断飞行中的机器人当前位置下方是否适合降落
 bool JumpAction::CanLand(const ai::WorldPosition &dest, Unit *jumper)
 {
-    // do not let jump to abyss
+    // do not let jump to abyss (禁止跳入深渊悬崖)
 #ifdef MANGOSBOT_TWO
     float mapHeightCheck = jumper->GetMap()->GetHeight(jumper->GetPhaseMask(), dest.getX(), dest.getY(), dest.getZ() + 0.5f);
 #else
@@ -4160,6 +4226,7 @@ bool JumpAction::CanLand(const ai::WorldPosition &dest, Unit *jumper)
     return true;
 }
 
+/// 过滤掉岩浆软泥等特殊干扰生物的判定函数
 bool JumpAction::IsNotMagmaSlime(const WorldPosition &dest, Unit *jumper)
 {
     if (const TerrainInfo* terrain = dest.getTerrain())
@@ -4185,6 +4252,7 @@ bool JumpAction::IsNotMagmaSlime(const WorldPosition &dest, Unit *jumper)
     return true;
 }
 
+/// 判断机器人是否能够从当前位置跳跃至目标位置
 bool JumpAction::CanJumpTo(const WorldPosition& src, const WorldPosition& dest, WorldPosition& possiblelanding, float& jumpAngle, Unit* jumper, float jumpSpeed, float maxDistance)
 {
     if (!src || !dest)
@@ -4196,12 +4264,12 @@ bool JumpAction::CanJumpTo(const WorldPosition& src, const WorldPosition& dest, 
     if (src.fDist(dest) > sPlayerbotAIConfig.sightDistance)
         return false;
 
-    // some preparation
+    // some preparation (前置准备工作)
     static float m_gravity = 19.2911f;
     float timeForMaxHeight = sPlayerbotAIConfig.jumpVSpeed / m_gravity;
     float maxHeight = sPlayerbotAIConfig.jumpVSpeed * timeForMaxHeight - m_gravity * timeForMaxHeight * timeForMaxHeight / 2;
 
-    // can't jump too high
+    // can't jump too high (无法跳至过高位置)
     if ((src.getZ() + maxHeight) < dest.getZ())
         return false;
 
@@ -4223,6 +4291,7 @@ bool JumpAction::CanJumpTo(const WorldPosition& src, const WorldPosition& dest, 
     return false;
 }
 
+/// 朝向指定坐标执行定向跳跃
 bool JumpAction::JumpTowards(const ai::WorldPosition &src, const ai::WorldPosition &dest, Unit* jumper, float jumpSpeed, bool preSetLanding)
 {
     if (src.getMapId() != dest.getMapId())
@@ -4243,7 +4312,7 @@ bool JumpAction::JumpTowards(const ai::WorldPosition &src, const ai::WorldPositi
     sLog.outDebug("%s: JumpTowards attempt! Jump speed: %f", bot->GetName(), jumpSpeed);
     if (jumpLanding && goodLanding)
     {
-        // set highest jump point to relocate
+        // set highest jump point to relocate (记录最高跳跃点作为重定位坐标)
         WorldPosition highestPoint = dest;
         for (auto& point : path)
         {
@@ -4258,6 +4327,7 @@ bool JumpAction::JumpTowards(const ai::WorldPosition &src, const ai::WorldPositi
     return false;
 }
 
+/// 执行实际的跳跃运动与跳跃网络封包发送
 bool JumpAction::DoJump(const WorldPosition &dest, const WorldPosition& highestPoint, float angle, float vSpeed, float hSpeed, float timeToLand, float distanceToLand, float maxHeight, bool goodLanding, bool jumpInPlace, bool jumpBackward, bool showOnly)
 {
     if (!dest)
@@ -4265,7 +4335,7 @@ bool JumpAction::DoJump(const WorldPosition &dest, const WorldPosition& highestP
 
     WorldPosition landing = dest;
 
-    // fix height
+    // fix height (修正 Z 轴高度)
     if (goodLanding && !dest.isInWater())
     {
         float ox = dest.getX();
@@ -4284,14 +4354,14 @@ bool JumpAction::DoJump(const WorldPosition &dest, const WorldPosition& highestP
     bot->SetFallInformation(0, maxHeight);
 
     bool slowJump = false;// !jumpBackward && hSpeed == bot->GetSpeed(MOVE_WALK);
-    // TODO calculate slow jump (jump + move forward)
+    // TODO calculate slow jump (jump + move forward) (待办：计算缓跳轨迹（跳跃并前移）)
 
-    // send move packet before jump
+    // send move packet before jump (跳跃前发送移动网络封包)
     if (!jumpInPlace && !slowJump)
     {
         bot->m_movementInfo.AddMovementFlag(jumpBackward ? MOVEFLAG_BACKWARD : MOVEFLAG_FORWARD);
         WorldPacket move(jumpBackward ? MSG_MOVE_START_BACKWARD : MSG_MOVE_START_FORWARD);
-// write packet info
+// write packet info (写入网络封包数据)
 #ifdef MANGOSBOT_TWO
         move << bot->GetObjectGuid().WriteAsPacked();
 #endif
@@ -4302,7 +4372,7 @@ bool JumpAction::DoJump(const WorldPosition &dest, const WorldPosition& highestP
     float vsin = jumpInPlace ? 0 : sin(angle);
     float vcos = jumpInPlace ? 1 : cos(angle);
 
-    // write jump info
+    // write jump info (写入跳跃运动数据)
     uint32 curTime = sWorld.GetCurrentMSTime();
     uint32 jumpTime = curTime + sWorld.GetAverageDiff() * 2 + uint32(timeToLand * static_cast<float>(IN_MILLISECONDS));
     ai->SetJumpTime(jumpTime);
@@ -4313,14 +4383,14 @@ bool JumpAction::DoJump(const WorldPosition &dest, const WorldPosition& highestP
 
     sLog.outDetail("%s: Jump x: %f, y: %f, z: %f, time: %f, dist: %f, inPlace: %u, landTime: %u, curTime: %u", bot->GetName(), landing.getX(), landing.getY(), landing.getZ(), timeToLand, distanceToLand, jumpInPlace, jumpTime, curTime);
 
-    // send jump packet
+    // send jump packet (发送跳跃网络封包)
 #ifdef MANGOSBOT_ZERO
     bot->m_movementInfo.AddMovementFlag(MOVEFLAG_JUMPING);
 #else
     bot->m_movementInfo.AddMovementFlag(MOVEFLAG_FALLING);
 #endif
     
-    // client doesn't seem to show proper bigger jump with faster than real speeds
+    // client doesn't seem to show proper bigger jump with faster than real speeds (客户端在超常规速度下可能无法正确显示大跳轨迹)
     if (vSpeed > (7.96f * 1.3f) || hSpeed > (bot->GetSpeed(MOVE_RUN) * 1.3f))
     {
         WorldPacket data(MSG_MOVE_KNOCK_BACK);
@@ -4335,7 +4405,7 @@ bool JumpAction::DoJump(const WorldPosition &dest, const WorldPosition& highestP
     else
     {
         WorldPacket jump(MSG_MOVE_JUMP);
-        // write packet info
+        // write packet info (写入网络封包数据)
 #ifdef MANGOSBOT_TWO
         jump << bot->GetObjectGuid().WriteAsPacked();
 #endif
@@ -4343,13 +4413,13 @@ bool JumpAction::DoJump(const WorldPosition &dest, const WorldPosition& highestP
         ai->QueuePacket(jump);
     }
 
-    // send move packet after jump
+    // send move packet after jump (跳跃后发送移动网络封包)
     if (!jumpInPlace && slowJump)
     {
         bot->m_movementInfo.AddMovementFlag(jumpBackward ? MOVEFLAG_BACKWARD : MOVEFLAG_FORWARD);
         bot->m_movementInfo.jump.xyspeed = hSpeed;
         WorldPacket move(jumpBackward ? MSG_MOVE_START_BACKWARD : MSG_MOVE_START_FORWARD);
-        // write packet info
+        // write packet info (写入网络封包数据)
 #ifdef MANGOSBOT_TWO
         move << bot->GetObjectGuid().WriteAsPacked();
 #endif
@@ -4357,8 +4427,8 @@ bool JumpAction::DoJump(const WorldPosition &dest, const WorldPosition& highestP
         ai->QueuePacket(move);
     }
 
-    // change position to highest position
-    // todo add in between points to avoid mobs instant aggro before landing
+    // change position to highest position (将坐标切换为最高点位置)
+    // todo add in between points to avoid mobs instant aggro before landing (待办：增加中间路径点避免落地瞬间引怪)
     bot->Relocate(highestPoint.getX(), highestPoint.getY(), highestPoint.getZ());
 
     if (ai->HasStrategy("debug", BotState::BOT_STATE_NON_COMBAT))
@@ -4370,6 +4440,7 @@ bool JumpAction::DoJump(const WorldPosition &dest, const WorldPosition& highestP
     return true;
 }
 
+/// 搜寻能够跳向目标点的可行起跳位置
 WorldPosition JumpAction::GetPossibleJumpStartFor(const WorldPosition& src, const WorldPosition& dest, WorldPosition& possibleLanding, Unit* jumper, float &requiredSpeed, float distanceTo, float distanceFrom)
 {
     if (!src || !dest)
@@ -4382,7 +4453,7 @@ WorldPosition JumpAction::GetPossibleJumpStartFor(const WorldPosition& src, cons
         return WorldPosition();
 
     float jumpAngle;
-    // try jump from where at
+    // try jump from where at (尝试从当前位置起跳)
     if (CanJumpTo(src, dest, possibleLanding, jumpAngle, jumper, bot->GetSpeed(MOVE_WALK), distanceFrom))
     {
         requiredSpeed = bot->GetSpeed(MOVE_WALK);
@@ -4390,7 +4461,7 @@ WorldPosition JumpAction::GetPossibleJumpStartFor(const WorldPosition& src, cons
     }
     else
     {
-        // try slow jump
+        // try slow jump (尝试缓速跳跃)
         if (CanJumpTo(src, dest, possibleLanding, jumpAngle, jumper, jumper->GetSpeedRate(MOVE_RUN) * sPlayerbotAIConfig.jumpHSpeed, distanceFrom))
         {
             requiredSpeed = jumper->GetSpeedRate(MOVE_RUN) * sPlayerbotAIConfig.jumpHSpeed;
@@ -4398,10 +4469,10 @@ WorldPosition JumpAction::GetPossibleJumpStartFor(const WorldPosition& src, cons
         }
     }
 
-    // try find a closer point
+    // try find a closer point (尝试寻找更近的路径点)
     std::vector<WorldPosition> path = dest.getPathStepFrom(src, jumper);
 
-    // no path found closer to it...
+    // no path found closer to it... (未找到更接近目标的可行路径...)
     if (path.empty() || path.size() == 2)
     {
         sLog.outDetail("%s: Jump Fail! Can't pathfind closer!", jumper->GetName());
@@ -4414,7 +4485,7 @@ WorldPosition JumpAction::GetPossibleJumpStartFor(const WorldPosition& src, cons
         if (p.fDist(src) > distanceTo)
             break;
 
-        // try slow jump
+        // try slow jump (尝试缓速跳跃)
         if (CanJumpTo(p, dest, possibleLanding, jumpAngle, jumper, bot->GetSpeed(MOVE_WALK), distanceFrom))
         {
             requiredSpeed = bot->GetSpeed(MOVE_WALK);
@@ -4422,7 +4493,7 @@ WorldPosition JumpAction::GetPossibleJumpStartFor(const WorldPosition& src, cons
         }
         else
         {
-            // try fast jump
+            // try fast jump (尝试快速跳跃)
             if (CanJumpTo(p, dest, possibleLanding, jumpAngle, jumper, jumper->GetSpeedRate(MOVE_RUN) * sPlayerbotAIConfig.jumpHSpeed, distanceFrom))
             {
                 requiredSpeed = jumper->GetSpeedRate(MOVE_RUN) * sPlayerbotAIConfig.jumpHSpeed;
@@ -4437,6 +4508,7 @@ WorldPosition JumpAction::GetPossibleJumpStartFor(const WorldPosition& src, cons
     return WorldPosition();
 }
 
+/// 在指定范围内搜索可用于起跳到达目标点的起跳位置
 WorldPosition JumpAction::GetPossibleJumpStartForInRange(const WorldPosition& src, const WorldPosition& dest, WorldPosition& possibleLanding, Unit* jumper, float& requiredSpeed, float distanceTo, float distanceFrom)
 {
     if (!src || !dest)
@@ -4449,7 +4521,7 @@ WorldPosition JumpAction::GetPossibleJumpStartForInRange(const WorldPosition& sr
         return WorldPosition();
 
     float jumpAngle;
-    // try jump from where at
+    // try jump from where at (尝试从当前位置起跳)
     if (CanJumpTo(src, dest, possibleLanding, jumpAngle, jumper, jumper->GetSpeed(MOVE_WALK), distanceFrom))
     {
         if (ai->HasStrategy("debug move", BotState::BOT_STATE_NON_COMBAT))
@@ -4461,7 +4533,7 @@ WorldPosition JumpAction::GetPossibleJumpStartForInRange(const WorldPosition& sr
     }
     else
     {
-        // try slow jump
+        // try slow jump (尝试缓速跳跃)
         if (CanJumpTo(src, dest, possibleLanding, jumpAngle, jumper, jumper->GetSpeedRate(MOVE_RUN) * sPlayerbotAIConfig.jumpHSpeed, distanceFrom))
         {
             if (ai->HasStrategy("debug move", BotState::BOT_STATE_NON_COMBAT))
@@ -4473,9 +4545,9 @@ WorldPosition JumpAction::GetPossibleJumpStartForInRange(const WorldPosition& sr
         }
     }
 
-    // try find a point in range to jump from
+    // try find a point in range to jump from (尝试在范围内寻找起跳点)
 
-    // some limitations
+    // some limitations (前置限制条件检查)
     /*if (range > 40.0f)
         range = 40.0f;
     if (range < 0.1f)
@@ -4508,7 +4580,7 @@ WorldPosition JumpAction::GetPossibleJumpStartForInRange(const WorldPosition& sr
             if (attempts >= 100)
                 break;
 
-            // point is not reachable
+            // point is not reachable (目标坐标点不可达)
             if (!CanWalkTo(src, p, jumper))
                 continue;
 
@@ -4539,7 +4611,7 @@ WorldPosition JumpAction::GetPossibleJumpStartForInRange(const WorldPosition& sr
             wpCreature->SetObjectScale(0.2f);
         }
 
-        // recalculate to get landing and angle
+        // recalculate to get landing and angle (重新计算着陆点与方向角度)
         CanJumpTo(closest, dest, possibleLanding, jumpAngle, jumper, jumper->GetSpeedRate(MOVE_RUN) * sPlayerbotAIConfig.jumpHSpeed, distanceFrom);
         return closest;
     }

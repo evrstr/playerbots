@@ -4,6 +4,7 @@ class Player;
 class PlayerbotMgr;
 class ChatHandler;
 
+/// 职业专精附魔模板配置条目
 struct EnchantTemplate
 {
    uint8   ClassId;
@@ -14,6 +15,7 @@ struct EnchantTemplate
 
 typedef std::vector<EnchantTemplate*> EnchantContainer;
 
+/// 飞行点解锁等级关联条目
 struct TaxiNodeLevel
 {
     uint32 Index;
@@ -42,6 +44,7 @@ enum spec : uint8 {
    ROLE_CDPS = 3,
 };*/
 
+/// 机器人角色初始化与装备养成工厂类，负责洗点、配装、附魔、插槽宝石、学习技能/法术、任务与消耗品补给
 class PlayerbotFactory
 {
 public:
@@ -138,6 +141,7 @@ protected:
    EnchantContainer m_EnchantContainer;
 };
 
+/// 按优先级排列的磨刀石、平衡石、绷带、法力/巫师之油与毒药物品 ID 枚举
 enum PriorizedConsumables
 {
    CONSUM_ID_ROUGH_WEIGHTSTONE = 3239,

@@ -4,6 +4,7 @@
 
 using namespace ai;
 
+/// 处理单个任务发布对象的任务接取或交付逻辑（接受全部任务动作）
 bool AcceptAllQuestsAction::ProcessQuest(Player* requester, Quest const* quest, WorldObject* questGiver)
 {
     if (AcceptQuest(requester, quest, questGiver->GetObjectGuid()))
@@ -16,6 +17,7 @@ bool AcceptAllQuestsAction::ProcessQuest(Player* requester, Quest const* quest, 
     return false;
 }
 
+/// 执行动作主逻辑（接受指定任务动作）
 bool AcceptQuestAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -32,8 +34,10 @@ bool AcceptQuestAction::Execute(Event& event)
 
     bool hasAccept = false;
 
+    // 无网络封包事件：通过聊天指令或周围对象主动触发
     if (event.getPacket().empty())
     {
+        // 遍历附近 NPC 列表
         std::list<ObjectGuid> npcs = AI_VALUE(std::list<ObjectGuid>, "nearest npcs");
         for (std::list<ObjectGuid>::iterator i = npcs.begin(); i != npcs.end(); i++)
         {
@@ -46,6 +50,7 @@ bool AcceptQuestAction::Execute(Event& event)
             if (unit && text == "*" && bot->GetDistance(unit) <= INTERACTION_DISTANCE)
                 hasAccept |= QuestAction::ProcessQuests(unit);
         }
+        // 遍历附近游戏对象列表
         std::list<ObjectGuid> gos = AI_VALUE(std::list<ObjectGuid>, "nearest game objects no los");
         for (std::list<ObjectGuid>::iterator i = gos.begin(); i != gos.end(); i++)
         {
@@ -61,6 +66,7 @@ bool AcceptQuestAction::Execute(Event& event)
     }
     else
     {
+        // 解析事件携带的网络封包数据
         WorldPacket& p = event.getPacket();
         p.rpos(0);
         p >> guid >> quest;
@@ -81,6 +87,7 @@ bool AcceptQuestAction::Execute(Event& event)
     return hasAccept;
 }
 
+/// 执行动作主逻辑（接受共享任务动作）
 bool AcceptQuestShareAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -89,6 +96,7 @@ bool AcceptQuestShareAction::Execute(Event& event)
     if (!ai->IsSafe(requester))
         requester = bot;
 
+    // 解析事件携带的网络封包数据
     WorldPacket& p = event.getPacket();
     p.rpos(0);
     uint32 quest;
@@ -101,7 +109,7 @@ bool AcceptQuestShareAction::Execute(Event& event)
     quest = qInfo->GetQuestId();
     if( !bot->CanTakeQuest( qInfo, false ) )
     {
-        // can't take quest
+        // can't take quest (无法接取该任务)
         bot->SetDividerGuid( ObjectGuid() );
         ai->TellError(requester, BOT_TEXT("quest_cant_take"));
 
@@ -110,7 +118,7 @@ bool AcceptQuestShareAction::Execute(Event& event)
 
     if( !bot->GetDividerGuid().IsEmpty() )
     {
-        // send msg to quest giving player
+        // send msg to quest giving player (向共享任务的玩家发送提示消息)
         requester->SendPushToPartyResponse( bot, QUEST_PARTY_MSG_ACCEPT_QUEST );
         bot->SetDividerGuid( ObjectGuid() );
     }
@@ -124,9 +132,9 @@ bool AcceptQuestShareAction::Execute(Event& event)
         if( bot->CanCompleteQuest( quest ) )
             bot->CompleteQuest( quest );
 
-        // Runsttren: did not add typeid switch from WorldSession::HandleQuestgiverAcceptQuestOpcode!
-        // I think it's not needed, cause typeid should be TYPEID_PLAYER - and this one is not handled
-        // there and there is no default case also.
+        // Runsttren: did not add typeid switch from WorldSession::HandleQuestgiverAcceptQuestOpcode! (注：此处未照搬 WorldSession::HandleQuestgiverAcceptQuestOpcode 中的 typeid 分支判断)
+        // I think it's not needed, cause typeid should be TYPEID_PLAYER - and this one is not handled (此处无需处理，因为对象类型应为 TYPEID_PLAYER 而原逻辑未包含)
+        // there and there is no default case also. (且该处没有 default 分支。)
 
         if( qInfo->GetSrcSpell() > 0 )
         {
@@ -147,11 +155,13 @@ bool AcceptQuestShareAction::Execute(Event& event)
     return false;
 }
 
+/// 执行动作主逻辑（确认任务动作）
 bool ConfirmQuestAction::Execute(Event& event)
 {
     Player *bot = ai->GetBot();
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
 
+    // 解析事件携带的网络封包数据
     WorldPacket& p = event.getPacket();
     p.rpos(0);
     uint32 quest;
@@ -164,7 +174,7 @@ bool ConfirmQuestAction::Execute(Event& event)
     quest = qInfo->GetQuestId();
     if( !bot->CanTakeQuest( qInfo, false ) )
     {
-        // can't take quest
+        // can't take quest (无法接取该任务)
         ai->TellError(requester, BOT_TEXT("quest_cant_take"));
         return false;
     }
@@ -172,7 +182,7 @@ bool ConfirmQuestAction::Execute(Event& event)
     if( bot->CanAddQuest( qInfo, false ) )
     {
         if (qInfo->HasQuestFlag(QUEST_FLAGS_PARTY_ACCEPT))
-            bot->AddQuest(qInfo, nullptr); //prevent double dbscript call if player is doing it
+            bot->AddQuest(qInfo, nullptr); // prevent double dbscript call if player is doing it (若玩家正在交互则防止重复触发 DB 脚本)
         else
             bot->AddQuest( qInfo, requester );
 
@@ -198,11 +208,13 @@ bool ConfirmQuestAction::Execute(Event& event)
     return false;
 }
 
+/// 执行动作主逻辑（任务详情确认动作）
 bool QuestDetailsAction::Execute(Event& event)
 {
     Player* bot = ai->GetBot();
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
 
+    // 解析事件携带的网络封包数据
     WorldPacket& p = event.getPacket();
     p.rpos(0);
     ObjectGuid guid;
@@ -217,7 +229,7 @@ bool QuestDetailsAction::Execute(Event& event)
     quest = qInfo->GetQuestId();
     if (!bot->CanTakeQuest(qInfo, false))
     {
-        // can't take quest
+        // can't take quest (无法接取该任务)
         ai->TellError(requester, BOT_TEXT("quest_cant_take"));
         return false;
     }

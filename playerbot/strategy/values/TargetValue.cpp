@@ -1,3 +1,4 @@
+// 策略值实现：TargetValue（目标策略遍历、人数统计与各类目标提取）
 
 #include "playerbot/playerbot.h"
 #include "TargetValue.h"
@@ -10,6 +11,7 @@
 
 using namespace ai;
 
+// 遍历 attackers 列表，交给 FindTargetStrategy 逐一评分并取最终结果
 Unit* TargetValue::FindTarget(FindTargetStrategy* strategy)
 {
     std::list<ObjectGuid> attackers = ai->GetAiObjectContext()->GetValue<std::list<ObjectGuid>>("attackers")->Get();
@@ -26,6 +28,7 @@ Unit* TargetValue::FindTarget(FindTargetStrategy* strategy)
     return strategy->GetResult();
 }
 
+// 检查目标是否已被自己或队友标记为控场（rti cc）
 bool FindNonCcTargetStrategy::IsCcTarget(Unit* attacker)
 {
     Group* group = ai->GetBot()->GetGroup();
@@ -58,6 +61,7 @@ bool FindNonCcTargetStrategy::IsCcTarget(Unit* attacker)
     return false;
 }
 
+// 统计正在攻击指定生物的友方坦克人数和输出人数（带单次遍历缓存）
 void FindTargetStrategy::GetPlayerCount(Unit* creature, int* tankCount, int* dpsCount)
 {
     Player* bot = ai->GetBot();
@@ -92,6 +96,7 @@ void FindTargetStrategy::GetPlayerCount(Unit* creature, int* tankCount, int* dps
     dpsCountCache[creature] = *dpsCount;
 }
 
+// 在跟随/漫游/停留/守护策略下优先返回主控或队长的旅行目标
 TravelTarget* LeaderTravelTargetValue::Calculate()
 {
     TravelTarget* target = AI_VALUE(TravelTarget*, "travel target");
@@ -115,6 +120,7 @@ TravelTarget* LeaderTravelTargetValue::Calculate()
      return leaderTarget;
 }
 
+// 从 LastMovement 记录中读取上次长途移动保存的位置
 WorldPosition LastLongMoveValue::Calculate()
 {
     LastMovement& lastMove = *context->GetValue<LastMovement&>("last movement");
@@ -125,6 +131,7 @@ WorldPosition LastLongMoveValue::Calculate()
     return lastMove.lastPath.getBack();
 }
 
+// 读取玩家炉石绑定的旅店位置坐标
 WorldPosition HomeBindValue::Calculate()
 {
     float x, y, z;
@@ -133,27 +140,32 @@ WorldPosition HomeBindValue::Calculate()
     return WorldPosition(mapId, x, y, z, 0.0);
 }
 
+// 将当前 RPG 目标格式化为世界对象名或坐标描述
 std::string RpgTargetValue::Format()
 {
     return chat->formatGuidPosition(value, bot);
 }
 
+// 将炉石绑定点格式化为坐标或区域名称字符串
 std::string HomeBindValue::Format()
 {
     WorldPosition pos = this->Calculate();
     return chat->formatWorldPosition(pos);
 }
 
+// 设置当前拉怪目标 GUID
 void PullTargetValue::Set(ObjectGuid unitGuid)
 {
     guid = unitGuid;
 }
 
+// 获取当前拉怪目标，若目标无效或切换地图则返回空 GUID
 ObjectGuid PullTargetValue::Get()
 {   
     return guid;
 }
 
+// 查找跟随目标（默认跟随主控；若主控正在原地而附近有进攻队友时也可适度调整）
 ObjectGuid FollowTargetValue::Calculate()
 {
     Unit* followTarget = AI_VALUE(GuidPosition, "manual follow target").GetUnit(bot->GetInstanceId());
@@ -173,6 +185,7 @@ ObjectGuid FollowTargetValue::Calculate()
     return followTarget ? followTarget->GetObjectGuid() : ObjectGuid();
 }
 
+// 从 attackers targeting me 中找出距离机器人最近的敌对目标
 ObjectGuid ClosestAttackerTargetingMeTargetValue::Calculate()
 {
     Unit* result = nullptr;
@@ -196,6 +209,7 @@ ObjectGuid ClosestAttackerTargetingMeTargetValue::Calculate()
     return result ? result->GetObjectGuid() : ObjectGuid();
 }
 
+// 读取手动友方目标列表，自动剔除不在线或不在同地图的成员
 std::list<ObjectGuid> FriendlyManualTargetsValue::Get()
 {
     value.remove_if([&](const ObjectGuid& playerGuid)
@@ -215,14 +229,16 @@ std::list<ObjectGuid> FriendlyManualTargetsValue::Get()
     return value;
 }
 
+// 直接委托 Get() 返回过滤后的手动友方目标列表
 std::list<ObjectGuid> FriendlyManualTargetsValue::LazyGet()
 {
     return Get();
 }
 
+// 根据正负 Entry 分别查找距离机器人最近的生物或游戏对象静态生成坐标
 GuidPosition ClosestEntryValue::Calculate()
 {
-    // Implement the logic to calculate the closest entry target
+    // Implement the logic to calculate the closest entry target | 计算并查找距离最近的指定 Entry 实体坐标
     WorldPosition botPos(bot);
 
     if (!Qualified::isValidNumberString(qualifier))

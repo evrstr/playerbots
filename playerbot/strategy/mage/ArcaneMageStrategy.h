@@ -1,8 +1,10 @@
+// 法师 - 奥术法师策略头文件 (ArcaneMageStrategy.h)
 #pragma once
 #include "MageStrategy.h"
 
 namespace ai
 {
+    // 奥术法师专精占位策略：用于专精识别与占位的策略类
     class ArcaneMagePlaceholderStrategy : public SpecPlaceholderStrategy
     {
     public:
@@ -11,6 +13,7 @@ namespace ai
         std::string getName() override { return "arcane"; }
     };
 
+    // 奥术法师策略：定义该专精/场景下的触发器与默认行为
     class ArcaneMageStrategy : public MageStrategy
     {
     public:
@@ -25,6 +28,7 @@ namespace ai
         virtual NextAction** GetDefaultCombatActions() override;
     };
 
+    // 奥术法师PVE策略：定义该专精/场景下的触发器与默认行为
     class ArcaneMagePveStrategy : public ArcaneMageStrategy
     {
     public:
@@ -38,6 +42,7 @@ namespace ai
         void InitDeadTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 奥术法师PVP策略：定义该专精/场景下的触发器与默认行为
     class ArcaneMagePvpStrategy : public ArcaneMageStrategy
     {
     public:
@@ -51,6 +56,7 @@ namespace ai
         void InitDeadTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 奥术法师团队副本策略：定义该专精/场景下的触发器与默认行为
     class ArcaneMageRaidStrategy : public ArcaneMageStrategy
     {
     public:
@@ -64,6 +70,7 @@ namespace ai
         void InitDeadTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 奥术法师AOE群体策略：定义该专精/场景下的触发器与默认行为
     class ArcaneMageAoeStrategy : public MageAoeStrategy
     {
     public:
@@ -74,6 +81,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 奥术法师AOE群体PVE策略：定义该专精/场景下的触发器与默认行为
     class ArcaneMageAoePveStrategy : public ArcaneMageAoeStrategy
     {
     public:
@@ -85,6 +93,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 奥术法师AOE群体PVP策略：定义该专精/场景下的触发器与默认行为
     class ArcaneMageAoePvpStrategy : public ArcaneMageAoeStrategy
     {
     public:
@@ -96,6 +105,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 奥术法师AOE群体团队副本策略：定义该专精/场景下的触发器与默认行为
     class ArcaneMageAoeRaidStrategy : public ArcaneMageAoeStrategy
     {
     public:
@@ -107,6 +117,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 奥术法师增益Buff策略：定义该专精/场景下的触发器与默认行为
     class ArcaneMageBuffStrategy : public MageBuffStrategy
     {
     public:
@@ -117,6 +128,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 奥术法师增益BuffPVE策略：定义该专精/场景下的触发器与默认行为
     class ArcaneMageBuffPveStrategy : public ArcaneMageBuffStrategy
     {
     public:
@@ -128,6 +140,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 奥术法师增益BuffPVP策略：定义该专精/场景下的触发器与默认行为
     class ArcaneMageBuffPvpStrategy : public ArcaneMageBuffStrategy
     {
     public:
@@ -139,6 +152,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 奥术法师增益Buff团队副本策略：定义该专精/场景下的触发器与默认行为
     class ArcaneMageBuffRaidStrategy : public ArcaneMageBuffStrategy
     {
     public:
@@ -150,6 +164,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 奥术法师爆发增益策略：定义该专精/场景下的触发器与默认行为
     class ArcaneMageBoostStrategy : public MageBoostStrategy
     {
     public:
@@ -160,6 +175,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 奥术法师爆发增益PVE策略：定义该专精/场景下的触发器与默认行为
     class ArcaneMageBoostPveStrategy : public ArcaneMageBoostStrategy
     {
     public:
@@ -171,6 +187,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 奥术法师爆发增益PVP策略：定义该专精/场景下的触发器与默认行为
     class ArcaneMageBoostPvpStrategy : public ArcaneMageBoostStrategy
     {
     public:
@@ -182,6 +199,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 奥术法师爆发增益团队副本策略：定义该专精/场景下的触发器与默认行为
     class ArcaneMageBoostRaidStrategy : public ArcaneMageBoostStrategy
     {
     public:
@@ -193,6 +211,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 奥术法师控制(CC)策略：定义该专精/场景下的触发器与默认行为
     class ArcaneMageCcStrategy : public MageCcStrategy
     {
     public:
@@ -203,6 +222,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 奥术法师控制(CC)PVE策略：定义该专精/场景下的触发器与默认行为
     class ArcaneMageCcPveStrategy : public ArcaneMageCcStrategy
     {
     public:
@@ -214,6 +234,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 奥术法师控制(CC)PVP策略：定义该专精/场景下的触发器与默认行为
     class ArcaneMageCcPvpStrategy : public ArcaneMageCcStrategy
     {
     public:
@@ -225,6 +246,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 奥术法师控制(CC)团队副本策略：定义该专精/场景下的触发器与默认行为
     class ArcaneMageCcRaidStrategy : public ArcaneMageCcStrategy
     {
     public:
@@ -236,6 +258,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 奥术法师驱散净化策略：定义该专精/场景下的触发器与默认行为
     class ArcaneMageCureStrategy : public MageCureStrategy
     {
     public:
@@ -246,6 +269,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 奥术法师驱散净化PVE策略：定义该专精/场景下的触发器与默认行为
     class ArcaneMageCurePveStrategy : public ArcaneMageCureStrategy
     {
     public:
@@ -257,6 +281,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 奥术法师驱散净化PVP策略：定义该专精/场景下的触发器与默认行为
     class ArcaneMageCurePvpStrategy : public ArcaneMageCureStrategy
     {
     public:
@@ -268,6 +293,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 奥术法师驱散净化团队副本策略：定义该专精/场景下的触发器与默认行为
     class ArcaneMageCureRaidStrategy : public ArcaneMageCureStrategy
     {
     public:

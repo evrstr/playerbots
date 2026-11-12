@@ -1,3 +1,4 @@
+/// 集成测试 AI 策略头文件
 #pragma once
 
 #include "playerbot/strategy/Strategy.h"
@@ -5,6 +6,7 @@
 
 namespace ai
 {
+    /// 测试策略：在机器人上激活集成测试框架，使 TestAction 随策略周期运行
     class TestStrategy : public Strategy, public Qualified
     {
     public:

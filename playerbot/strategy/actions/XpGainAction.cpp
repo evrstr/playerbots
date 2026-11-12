@@ -10,23 +10,25 @@
 
 using namespace ai;
 
+/// 执行动作主逻辑（经验获取处理动作）
 bool XpGainAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
 
     RESET_AI_VALUE(uint32,"death count");
 
+    // 解析事件携带的网络封包数据
     WorldPacket p(event.getPacket()); // (8+4+1+4+8)
     ObjectGuid guid;
     uint32 xpgain;
-    uint8 type = 0; // 00-kill_xp type, 01-non_kill_xp type
+    uint8 type = 0; // 00-kill_xp type, 01-non_kill_xp type (00 为击杀经验类型，01 为非击杀经验类型)
     uint32 givenXp = 0;
     float groupBonus = 0;
 
     p.rpos(0);
-    p >> guid;      // 8 victim
-    p >> xpgain;    // 1 given experience
-    p >> type;      //1 00-kill_xp type, 01-non_kill_xp type
+    p >> guid;      // 8 victim (8 字节：被击杀目标 GUID)
+    p >> xpgain;    // 1 given experience (1 字节：实际给予的经验值)
+    p >> type;      // 1 00-kill_xp type, 01-non_kill_xp type (1 字节：00=击杀经验，01=非击杀经验)
 
     if (sPlayerbotAIConfig.hasLog("bot_events.csv"))
     {
@@ -61,8 +63,8 @@ bool XpGainAction::Execute(Event& event)
 
     if (!type)
     {
-        p >> givenXp;      // 4 experience without rested bonus
-        p >> groupBonus;   // 8 group bonus
+        p >> givenXp;      // 4 experience without rested bonus (4 字节：不含双倍精力加成的经验值)
+        p >> groupBonus;   // 8 group bonus (8 字节：组队经验加成)
     }
 
     Unit* victim;
@@ -73,6 +75,7 @@ bool XpGainAction::Execute(Event& event)
     return false;
 }
 
+/// 处理经验获取事件并计算经验速率
 void XpGainAction::GiveXP(int32 xp, Unit* victim)
 {
     if (!bot->IsAlive())
@@ -82,12 +85,12 @@ void XpGainAction::GiveXP(int32 xp, Unit* victim)
 
     uint32 level = bot->GetLevel();
 
-    // Used by Eluna
+    // Used by Eluna (供 Eluna 脚本引擎调用)
 #ifdef ENABLE_ELUNA
     sEluna->OnGiveXP(bot, xp, victim);
 #endif /* ENABLE_ELUNA */
 
-    // XP to money conversion processed in Player::RewardQuest
+    // XP to money conversion processed in Player::RewardQuest (经验折算金币逻辑由 Player::RewardQuest 处理)
     if (level >= sWorld.getConfig(CONFIG_UINT32_MAX_PLAYER_LEVEL))
     {
         return;
@@ -103,7 +106,7 @@ void XpGainAction::GiveXP(int32 xp, Unit* victim)
         return;
     }
 
-    // XP resting bonus for kill
+    // XP resting bonus for kill (击杀获得的精力充沛双倍经验加成)
     uint32 rested_bonus_xp = victim ? bot->GetXPRestBonus(xp) : 0;
 
     //SendLogXPGain(xp, victim, rested_bonus_xp);

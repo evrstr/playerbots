@@ -6,16 +6,19 @@
 
 using namespace ai;
 
+/// 构造函数：初始化帮助指令动作
 HelpAction::HelpAction(PlayerbotAI* ai) : ChatCommandAction(ai, "help")
 {
     chatContext = new ChatActionContext();
 }
 
+/// 析构函数：释放帮助指令动作资源
 HelpAction::~HelpAction()
 {
     delete chatContext;
 }
 
+/// 执行动作主逻辑（帮助指令动作）
 bool HelpAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -55,7 +58,7 @@ bool HelpAction::Execute(Event& event)
             if (!helpTekst.empty())
                 sPlayerbotHelpMgr.replace(helpTekst, "<found>", topics);
             else
-                helpTekst = topics; //Fallback for old help table.
+                helpTekst = topics; // Fallback for old help table. (旧版帮助表的兼容回退路径。)
 
             sPlayerbotHelpMgr.FormatHelpTopic(helpTekst);
         }
@@ -79,6 +82,7 @@ bool HelpAction::Execute(Event& event)
     return true;
 }
 
+/// 向主人发送支持的聊天指令列表
 void HelpAction::TellChatCommands(Player* requester)
 {
     std::set<std::string> keys;
@@ -91,6 +95,7 @@ void HelpAction::TellChatCommands(Player* requester)
     ai->TellPlayer(requester, out.str());
 }
 
+/// 汇报机器人当前各 AI 状态启用的策略详情
 void HelpAction::TellStrategies(Player* requester)
 {
     std::set<std::string> strategies;
@@ -102,16 +107,17 @@ void HelpAction::TellStrategies(Player* requester)
     ai->TellPlayer(requester, out.str());
 }
 
+/// 判断两个状态或条件是否可以合并支持
 std::string HelpAction::CombineSupported(const std::set<std::string>& commands) const
 {
     std::ostringstream out;
 
     for (std::set<std::string>::iterator i = commands.begin(); i != commands.end(); )
-	{
+    {
         out << *i;
-		if (++i != commands.end())
-			out << ", ";
-	}
+        if (++i != commands.end())
+            out << ", ";
+    }
 
     return out.str();
 }

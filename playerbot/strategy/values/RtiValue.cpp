@@ -1,3 +1,4 @@
+// 策略值实现：RtiValue（团队标记配置与战斗指令目标解析）
 
 #include "playerbot/playerbot.h"
 #include "RtiValue.h"
@@ -5,21 +6,25 @@
 
 using namespace ai;
 
+// 构造函数：初始化默认攻击标记为 skull
 RtiValue::RtiValue(PlayerbotAI* ai)
     : ManualSetValue<std::string>(ai, "skull", "rti")
 {
 }
 
+// 构造函数：初始化默认控场标记为 none
 RtiCcValue::RtiCcValue(PlayerbotAI* ai)
     : ManualSetValue<std::string>(ai, "none", "rti cc")
 {
 }
 
+// 构造函数：初始化空的战斗指令目标
 CombatOrderTargetValue::CombatOrderTargetValue(PlayerbotAI* ai)
     : ManualSetValue<std::string>(ai, "", "combat order target")
 {
 }
 
+// 控场检查辅助策略：复用 FindNonCcTargetStrategy 判断目标是否处于控场状态
 class OrderCcCheck : public FindNonCcTargetStrategy
 {
 public:
@@ -28,6 +33,7 @@ public:
     bool IsCc(Unit* attacker) { return IsCcTarget(attacker); }
 };
 
+// 按大小写不敏感的名称在当前队伍中查找对应成员玩家指针
 Player* CombatOrderTargetValue::FindGroupMember(Player* bot, const std::string& name)
 {
     Group* group = bot->GetGroup();
@@ -52,6 +58,7 @@ Player* CombatOrderTargetValue::FindGroupMember(Player* bot, const std::string& 
     return nullptr;
 }
 
+// 解析战斗指令（guid:<id> 或 player:<name>）并按最低/最高仇恨规则定位目标单位
 ObjectGuid CombatOrderTargetValue::FindTarget(PlayerbotAI* ai, bool lowestThreat)
 {
     AiObjectContext* context = ai->GetAiObjectContext();

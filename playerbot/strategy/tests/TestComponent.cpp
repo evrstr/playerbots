@@ -1,3 +1,4 @@
+/// 测试框架基础组件接口（TextComponent / TestMonitor / TestCommand）实现
 #include "TestComponent.h"
 #include "playerbot/WorldPosition.h"
 #include "playerbot/PlayerbotTextMgr.h"
@@ -12,16 +13,18 @@
 using namespace ai;
 
 // =====================================================
-// TestMonitor implementation
+// TestMonitor implementation | TestMonitor 基类实现
 // =====================================================
 
 namespace
 {
+/// 判断字符串是否仅包含空白字符
     bool IsWhitespaceOnly(const std::string& value)
     {
         return value.find_first_not_of(" \t\r\n") == std::string::npos;
     }
 
+/// 去除字符串首尾空白字符
     std::string Trim(const std::string& value)
     {
         const size_t begin = value.find_first_not_of(" \t\r\n");
@@ -32,6 +35,7 @@ namespace
         return value.substr(begin, end - begin + 1);
     }
 
+/// 检查 C 字符串指针之后是否仅剩空白字符
     bool HasOnlyTrailingWhitespace(const char* cursor)
     {
         while (*cursor)
@@ -44,10 +48,11 @@ namespace
         return true;
     }
 
+/// 统计机器人指定半径范围内死亡生物的数量
     uint32 CountNearbyDeadMobs(Player* bot, float radius)
     {
         std::list<Creature*> creatures;
-        // GetDistance(..., DIST_CALC_NONE) returns the SQUARED distance, so the checker range must
+        // GetDistance(..., DIST_CALC_NONE) returns the SQUARED distance, so the checker range must | DIST_CALC_NONE 使用距离平方判定，因此 checker 半径需平方
         // be squared too; VisitAllObjects keeps the linear radius for the cell visit.
         MaNGOS::AnyUnitFulfillingConditionInRangeCheck checker(bot, [](Unit* u) { return !u->IsAlive(); }, radius * radius, DIST_CALC_NONE);
         MaNGOS::CreatureListSearcher<MaNGOS::AnyUnitFulfillingConditionInRangeCheck> searcher(creatures, checker);
@@ -64,6 +69,7 @@ namespace
     }
 }
 
+/// 统计全队（或未组队时仅机器人自身）的累计总经验值
 uint32 ai::GetPartyXpTotal(Player* bot)
 {
     if (!bot || !bot->IsInWorld())
@@ -89,6 +95,7 @@ uint32 ai::GetPartyXpTotal(Player* bot)
     return static_cast<uint32>(total > UINT32_MAX ? UINT32_MAX : total);
 }
 
+/// 按分隔符首次出现位置将输入字符串拆分为左右两部分
 TestResult TextComponent::TrySplitOnce(const std::string& input, const std::string& delimiter,
     std::string& left, std::string& right, std::string& message,
     const std::string& componentName, bool allowEmptyRight)
@@ -111,6 +118,7 @@ TestResult TextComponent::TrySplitOnce(const std::string& input, const std::stri
     return TestResult::PASS;
 }
 
+/// 提取起止分隔符之间的子串内容
 TestResult TextComponent::TryExtractBetween(const std::string& input, const std::string& beginDelimiter,
     const std::string& endDelimiter, std::string& value, std::string& message,
     const std::string& componentName)
@@ -134,6 +142,7 @@ TestResult TextComponent::TryExtractBetween(const std::string& input, const std:
     return TestResult::PASS;
 }
 
+/// 解析形如 "<名称> <比较符> <值>" 的比较表达式
 TestResult TextComponent::TryParseComparisonValue(const std::string& input, std::string& valueName, std::string& op, std::string& valueToCompareTo, std::string& message, const std::string& componentName)
 {
     std::string leftSide;
@@ -161,6 +170,7 @@ TestResult TextComponent::TryParseComparisonValue(const std::string& input, std:
     return TestResult::IMPOSSIBLE;
 }
 
+/// 严格解析无符号 32 位整数（不允许溢出或多余尾随字符）
 TestResult TextComponent::TryParseUInt32Strict(const std::string& input, uint32& outValue,
     std::string& message, const std::string& componentName)
 {
@@ -178,6 +188,7 @@ TestResult TextComponent::TryParseUInt32Strict(const std::string& input, uint32&
     return TestResult::PASS;
 }
 
+/// 严格解析无符号 64 位整数（不允许溢出或多余尾随字符）
 TestResult TextComponent::TryParseUInt64Strict(const std::string& input, uint64& outValue,
     std::string& message, const std::string& componentName)
 {
@@ -194,6 +205,7 @@ TestResult TextComponent::TryParseUInt64Strict(const std::string& input, uint64&
     return TestResult::PASS;
 }
 
+/// 严格解析单精度浮点数
 TestResult TextComponent::TryParseFloatStrict(const std::string& input, float& outValue,
     std::string& message, const std::string& componentName)
 {
@@ -210,6 +222,7 @@ TestResult TextComponent::TryParseFloatStrict(const std::string& input, float& o
     return TestResult::PASS;
 }
 
+/// 评估监听条件表达式，条件满足时替换消息占位符并返回对应 TestResult
 TestResult TestMonitor::Check(const std::string& monitorStr, Player* bot, TestContext& ctx, std::string& message) const
 {
     if (IsConditionMet(monitorStr, bot, ctx))
@@ -234,7 +247,7 @@ TestResult TestMonitor::Check(const std::string& monitorStr, Player* bot, TestCo
 
         message = quotedMessage;
 
-        // Replace dynamic placeholders in message
+        // Replace dynamic placeholders in message | 替换结果提示消息中的动态占位符
         std::map<std::string, std::string> placeholders;
         if (bot->IsInWorld())
         {

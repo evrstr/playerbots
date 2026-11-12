@@ -15,6 +15,7 @@ namespace ai
 
 namespace ai
 {
+    /// AI 对象上下文容器，统一管理策略(Strategy)、动作(Action)、触发器(Trigger)与状态值(Value)的创建与生命周期
     class AiObjectContext : public PlayerbotAIAware
     {
     public:
@@ -43,7 +44,7 @@ namespace ai
         template<class T>
         Value<T>* GetValue(const std::string& name, int32 param)
         {
-        	std::ostringstream out; out << param;
+            std::ostringstream out; out << param;
             return GetValue<T>(name, out.str());
         }
 
@@ -103,10 +104,13 @@ namespace ai
             return valueContexts.GetSupportedKeys(values);
         }
 
+        /// 清除匹配名称前缀的已创建 Value 实例
         void ClearValues(std::string findName = "");
 
+        /// 清理已过期且非受保护的 Value 实例以释放内存
         void ClearExpiredValues(std::string findName = "", uint32 interval = 0);
 
+        /// 将已创建的 Value 格式化为调试字符串
         std::string FormatValues(std::string findName = "");
 
     public:
@@ -116,7 +120,9 @@ namespace ai
         {
             valueContexts.Add(sharedValues);
         }
+        /// 序列化所有可保存的 Value 状态
         std::list<std::string> Save();
+        /// 从持久化字符串列表恢复 Value 状态
         void Load(std::list<std::string> data);
 
         std::vector<std::string> performanceStack;
@@ -129,6 +135,7 @@ namespace ai
 }
 
 
+/// 便捷读取/设置当前或指定玩家/全局上下文中 AI Value 的宏定义
 #define AI_VALUE(type, name) context->GetValue<type>(name)->Get()
 #define AI_VALUE2(type, name, param) context->GetValue<type>(name, param)->Get()
 

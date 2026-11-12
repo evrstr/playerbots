@@ -6,6 +6,7 @@
 
 using namespace ai;
 
+/// 执行动作主逻辑（雕文管理动作）
 bool GlyphAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -66,7 +67,7 @@ bool GlyphAction::Execute(Event& event)
                 glyphsSlots.push_back(slotId);
             }
         }
-        else //Remove all glyphs
+        else // Remove all glyphs (移除所有已装备的雕文)
         {
             for (uint8 glyphSlot = 0; glyphSlot < equipedGlyphs.size(); glyphSlot++)
                 if (AvailableGlyphsValue::GetGlyphSlotTypeFromSlot(glyphSlot, bot->GetLevel()) != GlyphSlotType::LOCKED_SLOT)
@@ -106,6 +107,7 @@ bool GlyphAction::Execute(Event& event)
     return true;
 }
 
+/// 遍历目标集合并逐项执行检查或处理逻辑
 void GlyphAction::Iterate(Player* requester, ProcessGlyphAction action, const std::vector<uint32> glyphs, const std::vector<uint8> glyphSlots)
 {
     for (uint32 i = 0; i < glyphs.size(); i++)
@@ -123,6 +125,7 @@ void GlyphAction::Iterate(Player* requester, ProcessGlyphAction action, const st
             ai->TellPlayer(requester, out, PlayerbotSecurityLevel::PLAYERBOT_SECURITY_ALLOW_ALL, false);
     }
 }
+/// 按指定条件列出物品、节点或配置列表
 void GlyphAction::List(uint32 itemId, uint8 slotId, std::ostringstream& msg)
 {
     GlyphSlotType slotType = EquipedGlyphsValue::GetGlyphSlotTypeFromSlot(slotId);
@@ -136,6 +139,7 @@ void GlyphAction::List(uint32 itemId, uint8 slotId, std::ostringstream& msg)
     if (slotType != GlyphSlotType::LOCKED_SLOT)
         msg << " (equiped in "<< slotTypeName << " slot "  << std::to_string(slotId) << ")";
 }
+/// 设置指定的策略参数或状态配置值
 void GlyphAction::Set(uint32 itemId, uint8 wantedSlotId, std::ostringstream& msg)
 {
     const ItemPrototype* glyphProto = sObjectMgr.GetItemPrototype(itemId);
@@ -224,7 +228,7 @@ void GlyphAction::Set(uint32 itemId, uint8 wantedSlotId, std::ostringstream& msg
     }
 
 #ifdef MANGOSBOT_TWO
-    //Refactor to use packet/use item action later.
+    // Refactor to use packet/use item action later. (后续可重构为统一使用封包或 UseItem 动作。)
     bot->ApplyGlyph(useSlotId, false);
     bot->SetGlyph(useSlotId, glyphId);
     bot->ApplyGlyph(useSlotId, true);
@@ -239,6 +243,7 @@ void GlyphAction::Set(uint32 itemId, uint8 wantedSlotId, std::ostringstream& msg
     msg << BOT_TEXT2("Applied %glyph to slot %slot", placeholders);
 }
 
+/// 移除指定的自定义配置、避让区域或忽略项
 void GlyphAction::Remove(uint32 itemId, uint8 removeSlotId, std::ostringstream& msg)
 {
     std::map<std::string, std::string> placeholders;
@@ -264,7 +269,7 @@ void GlyphAction::Remove(uint32 itemId, uint8 removeSlotId, std::ostringstream& 
 
     std::vector<uint32> equipedGlyphs = AI_VALUE(std::vector<uint32>, "equiped glyphs");
 #ifdef MANGOSBOT_TWO
-    //Refactor to use packet/use item action later.
+    // Refactor to use packet/use item action later. (后续可重构为统一使用封包或 UseItem 动作。)
     bot->ApplyGlyph(removeSlotId, false);
     bot->SetGlyph(removeSlotId, 0);
     bot->ApplyGlyph(removeSlotId, true);
@@ -274,6 +279,7 @@ void GlyphAction::Remove(uint32 itemId, uint8 removeSlotId, std::ostringstream& 
     msg << BOT_TEXT2("Removed %glyph from slot %slot", placeholders);
 }
 
+/// 查找当前已镶嵌的对应雕文槽位索引
 uint8 GlyphAction::GetEquipedGlyphSlot(uint32 itemId)
 {
     std::vector<uint32> equipedGlyphs = AI_VALUE(std::vector<uint32>, "equiped glyphs");
@@ -287,6 +293,7 @@ uint8 GlyphAction::GetEquipedGlyphSlot(uint32 itemId)
     return 99;
 }
 
+/// 执行动作主逻辑（自动装配雕文动作）
 bool AutoSetGlyphAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -307,10 +314,10 @@ bool AutoSetGlyphAction::Execute(Event& event)
         uint32 useSlot = 999;
         uint32 itemId = wantedGlyphs[wantedRank];
 
-        if (std::find(equipedGlyphs.begin(), equipedGlyphs.end(), itemId) != equipedGlyphs.end()) //Already have glyph equiped
+        if (std::find(equipedGlyphs.begin(), equipedGlyphs.end(), itemId) != equipedGlyphs.end()) // Already have glyph equiped (已装备该雕文)
             continue;
 
-        if (std::find(availableGlyphs.begin(), availableGlyphs.end(), itemId) == availableGlyphs.end()) //Do not have the glyph available
+        if (std::find(availableGlyphs.begin(), availableGlyphs.end(), itemId) == availableGlyphs.end()) // Do not have the glyph available (背包或列表中没有可用的雕文)
             continue;
 
         const ItemPrototype* glyphProto = sObjectMgr.GetItemPrototype(itemId);
@@ -329,7 +336,7 @@ bool AutoSetGlyphAction::Execute(Event& event)
 
             size_t currentWantedRank = GlyphIsUpgradeValue::GetWantedRank(equipedGlyphs[newSlot], wantedGlyphs);
 
-             if (currentWantedRank < wantedGlyphs.size() && currentWantedRank < wantedRank) //Do not replace glyph with a glyph with a better wanted rank.
+             if (currentWantedRank < wantedGlyphs.size() && currentWantedRank < wantedRank) // Do not replace glyph with a glyph with a better wanted rank. (不要替换已有更高优先级的期望雕文。)
                 continue;
 
             useSlot = newSlot;

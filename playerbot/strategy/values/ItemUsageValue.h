@@ -1,9 +1,11 @@
+// 策略值头文件：ItemUsageValue（物品用途综合判定、强制用途标记与拍卖行价格评估）
 #pragma once
 #include "playerbot/strategy/Value.h"
 #include "playerbot/strategy/NamedObjectContext.h"
 
 namespace ai
 {
+    // 物品限定符封装：解析并持有物品 ID、附魔、随机属性及插槽宝石信息
     class ItemQualifier
     {
     public:
@@ -46,6 +48,7 @@ namespace ai
         ItemPrototype const* proto;
     };
 
+    // 物品用途枚举（无用途、可装备、劣质/破损装备、任务、技能、消耗、公会、分解、拍卖、保留、出售、弹药、银行等）
     enum class ItemUsage : uint8
     {
         ITEM_USAGE_NONE = 0,
@@ -67,16 +70,18 @@ namespace ai
         ITEM_USAGE_BANK = 16
     };
 
+    // 玩家强制物品用途覆盖枚举（正常、保留、强制装备、贪婪、需求、放包）
     enum class ForceItemUsage : uint8
     {
-        FORCE_USAGE_NONE = 0,  //Normal usage.
-        FORCE_USAGE_KEEP = 1,  //Do not sell item.
-        FORCE_USAGE_EQUIP = 2, //Equip item if no other forced equipped.
-        FORCE_USAGE_GREED = 3,  //Get more and greed for rolls.
-        FORCE_USAGE_NEED = 4,   //Get more and need for rolls.
-        FORCE_USAGE_BAG = 5     //Keep in bags, never equip.
+        FORCE_USAGE_NONE = 0,  //Normal usage. | 按正常逻辑评估用途
+        FORCE_USAGE_KEEP = 1,  //Do not sell item. | 保留物品，不出售
+        FORCE_USAGE_EQUIP = 2, //Equip item if no other forced equipped. | 在没有其他强制装备时尽量装备此物品
+        FORCE_USAGE_GREED = 3,  //Get more and greed for rolls. | 继续获取并在拾取分配时选择贪婪
+        FORCE_USAGE_NEED = 4,   //Get more and need for rolls. | 继续获取并在拾取分配时选择需求
+        FORCE_USAGE_BAG = 5     //Keep in bags, never equip. | 保留在背包中，绝不装备
     };
 
+    // 值计算器：综合评估物品对机器人的用途（装备提升、专业、任务、分解、拍卖或卖店）
     class ItemUsageValue : public CalculatedValue<ItemUsage>, public Qualified
     {
     public:
@@ -100,7 +105,7 @@ namespace ai
         float BetterStacks(ItemPrototype const* proto, std::string usageType = "");
 
 #ifdef GenerateBotHelp
-        virtual std::string GetHelpName() { return "item usage"; } //Must equal iternal name
+        virtual std::string GetHelpName() { return "item usage"; } //Must equal iternal name | 必须与内部名称一致
         virtual std::string GetHelpTypeName() { return "item"; }
         virtual std::string GetHelpDescription()
         {
@@ -110,10 +115,10 @@ namespace ai
         virtual std::vector<std::string> GetUsedValues() { return { "bag space", "force item usage", "inventory items", "item count" }; }
 #endif
     private:
-        //crafting/gathering/secondary profession material (reagent) ids
-        //<professtion skill id, set of reagent item ids>
+        //crafting/gathering/secondary profession material (reagent) ids | 制造/采集/辅助专业所需的材料物品 ID 集合
+        //<professtion skill id, set of reagent item ids> | <专业技能 ID, 材料物品 ID 集合>
         static std::unordered_map<uint32, std::unordered_set<uint32>> m_reagentItemIdsForCraftingSkills;
-        //flat for quick checks
+        //flat for quick checks | 用于快速查找的扁平材料集合
         static std::unordered_set<uint32> m_allReagentItemIdsForCraftingSkills;
         static std::vector<uint32> m_allReagentItemIdsForCraftingSkillsVector;
 
@@ -152,6 +157,7 @@ namespace ai
         static bool IsItemUsedBySkill(ItemPrototype const* proto, SkillType skillType);
         static bool IsItemUsedToCraftAnything(ItemPrototype const* proto);
 
+        // 注释：预留的静态辅助检查接口声明
         /*
         * Median buyout price for current listings of the item on AH
         */
@@ -164,10 +170,12 @@ namespace ai
 
         static uint32 GetItemBaseValue(ItemPrototype const* proto, uint8 maxReagentLevel = 5);
 
+        // 注释：预留的任务与分解判断接口声明
         /*
         * bots buy at this price
         */
         static uint32 GetBotBuyPrice(ItemPrototype const* proto, Player* bot);
+        // 注释：预留的草药判断接口声明
         /*
         * bots sell at this price
         */
@@ -179,13 +187,14 @@ namespace ai
         static uint32 DesiredPricePerItem(Player* bot, const ItemPrototype* proto, uint32 count, uint32 priceModifier);
     };
 
+    // 手动设置值：保存玩家为指定物品 ID 设置的强制用途标记，支持存档序列化
     class ForceItemUsageValue : public ManualSetValue<ForceItemUsage>, public Qualified
     {
     public:
         ForceItemUsageValue(PlayerbotAI* ai, std::string name = "force item usage") : ManualSetValue<ForceItemUsage>(ai, ForceItemUsage::FORCE_USAGE_NONE, name), Qualified() {}
 
 #ifdef GenerateBotHelp
-        virtual std::string GetHelpName() { return "force item usage"; } //Must equal iternal name
+        virtual std::string GetHelpName() { return "force item usage"; } //Must equal iternal name | 必须与内部名称一致
         virtual std::string GetHelpTypeName() { return "item"; }
         virtual std::string GetHelpDescription()
         {

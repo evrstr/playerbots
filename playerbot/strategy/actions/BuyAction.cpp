@@ -9,6 +9,7 @@
 
 using namespace ai;
 
+/// 执行动作主逻辑（购买物品指令动作）
 bool BuyAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -39,9 +40,9 @@ bool BuyAction::Execute(Event& event)
 
         if (buyUseful)
         {
-            //Items are evaluated from high-level to low level.
-            //For each item the bot checks again if an item is useful.
-            //Bot will buy until no useful items are left.
+            // Items are evaluated from high-level to low level. (物品按物品等级从高到低依次评估。)
+            // For each item the bot checks again if an item is useful. (逐件重新检查物品对当前机器人是否有用。)
+            // Bot will buy until no useful items are left. (机器人将持续购买直至没有有用物品可买。)
 
             VendorItemData const* tItems = pCreature->GetVendorItems();
             VendorItemData const* vItems = {};
@@ -72,7 +73,7 @@ bool BuyAction::Execute(Event& event)
                 if (!proto)
                     continue;
 
-                // reputation discount 
+                // reputation discount (声望折扣)
                 uint32 price = uint32(floor(proto->BuyPrice * bot->GetReputationPriceDiscount(pCreature)));
 
                 auto pmo = sPerformanceMonitor.start(PERF_MON_VALUE, "IsWorthBuyingFromVendorToResellAtAH", ai);
@@ -92,7 +93,7 @@ bool BuyAction::Execute(Event& event)
                 }
 #endif
 
-                for (uint32 n = 0; n < 10; ++n) //Buy 10 times or until no longer usefull/possible 
+                for (uint32 n = 0; n < 10; ++n) // Buy 10 times or until no longer usefull/possible (最多购买 10 次，或直到不再需要/无法购买为止)
                 {
                     ItemUsage usage = AI_VALUE2(ItemUsage, "item usage", tItem->item);
 
@@ -116,14 +117,14 @@ bool BuyAction::Execute(Event& event)
                     if (!usageAllowed)
                         break;
 
-                    // Gold affordability 
+                    // Gold affordability (金币支付能力校验)
                     RESET_AI_VALUE2(uint32, "free money for", moneyKey);
                     uint32 money = AI_VALUE2(uint32, "free money for", moneyKey);
                     if (price > money)
                         break;
 
 #ifndef MANGOSBOT_ZERO
-                    // ExtendedCost check
+                    // ExtendedCost check (扩展代币消耗检查)
                     if (iece)
                     {
                         if (iece->reqhonorpoints && bot->GetHonorPoints() < iece->reqhonorpoints)
@@ -152,7 +153,7 @@ bool BuyAction::Execute(Event& event)
                     if (usage == ItemUsage::ITEM_USAGE_USE && ItemUsageValue::CurrentStacks(ai, proto) >= 1)
                         break;
 
-                    // Stop buying reagents/recipes once we have 1 stack
+                    // Stop buying reagents/recipes once we have 1 stack (拥有 1 组材料或已学配方后停止继续购买)
                     if (usage == ItemUsage::ITEM_USAGE_SKILL && ItemUsageValue::CurrentStacks(ai, proto) >= 1)
                         break;
 
@@ -169,7 +170,7 @@ bool BuyAction::Execute(Event& event)
                     RESET_AI_VALUE2(std::list<Item*>, "inventory items", ChatHelper::formatItem(proto));
                     RESET_AI_VALUE(std::vector<MountValue>, "mount list");
 
-                    if (usage == ItemUsage::ITEM_USAGE_EQUIP || usage == ItemUsage::ITEM_USAGE_BAD_EQUIP) //Equip upgrades and stop buying this time. 
+                    if (usage == ItemUsage::ITEM_USAGE_EQUIP || usage == ItemUsage::ITEM_USAGE_BAD_EQUIP) // Equip upgrades and stop buying this time. (穿戴升级装备并结束本次购买。)
                     {
                         RESET_AI_VALUE2(ItemUsage, "item usage", tItem->item);
                         ai->DoSpecificAction("equip upgrades", event, true);
@@ -178,7 +179,7 @@ bool BuyAction::Execute(Event& event)
                 }
             }
 
-            // Exception for crafting bots with guild order - Buy profession reagents from vendor first for more efficient crafting.
+            // Exception for crafting bots with guild order - Buy profession reagents from vendor first for more efficient crafting. (有公会制造委托时的例外：优先从商人购买专业材料以提高制造效率。)
             if (AI_VALUE(bool, "needs profession reagents"))
             {
                 std::vector<uint32> missingReagents = NeedsProfessionReagentsValue::GetMissingReagents(ai);
@@ -282,6 +283,7 @@ bool BuyAction::Execute(Event& event)
     return result;
 }
 
+/// 向商人 NPC 购买指定数量和 ID 的物品
 bool BuyAction::BuyItem(Player* requester, VendorItemData const* tItems, ObjectGuid vendorguid, const ItemPrototype* proto, UsageBoughtList& bought, ItemUsage usage)
 {
     uint32 oldCount = AI_VALUE2(uint32, "item count", proto->Name1);
@@ -310,7 +312,7 @@ bool BuyAction::BuyItem(Player* requester, VendorItemData const* tItems, ObjectG
                 bot->SetMoney(botMoney);
             }
 
-            if (oldCount < AI_VALUE2(uint32, "item count", proto->Name1)) //BuyItem Always returns false (unless unique) so we have to check the item counts.
+            if (oldCount < AI_VALUE2(uint32, "item count", proto->Name1)) // BuyItem Always returns false (unless unique) so we have to check the item counts. (BuyItem 始终返回 false（唯一物品除外），因此必须对比购买前后的物品数量。)
             {
                 sPlayerbotAIConfig.logEvent(ai, "BuyAction", proto->Name1, std::to_string(proto->ItemId));
 
@@ -320,7 +322,7 @@ bool BuyAction::BuyItem(Player* requester, VendorItemData const* tItems, ObjectG
                     std::ostringstream out; out << "Buying " << ChatHelper::formatItem(proto);
                     ai->TellPlayer(requester, out.str(), PlayerbotSecurityLevel::PLAYERBOT_SECURITY_ALLOW_ALL, false);
                 }
-                else if (usage == ItemUsage::ITEM_USAGE_EQUIP) //We need to put these here since we are only buying 1 (hopefully) and need to report ReasonForNeed with old item still equiped.
+                else if (usage == ItemUsage::ITEM_USAGE_EQUIP) // We need to put these here since we are only buying 1 (hopefully) and need to report ReasonForNeed with old item still equiped. (需在此处输出购买原因报告（此时旧装备尚未替换，便于对比原因）。)
                 {
                     ItemQualifier qualifier(proto->ItemId);
 
@@ -344,6 +346,7 @@ bool BuyAction::BuyItem(Player* requester, VendorItemData const* tItems, ObjectG
     return false;
 }
 
+/// 执行动作主逻辑（回购物品动作）
 bool BuyBackAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -351,7 +354,7 @@ bool BuyBackAction::Execute(Event& event)
 
     std::list<Item*> found = ai->InventoryParseItems(text, IterateItemsMask::ITERATE_ITEMS_IN_BUYBACK);
 
-    //Sort items on itemLevel descending.
+    // Sort items on itemLevel descending. (按物品等级降序排列物品。)
     found.sort([](Item* i, Item* j) {return i->GetProto()->ItemLevel > j->GetProto()->ItemLevel; });
 
     if (found.empty())
@@ -361,7 +364,7 @@ bool BuyBackAction::Execute(Event& event)
     }
 
     bool hasVendor = false;
-    //Find vendor to interact with.
+    // Find vendor to interact with. (查找可交互的商人 NPC。)
     ObjectGuid vendorguid;
 
     std::list<ObjectGuid> vendors = ai->GetAiObjectContext()->GetValue<std::list<ObjectGuid> >("nearest npcs")->Get();

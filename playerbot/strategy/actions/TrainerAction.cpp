@@ -6,6 +6,7 @@
 
 using namespace ai;
 
+/// 执行学习指定法术或配方的核心逻辑
 void TrainerAction::Learn(uint32 cost, ObjectGuid trainerGuid, uint32 spellId, TrainerSpell const* tSpell, std::ostringstream& msg)
 {
     if (sPlayerbotAIConfig.autoTrainSpells != "free" &&  !ai->HasCheat(BotCheatMask::gold))
@@ -26,7 +27,7 @@ void TrainerAction::Learn(uint32 cost, ObjectGuid trainerGuid, uint32 spellId, T
 #ifdef MANGOSBOT_ZERO
     if (tSpell->learnedSpell)
     {
-        // old code
+        // old code (旧版保留代码)
         // bot->learnSpell(tSpell->learnedSpell, false);
         bool learned = false;
         for (int j = 0; j < 3; ++j)
@@ -43,12 +44,12 @@ void TrainerAction::Learn(uint32 cost, ObjectGuid trainerGuid, uint32 spellId, T
     else
         ai->CastSpell(tSpell->spell, bot);
 #else
-    // From NPCHandler
-    bot->GetSession()->SendPlaySpellVisual(trainerGuid, 0xB3);   // visual effect on trainer
+    // From NPCHandler (源自 NPCHandler 逻辑)
+    bot->GetSession()->SendPlaySpellVisual(trainerGuid, 0xB3);   // visual effect on trainer (在训练师身上显示视觉特效)
 
-    WorldPacket data(SMSG_PLAY_SPELL_IMPACT, 8 + 4);             // visual effect on player
+    WorldPacket data(SMSG_PLAY_SPELL_IMPACT, 8 + 4);             // visual effect on player (在玩家身上显示视觉特效)
     data << bot->GetObjectGuid();
-    data << uint32(0x016A);                                      // index from SpellVisualKit.dbc
+    data << uint32(0x016A);                                      // index from SpellVisualKit.dbc (SpellVisualKit.dbc 中的视觉效果索引)
     bot->GetSession()->SendPacket(data);
 
     if (tSpell->IsCastable())
@@ -62,6 +63,7 @@ void TrainerAction::Learn(uint32 cost, ObjectGuid trainerGuid, uint32 spellId, T
     msg << " - learned";
 }
 
+/// 遍历目标集合并逐项执行检查或处理逻辑
 bool TrainerAction::Iterate(Player* requester, Creature* creature, TrainerSpellAction action, SpellIds& spells)
 {
     bool hasHeader = false;    
@@ -192,6 +194,7 @@ bool TrainerAction::Iterate(Player* requester, Creature* creature, TrainerSpellA
     return hasTrainable;
 }
 
+/// 执行动作主逻辑（训练师交互动作）
 bool TrainerAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -226,7 +229,7 @@ bool TrainerAction::Execute(Event& event)
         return false;
     }
 
-    // check present spell in trainer spell list
+    // check present spell in trainer spell list (检查训练师法术列表中是否存在该法术)
     TrainerSpellData const* cSpells = creature->GetTrainerSpells();
     TrainerSpellData const* tSpells = creature->GetTrainerTemplateSpells();
     if (!cSpells && !tSpells)
@@ -241,10 +244,10 @@ bool TrainerAction::Execute(Event& event)
     if (spell)
         spells.insert(spell);
 
-    if (text.find("learn") != std::string::npos || sRandomPlayerbotMgr.IsFreeBot(bot) || (sPlayerbotAIConfig.autoTrainSpells != "no" && (creature->GetCreatureInfo()->TrainerType != TRAINER_TYPE_TRADESKILLS || !ai->HasActivePlayerMaster()))) //Todo rewrite to only exclude start primary profession skills and make config dependent.
+    if (text.find("learn") != std::string::npos || sRandomPlayerbotMgr.IsFreeBot(bot) || (sPlayerbotAIConfig.autoTrainSpells != "no" && (creature->GetCreatureInfo()->TrainerType != TRAINER_TYPE_TRADESKILLS || !ai->HasActivePlayerMaster()))) // Todo rewrite to only exclude start primary profession skills and make config dependent. (待办：重构为仅排除起始主专业技能并受配置项控制。)
     {
         if(Iterate(requester, creature, &TrainerAction::Learn, spells))
-            context->ClearValues("item usage"); //Bot might be able to use new items.
+            context->ClearValues("item usage"); // Bot might be able to use new items. (机器人可能可以使用新获得的物品。)
     }
     else
         Iterate(requester, creature, NULL, spells);
@@ -252,12 +255,14 @@ bool TrainerAction::Execute(Event& event)
     return true;
 }
 
+/// 输出列表汇报的头部标题信息
 void TrainerAction::TellHeader(Player* requester, Creature* creature)
 {
     std::ostringstream out; out << "--- Can learn from " << creature->GetName() << " ---";
     ai->TellPlayer(requester, out, PlayerbotSecurityLevel::PLAYERBOT_SECURITY_ALLOW_ALL, false);
 }
 
+/// 输出列表汇报的尾部统计信息
 void TrainerAction::TellFooter(Player* requester, uint32 totalCost)
 {
     if (totalCost)

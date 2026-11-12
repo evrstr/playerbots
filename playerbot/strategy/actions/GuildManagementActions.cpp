@@ -5,6 +5,7 @@
 
 using namespace ai;
 
+/// 根据名称或参数查找在线玩家指针
 Player* GuidManageAction::GetPlayer(Event event)
 {
     Player* player = nullptr;
@@ -50,6 +51,7 @@ Player* GuidManageAction::GetPlayer(Event event)
     return nullptr;
 }
 
+/// 执行动作主逻辑（公会管理基类动作）
 bool GuidManageAction::Execute(Event& event)
 {
     Player* player = GetPlayer(event);
@@ -64,6 +66,7 @@ bool GuidManageAction::Execute(Event& event)
     return true;
 }
 
+/// 执行动作主逻辑（附近公会成员管理动作）
 bool GuildManageNearbyAction::Execute(Event& event)
 {
     uint32 found = 0;
@@ -83,7 +86,7 @@ bool GuildManageNearbyAction::Execute(Event& event)
             continue;
 
 
-        if(player->GetGuildId()) //Promote or demote nearby members based on chance.
+        if(player->GetGuildId()) // Promote or demote nearby members based on chance. (按概率对附近的公会成员执行晋升或降级。)
         {          
             MemberSlot* member = guild->GetMemberSlot(player->GetObjectGuid());
             uint32 dCount = AI_VALUE(uint32, "death count");
@@ -128,10 +131,10 @@ bool GuildManageNearbyAction::Execute(Event& event)
 
         if (botAi)
         {            
-            if (botAi->GetGuilderType() == GuilderType::SOLO) //Do not invite solo players.
+            if (botAi->GetGuilderType() == GuilderType::SOLO) // Do not invite solo players. (不要邀请独狼玩家。)
                 continue;
             
-            if (botAi->HasActivePlayerMaster() && !sRandomPlayerbotMgr.IsRandomBot(player)) //Do not invite alts of active players. 
+            if (botAi->HasActivePlayerMaster() && !sRandomPlayerbotMgr.IsRandomBot(player)) // Do not invite alts of active players. (不要邀请活跃玩家的小号。)
                 continue;
 
             if (guild->GetMemberSize() >= botAi->GetMaxPreferedGuildSize() || guild->GetMemberSize() < botAi->GetMaxPreferedGuildSize() / 4)
@@ -158,7 +161,7 @@ bool GuildManageNearbyAction::Execute(Event& event)
 
             std::vector<std::string> lines;
 
-            //TODO - Move these hardcoded texts to sql!
+            // TODO - Move these hardcoded texts to sql! (待办：将这些硬编码文本迁移至数据库表)
             switch ((urand(0, 10)* urand(0, 10))/10)
             {
             case 0:
@@ -226,6 +229,7 @@ bool GuildManageNearbyAction::Execute(Event& event)
     return found > 0;
 }
 
+/// 判断当前状态下该动作是否可用/有效（附近公会成员管理动作）
 bool GuildManageNearbyAction::isUseful()
 {
     if (!bot->GetGuildId())
@@ -237,6 +241,7 @@ bool GuildManageNearbyAction::isUseful()
     return  guild->HasRankRight(botMember->RankId, GR_RIGHT_DEMOTE) || guild->HasRankRight(botMember->RankId, GR_RIGHT_PROMOTE) || guild->HasRankRight(botMember->RankId, GR_RIGHT_INVITE);
 }
 
+/// 执行动作主逻辑（退出公会动作）
 bool GuildLeaveAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();

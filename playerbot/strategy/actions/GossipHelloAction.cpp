@@ -8,39 +8,40 @@
 
 using namespace ai;
 
+/// 执行动作主逻辑（NPC 对话问候动作）
 bool GossipHelloAction::Execute(Event& event)
 {
-	ObjectGuid guid;
+    ObjectGuid guid;
 
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
-	WorldPacket &p = event.getPacket();
-	if (p.empty())
-	{
-		if (requester)
-			guid = requester->GetSelectionGuid();
-	}
-	else
-	{
-		p.rpos(0);
-		p >> guid;
-	}
+    WorldPacket &p = event.getPacket();
+    if (p.empty())
+    {
+        if (requester)
+            guid = requester->GetSelectionGuid();
+    }
+    else
+    {
+        p.rpos(0);
+        p >> guid;
+    }
 
-	if (!guid)
-		return false;
+    if (!guid)
+        return false;
 
-	Creature *pCreature = bot->GetNPCIfCanInteractWith(guid, UNIT_NPC_FLAG_NONE);
-	if (!pCreature)
-	{
-		DEBUG_LOG("[PlayerbotMgr]: HandleMasterIncomingPacket - Received  CMSG_GOSSIP_HELLO %s not found or you can't interact with him.", guid.GetString().c_str());
-		return false;
-	}
+    Creature *pCreature = bot->GetNPCIfCanInteractWith(guid, UNIT_NPC_FLAG_NONE);
+    if (!pCreature)
+    {
+        DEBUG_LOG("[PlayerbotMgr]: HandleMasterIncomingPacket - Received  CMSG_GOSSIP_HELLO %s not found or you can't interact with him.", guid.GetString().c_str());
+        return false;
+    }
 
-	GossipMenuItemsMapBounds pMenuItemBounds = sObjectMgr.GetGossipMenuItemsMapBounds(pCreature->GetCreatureInfo()->GossipMenuId);
-	if (pMenuItemBounds.first == pMenuItemBounds.second)
-		return false;
+    GossipMenuItemsMapBounds pMenuItemBounds = sObjectMgr.GetGossipMenuItemsMapBounds(pCreature->GetCreatureInfo()->GossipMenuId);
+    if (pMenuItemBounds.first == pMenuItemBounds.second)
+        return false;
 
     std::string text = event.getParam();
-	int menuToSelect = -1;
+    int menuToSelect = -1;
     if (event.getSource().find("rpg action") == 0)
     {
         Creature* pCreature = bot->GetNPCIfCanInteractWith(guid, UNIT_NPC_FLAG_NONE);
@@ -55,8 +56,8 @@ bool GossipHelloAction::Execute(Event& event)
 
         ProcessGossip(requester, guid, -1);
     }
-	else if (text.empty())
-	{
+    else if (text.empty())
+    {
         WorldPacket p1;
         p1 << guid;
         bot->GetSession()->HandleGossipHelloOpcode(p1);
@@ -66,23 +67,24 @@ bool GossipHelloAction::Execute(Event& event)
         ai->TellPlayerNoFacing(requester, out.str());
 
         TellGossipMenus(requester);
-	}
-	else if (!bot->GetPlayerMenu())
-	{
-	    ai->TellPlayerNoFacing(requester, "I need to talk first");
-	    return false;
-	}
-	else
-	{
-	    menuToSelect = atoi(text.c_str());
-	    if (menuToSelect > 0) menuToSelect--;
+    }
+    else if (!bot->GetPlayerMenu())
+    {
+        ai->TellPlayerNoFacing(requester, "I need to talk first");
+        return false;
+    }
+    else
+    {
+        menuToSelect = atoi(text.c_str());
+        if (menuToSelect > 0) menuToSelect--;
         ProcessGossip(requester, guid, menuToSelect);
-	}
+    }
 
-	bot->TalkedToCreature(pCreature->GetEntry(), pCreature->GetObjectGuid());
-	return true;
+    bot->TalkedToCreature(pCreature->GetEntry(), pCreature->GetObjectGuid());
+    return true;
 }
 
+/// 输出当前对话 NPC 的问候正文文本
 void GossipHelloAction::TellGossipText(Player* requester, uint32 textId)
 {
     if (!textId)
@@ -101,6 +103,7 @@ void GossipHelloAction::TellGossipText(Player* requester, uint32 textId)
     }
 }
 
+/// 输出当前对话 NPC 提供的所有 Gossip 菜单选项
 void GossipHelloAction::TellGossipMenus(Player* requester)
 {
     if (!bot->GetPlayerMenu())
@@ -127,6 +130,7 @@ void GossipHelloAction::TellGossipMenus(Player* requester)
     }
 }
 
+/// 处理 NPC 对话菜单选项并输出或选择指定条目
 bool GossipHelloAction::ProcessGossip(Player* requester, ObjectGuid creatureGuid, int menuToSelect)
 {
     GossipMenu& menu = bot->GetPlayerMenu()->GetGossipMenu();

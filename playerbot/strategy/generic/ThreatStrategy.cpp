@@ -1,3 +1,4 @@
+/// 仇恨控制（Threat）策略与乘数实现
 
 #include "playerbot/playerbot.h"
 #include "ThreatStrategy.h"
@@ -6,6 +7,7 @@
 
 using namespace ai;
 
+/// 乘数判定：组队时监测单体/AoE 威胁值，即将 OT（high threat）时禁止高仇恨输出动作
 float ThreatMultiplier::GetValue(Action* action)
 {
     if (action == NULL || action->getThreatType() == ActionThreatType::ACTION_THREAT_NONE || action->getThreatType() == ActionThreatType::ACTION_THREAT_LOW)
@@ -43,6 +45,7 @@ float ThreatMultiplier::GetValue(Action* action)
     return 1.0f;
 }
 
+/// 初始化战斗乘数：挂载 ThreatMultiplier 防止仇恨失控
 void ThreatStrategy::InitCombatMultipliers(std::list<Multiplier*> &multipliers)
 {
     multipliers.push_back(new ThreatMultiplier(ai));

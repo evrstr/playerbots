@@ -11,6 +11,7 @@ typedef std::set<uint32> SpellIds;
 
 namespace ai
 {
+    /// 机器人战斗职责位掩码枚举（坦克/治疗/输出）
     enum BotRoles
     {
         BOT_ROLE_NONE = 0x00,
@@ -24,6 +25,7 @@ namespace ai
     class WorldPosition;
     class GuidPosition;
 
+    /// 聊天与物品/法术/坐标链接格式化与解析工具类
     class ChatHelper : public PlayerbotAIAware
     {
     public:

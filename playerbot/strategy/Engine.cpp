@@ -13,6 +13,7 @@
 
 using namespace ai;
 
+// 构造决策引擎并绑定所属机器人、上下文工厂与运行状态
 Engine::Engine(PlayerbotAI* ai, AiObjectContext *factory, BotState state) : PlayerbotAIAware(ai), aiObjectContext(factory), state(state)
 {
     lastRelevance = 0.0f;
@@ -75,6 +76,7 @@ Engine::~Engine(void)
     strategies.clear();
 }
 
+// 清空待执行动作队列、触发器节点及权重乘数
 void Engine::Reset()
 {
     ActionNode* action = NULL;
@@ -100,6 +102,7 @@ void Engine::Reset()
     multipliers.clear();
 }
 
+// 根据当前启用策略重新初始化乘数、触发器及默认动作
 void Engine::Init()
 {
     Reset();
@@ -114,14 +117,15 @@ void Engine::Init()
 
     PruneUnhandledExternalEvents();
 
-	if (testMode)
-	{
+    if (testMode)
+    {
         FILE* file = fopen("test.log", "w");
         fprintf(file, "\n");
         fclose(file);
-	}
+    }
 }
 
+// 执行单帧 AI 决策循环：检查触发器、推入默认动作、按相关性依次尝试队列动作并处理前置/替代/后续动作
 bool Engine::DoNextAction(Unit* unit, int depth, bool minimal, bool isStunned)
 {
     LogAction("--- AI Tick ---");
@@ -145,15 +149,15 @@ bool Engine::DoNextAction(Unit* unit, int depth, bool minimal, bool isStunned)
         basket = queue.Peek();
         if (basket) 
         {
-            float relevance = basket->getRelevance(), oldRelevance = relevance; // just for reference
+            float relevance = basket->getRelevance(), oldRelevance = relevance; // just for reference (记录原始权重用于比较)
             bool skipPrerequisites = basket->isSkipPrerequisites();
             Event event = basket->getEvent();
             if (minimal && (relevance < 100))
                 continue;
-            // NOTE: queue.Pop() deletes basket
+            // NOTE: queue.Pop() deletes basket (注意：queue.Pop 会释放 basket 指针)
             ActionNode* actionNode = queue.Pop();
 
-            // The event has had its turn now, so the trigger can be handed back - even if the action
+            // The event has had its turn now, so the trigger can be handed back - even if the action | 事件已轮到处理，立即归还触发器以防后续帧重复入队同一数据包
             // turns out to be unknown/useless/impossible, or deliberately does nothing with the
             // packet (e.g. an already-alive bot declining a resurrect). Leaving it armed would have
             // the same packet re-queued on every subsequent tick.
@@ -221,7 +225,7 @@ bool Engine::DoNextAction(Unit* unit, int depth, bool minimal, bool isStunned)
                     }
 
                     ActionBasket* peekAction = queue.Peek();
-                    if (relevance < oldRelevance && peekAction && peekAction->getRelevance() > relevance) //Relevance changed. Try again.
+                    if (relevance < oldRelevance && peekAction && peekAction->getRelevance() > relevance) //Relevance changed. Try again. (乘数降低权重后若有更高权重动作则重新入队排序)
                     {
                         modifiedActions.push_back(action);
                         PushAgain(actionNode, relevance, event);
@@ -370,6 +374,7 @@ bool Engine::DoNextAction(Unit* unit, int depth, bool minimal, bool isStunned)
     return actionExecuted;
 }
 
+// 释放已交付处理的外部事件触发器并重置其触发状态
 void Engine::ReleaseExternalEvent(const std::string& source)
 {
     auto it = unhandledExternalEvents.find(source);
@@ -380,6 +385,7 @@ void Engine::ReleaseExternalEvent(const std::string& source)
     unhandledExternalEvents.erase(it);
 }
 
+// 清理策略重建后已不存在对应 TriggerNode 的残留外部事件
 void Engine::PruneUnhandledExternalEvents()
 {
     for (auto it = unhandledExternalEvents.begin(); it != unhandledExternalEvents.end();)
@@ -409,6 +415,7 @@ void Engine::PruneUnhandledExternalEvents()
     }
 }
 
+// 从已启用策略中查找动作节点工厂构造节点，未命中时创建裸 ActionNode
 ActionNode* Engine::CreateActionNode(const std::string& name)
 {
     ActionNode* actionNode = nullptr;
@@ -430,6 +437,7 @@ ActionNode* Engine::CreateActionNode(const std::string& name)
     return actionNode;
 }
 
+// 遍历 NextAction 数组、创建节点并按规则计算权重后推入动作队列
 bool Engine::MultiplyAndPush(NextAction** actions, float forceRelevance, bool skipPrerequisites, const Event& event, const char* pushType)
 {
     bool pushed = false;
@@ -486,6 +494,7 @@ bool Engine::MultiplyAndPush(NextAction** actions, float forceRelevance, bool sk
     return pushed;
 }
 
+// 绕过队列直接检查并执行指定名称的动作
 ActionResult Engine::ExecuteAction(const std::string& name, Event& event)
 {
     ActionResult actionResult = ACTION_RESULT_UNKNOWN;
@@ -532,6 +541,7 @@ ActionResult Engine::ExecuteAction(const std::string& name, Event& event)
     return actionResult;
 }
 
+// 检查指定名称的动作当前是否满足有用性与可执行条件
 bool Engine::CanExecuteAction(const std::string& name, bool isUseful, bool isPossible)
 {
     bool result = true;
@@ -558,6 +568,7 @@ bool Engine::CanExecuteAction(const std::string& name, bool isUseful, bool isPos
     return result;
 }
 
+// 启用指定策略（自动移除互斥的同组策略并按需重建引擎）
 void Engine::addStrategy(const std::string& name)
 {
     removeStrategy(name, initMode);
@@ -584,23 +595,24 @@ void Engine::addStrategy(const std::string& name)
 
 void Engine::addStrategies(std::string first, ...)
 {
-	addStrategy(first);
+    addStrategy(first);
 
-	va_list vl;
-	va_start(vl, first);
+    va_list vl;
+    va_start(vl, first);
 
-	const char* cur;
-	do
-	{
-		cur = va_arg(vl, const char*);
-		if (cur)
-			addStrategy(cur);
-	}
-	while (cur);
+    const char* cur;
+    do
+    {
+        cur = va_arg(vl, const char*);
+        if (cur)
+            addStrategy(cur);
+    }
+    while (cur);
 
-	va_end(vl);
+    va_end(vl);
 }
 
+// 移除指定名称的已启用策略
 bool Engine::removeStrategy(const std::string& name, bool init)
 {
     std::map<std::string, Strategy*>::iterator i = strategies.find(name);
@@ -647,6 +659,7 @@ Strategy* Engine::GetStrategy(const std::string& name) const
     return nullptr;
 }
 
+// 轮询所有已注册触发器，将激活事件对应的处理动作推入队列并重置非挂起触发器
 void Engine::ProcessTriggers(bool minimal)
 {
     for (std::list<TriggerNode*>::iterator i = triggers.begin(); i != triggers.end(); i++)
@@ -701,7 +714,7 @@ void Engine::ProcessTriggers(bool minimal)
         if (!trigger)
             continue;
 
-        // Deliberately left armed: its event has not reached an action yet (see above).
+        // Deliberately left armed: its event has not reached an action yet (see above). (刻意保持激活状态：事件尚未交付给动作)
         if (unhandledExternalEvents.find(trigger->getName()) != unhandledExternalEvents.end())
             continue;
 
@@ -709,6 +722,7 @@ void Engine::ProcessTriggers(bool minimal)
     }
 }
 
+// 将各启用策略的默认兜底动作推入队列
 void Engine::PushDefaultActions()
 {
     for (std::map<std::string, Strategy*>::iterator i = strategies.begin(); i != strategies.end(); i++)
@@ -753,13 +767,13 @@ void Engine::PushAgain(ActionNode* actionNode, float relevance, const Event& eve
 
 bool Engine::ContainsStrategy(StrategyType type)
 {
-	for (std::map<std::string, Strategy*>::iterator i = strategies.begin(); i != strategies.end(); i++)
-	{
-		Strategy* strategy = i->second;
-		if (strategy->GetType() & type)
-			return true;
-	}
-	return false;
+    for (std::map<std::string, Strategy*>::iterator i = strategies.begin(); i != strategies.end(); i++)
+    {
+        Strategy* strategy = i->second;
+        if (strategy->GetType() & type)
+            return true;
+    }
+    return false;
 }
 
 Action* Engine::InitializeAction(ActionNode* actionNode)
@@ -779,6 +793,7 @@ Action* Engine::InitializeAction(ActionNode* actionNode)
     return action;
 }
 
+// 触发监听器钩子并执行动作，记录耗时与调试日志
 bool Engine::ListenAndExecute(Action* action, Event& event)
 {
     bool actionExecuted = false;
@@ -893,6 +908,7 @@ void Engine::LogAction(const char* format, ...)
     }
 }
 
+// 解析逗号分隔的策略变更指令（+启用 / -禁用 / ~切换）
 void Engine::ChangeStrategy(const std::string& names)
 {
     std::vector<std::string> splitted = split(names, ',');
@@ -940,6 +956,7 @@ void Engine::LogValues()
     std::string text = ai->GetAiObjectContext()->FormatValues();
     sLog.outDebug( "Values for %s: %s", bot->GetName(), text.c_str());
 }
+// 追踪机器人移动动作是否陷入原地卡死循环并更新 movement loop age
 void Engine::TrackLoop(Action* action)
 {
     Player* bot = ai->GetBot();

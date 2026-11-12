@@ -5,6 +5,7 @@
 #include <cctype>
 #include <locale>
 
+// 使用 C 字符串分隔符集合拆分字符串
 void split(std::vector<std::string>& dest, const std::string& str, const char* delim)
 {
     char* pTempStr = strdup( str.c_str() );
@@ -30,12 +31,14 @@ std::vector<std::string>& split(const std::string &s, char delim, std::vector<st
 }
 
 
+// 按单字符分隔符拆分字符串并返回新向量
 std::vector<std::string> split(const std::string &s, char delim)
 {
     std::vector<std::string> elems;
     return split(s, delim, elems);
 }
 
+// 不区分大小写的子串查找
 char *strstri(const char *haystack, const char *needle)
 {
     if ( !*needle )
@@ -65,6 +68,7 @@ char *strstri(const char *haystack, const char *needle)
 
 
 
+// 从 WorldPacket 中解包 PackedGuid 格式的 64 位 GUID
 uint64 extractGuid(WorldPacket& packet)
 {
     uint8 mask;
@@ -98,6 +102,7 @@ std::string &rtrim(std::string &s) {
         return s;
 }
 
+// 去除字符串首尾空白字符
 std::string &trim(std::string &s) {
         return ltrim(rtrim(s));
 }

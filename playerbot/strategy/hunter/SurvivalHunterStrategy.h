@@ -1,8 +1,10 @@
+// 猎人 - 生存猎人策略头文件 (SurvivalHunterStrategy.h)
 #pragma once
 #include "HunterStrategy.h"
 
 namespace ai
 {
+    // 生存猎人专精占位策略：用于专精识别与占位的策略类
     class SurvivalHunterPlaceholderStrategy : public SpecPlaceholderStrategy
     {
     public:
@@ -11,6 +13,7 @@ namespace ai
         std::string getName() override { return "survival"; }
     };
 
+    // 生存猎人策略：定义该专精/场景下的触发器与默认行为
     class SurvivalHunterStrategy : public HunterStrategy
     {
     public:
@@ -23,6 +26,7 @@ namespace ai
         virtual void InitDeadTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 生存猎人PVE策略：定义该专精/场景下的触发器与默认行为
     class SurvivalHunterPveStrategy : public SurvivalHunterStrategy
     {
     public:
@@ -36,6 +40,7 @@ namespace ai
         void InitDeadTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 生存猎人PVP策略：定义该专精/场景下的触发器与默认行为
     class SurvivalHunterPvpStrategy : public SurvivalHunterStrategy
     {
     public:
@@ -49,6 +54,7 @@ namespace ai
         void InitDeadTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 生存猎人团队副本策略：定义该专精/场景下的触发器与默认行为
     class SurvivalHunterRaidStrategy : public SurvivalHunterStrategy
     {
     public:
@@ -62,6 +68,7 @@ namespace ai
         void InitDeadTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 生存猎人AOE群体策略：定义该专精/场景下的触发器与默认行为
     class SurvivalHunterAoeStrategy : public HunterAoeStrategy
     {
     public:
@@ -72,6 +79,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 生存猎人AOE群体PVE策略：定义该专精/场景下的触发器与默认行为
     class SurvivalHunterAoePveStrategy : public SurvivalHunterAoeStrategy
     {
     public:
@@ -83,6 +91,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 生存猎人AOE群体PVP策略：定义该专精/场景下的触发器与默认行为
     class SurvivalHunterAoePvpStrategy : public SurvivalHunterAoeStrategy
     {
     public:
@@ -94,6 +103,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 生存猎人AOE群体团队副本策略：定义该专精/场景下的触发器与默认行为
     class SurvivalHunterAoeRaidStrategy : public SurvivalHunterAoeStrategy
     {
     public:
@@ -105,6 +115,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 生存猎人增益Buff策略：定义该专精/场景下的触发器与默认行为
     class SurvivalHunterBuffStrategy : public HunterBuffStrategy
     {
     public:
@@ -115,6 +126,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 生存猎人增益BuffPVE策略：定义该专精/场景下的触发器与默认行为
     class SurvivalHunterBuffPveStrategy : public SurvivalHunterBuffStrategy
     {
     public:
@@ -126,6 +138,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 生存猎人增益BuffPVP策略：定义该专精/场景下的触发器与默认行为
     class SurvivalHunterBuffPvpStrategy : public SurvivalHunterBuffStrategy
     {
     public:
@@ -137,6 +150,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 生存猎人增益Buff团队副本策略：定义该专精/场景下的触发器与默认行为
     class SurvivalHunterBuffRaidStrategy : public SurvivalHunterBuffStrategy
     {
     public:
@@ -148,6 +162,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 生存猎人爆发增益策略：定义该专精/场景下的触发器与默认行为
     class SurvivalHunterBoostStrategy : public HunterBoostStrategy
     {
     public:
@@ -158,6 +173,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 生存猎人爆发增益PVE策略：定义该专精/场景下的触发器与默认行为
     class SurvivalHunterBoostPveStrategy : public SurvivalHunterBoostStrategy
     {
     public:
@@ -169,6 +185,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 生存猎人爆发增益PVP策略：定义该专精/场景下的触发器与默认行为
     class SurvivalHunterBoostPvpStrategy : public SurvivalHunterBoostStrategy
     {
     public:
@@ -180,6 +197,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 生存猎人爆发增益团队副本策略：定义该专精/场景下的触发器与默认行为
     class SurvivalHunterBoostRaidStrategy : public SurvivalHunterBoostStrategy
     {
     public:
@@ -191,6 +209,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 生存猎人控制(CC)策略：定义该专精/场景下的触发器与默认行为
     class SurvivalHunterCcStrategy : public HunterCcStrategy
     {
     public:
@@ -201,6 +220,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 生存猎人控制(CC)PVE策略：定义该专精/场景下的触发器与默认行为
     class SurvivalHunterCcPveStrategy : public SurvivalHunterCcStrategy
     {
     public:
@@ -212,6 +232,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 生存猎人控制(CC)PVP策略：定义该专精/场景下的触发器与默认行为
     class SurvivalHunterCcPvpStrategy : public SurvivalHunterCcStrategy
     {
     public:
@@ -223,6 +244,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 生存猎人控制(CC)团队副本策略：定义该专精/场景下的触发器与默认行为
     class SurvivalHunterCcRaidStrategy : public SurvivalHunterCcStrategy
     {
     public:
@@ -234,6 +256,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 生存猎人钉刺策略：定义该专精/场景下的触发器与默认行为
     class SurvivalHunterStingStrategy : public HunterStingStrategy
     {
     public:
@@ -243,6 +266,7 @@ namespace ai
         virtual void InitCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 生存猎人钉刺PVE策略：定义该专精/场景下的触发器与默认行为
     class SurvivalHunterStingPveStrategy : public SurvivalHunterStingStrategy
     {
     public:
@@ -253,6 +277,7 @@ namespace ai
         void InitCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 生存猎人钉刺PVP策略：定义该专精/场景下的触发器与默认行为
     class SurvivalHunterStingPvpStrategy : public SurvivalHunterStingStrategy
     {
     public:
@@ -263,6 +288,7 @@ namespace ai
         void InitCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 生存猎人钉刺团队副本策略：定义该专精/场景下的触发器与默认行为
     class SurvivalHunterStingRaidStrategy : public SurvivalHunterStingStrategy
     {
     public:
@@ -273,6 +299,7 @@ namespace ai
         void InitCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 生存猎人守护策略：定义该专精/场景下的触发器与默认行为
     class SurvivalHunterAspectStrategy : public HunterAspectStrategy
     {
     public:
@@ -283,6 +310,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 生存猎人守护PVE策略：定义该专精/场景下的触发器与默认行为
     class SurvivalHunterAspectPveStrategy : public SurvivalHunterAspectStrategy
     {
     public:
@@ -294,6 +322,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 生存猎人守护PVP策略：定义该专精/场景下的触发器与默认行为
     class SurvivalHunterAspectPvpStrategy : public SurvivalHunterAspectStrategy
     {
     public:
@@ -305,6 +334,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 生存猎人守护团队副本策略：定义该专精/场景下的触发器与默认行为
     class SurvivalHunterAspectRaidStrategy : public SurvivalHunterAspectStrategy
     {
     public:

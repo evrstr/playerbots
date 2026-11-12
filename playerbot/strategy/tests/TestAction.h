@@ -1,3 +1,4 @@
+/// 测试引擎核心动作：TestAction 头文件
 #pragma once
 
 #include "playerbot/strategy/Action.h"
@@ -11,6 +12,7 @@ struct WorldLocation;
 
 namespace ai
 {
+    /// 测试核心执行动作：驱动集成测试脚本的解析、命令调度、监控断言与结果报告
     class TestAction : public Action
     {
     public:

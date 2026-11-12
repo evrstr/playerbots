@@ -8,6 +8,7 @@
 
 using namespace ai;
 
+/// 执行动作主逻辑（出售喊话指令动作）
 bool WtsAction::Execute(Event& event)
 {
     Player* owner = event.getOwner();
@@ -48,7 +49,7 @@ bool WtsAction::Execute(Event& event)
         std::ostringstream tell;
         tell << "I'll buy " << chat->formatItem(proto) << " for " << chat->formatMoney(buyPrice);
 
-        // ignore random bot chat filter
+        // ignore random bot chat filter (忽略随机机器人聊天过滤)
         bot->Whisper(tell.str(), LANG_UNIVERSAL, owner->GetObjectGuid());
     }
 

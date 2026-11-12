@@ -14,6 +14,7 @@ PerformanceMonitor::~PerformanceMonitor()
 {
 }
 
+// 启动一个作用域性能采样计时器并压入调用栈
 std::unique_ptr<PerformanceMonitorOperation> PerformanceMonitor::start(PerformanceMetric metric, std::string name, PerformanceStack* stack, uint32 mapId, uint32 instanceId)
 {
     if (!sPlayerbotAIConfig.perfMonEnabled)
@@ -59,6 +60,7 @@ std::unique_ptr<PerformanceMonitorOperation> PerformanceMonitor::start(Performan
         return start(metric, name);
 }
 
+// 将调用栈向量格式化为可读名称字符串
 std::string StackString(const std::vector<std::string>& stack, bool fullStack = false)
 {
     if (stack.empty())
@@ -95,6 +97,7 @@ std::string StackString(const std::vector<std::string>& stack, bool fullStack = 
     return result;
 }
 
+// 汇总并向日志输出各指标耗时占比、平均耗时与调用次数统计
 void PerformanceMonitor::PrintStats(bool perTick, bool fullStack, bool showMap)
 {
     if (mapsData.empty())
@@ -275,6 +278,7 @@ void PerformanceMonitor::PrintStats(bool perTick, bool fullStack, bool showMap)
     }
 }
 
+// 清零所有已记录的性能统计计数与耗时
 void PerformanceMonitor::Reset()
 {
     for (auto& [mapId, mapData] : mapsData)
@@ -310,6 +314,7 @@ PerformanceMonitorOperation::~PerformanceMonitorOperation()
    finish();
 }
 
+// 结束本次作用域计时并更新最小/最大/总耗时
 void PerformanceMonitorOperation::finish()
 {
     if (!sPlayerbotAIConfig.perfMonEnabled)
@@ -333,6 +338,7 @@ void PerformanceMonitorOperation::finish()
         stack->erase(std::remove(stack->begin(), stack->end(), name), stack->end());
 }
 
+// 处理 GM 控制台性能监控指令（reset/toggle/tick/stack/map）
 bool ChatHandler::HandlePerfMonCommand(char* args)
 {
     if (!strcmp(args, "reset"))

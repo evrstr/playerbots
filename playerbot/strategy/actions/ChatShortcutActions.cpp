@@ -7,6 +7,7 @@
 
 using namespace ai;
 
+/// 重置指定的策略坐标锚点
 void ReturnPositionResetAction::ResetPosition(std::string posName)
 {
     ai::PositionMap& posMap = context->GetValue<ai::PositionMap&>("position")->Get();
@@ -15,6 +16,7 @@ void ReturnPositionResetAction::ResetPosition(std::string posName)
     posMap[posName] = pos;
 }
 
+/// 保存当前或指定坐标到命名位置记录
 void ReturnPositionResetAction::SetPosition(WorldPosition wPos, std::string posName)
 {
     ai::PositionMap& posMap = context->GetValue<ai::PositionMap&>("position")->Get();
@@ -23,6 +25,7 @@ void ReturnPositionResetAction::SetPosition(WorldPosition wPos, std::string posN
     posMap[posName] = pos;
 }
 
+/// 输出指定状态下的已启用策略列表
 void ReturnPositionResetAction::PrintStrategies(PlayerbotAI* ai, Event& event)
 {
     if (event.getParam() == "?")
@@ -32,6 +35,7 @@ void ReturnPositionResetAction::PrintStrategies(PlayerbotAI* ai, Event& event)
     }
 }
 
+/// 执行动作主逻辑（跟随指令快捷动作）
 bool FollowChatShortcutAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -42,7 +46,7 @@ bool FollowChatShortcutAction::Execute(Event& event)
     ai->ChangeStrategy("+follow,-passive,-stay,-wander,", BotState::BOT_STATE_NON_COMBAT);
     ai->ChangeStrategy("-stay,-guard,-wander", BotState::BOT_STATE_COMBAT);
 
-    if(ai->HasStrategy("passive", BotState::BOT_STATE_COMBAT)) //Remove flee
+    if(ai->HasStrategy("passive", BotState::BOT_STATE_COMBAT)) // Remove flee (移除逃跑/撤退状态)
         ai->ChangeStrategy("-passive,-follow", BotState::BOT_STATE_COMBAT);
 
     ai::PositionMap& posMap = context->GetValue<ai::PositionMap&>("position")->Get();
@@ -50,22 +54,23 @@ bool FollowChatShortcutAction::Execute(Event& event)
     pos.Reset();
     posMap["return"] = pos;
 
+    /// 输出指定状态下的已启用策略列表
     ReturnPositionResetAction::PrintStrategies(ai, event);
 
     Formation* formation = AI_VALUE(Formation*, "formation");
     MEM_AI_VALUE(WorldPosition, "master position")->Reset();
 
-    if (formation->getName() == "custom") //If in custom formation set relative position to current position.
+    if (formation->getName() == "custom") // If in custom formation set relative position to current position. (若处于自定义阵型模式，则将相对位置设为当前位置。)
     {
         ai::PositionEntry pos = posMap["follow"];
 
         WorldPosition relPos(bot);
 
-        if (!ai->IsSafe(requester) || sServerFacade.GetDistance2d(bot, requester) > sPlayerbotAIConfig.reactDistance) //Use default formation location.
+        if (!ai->IsSafe(requester) || sServerFacade.GetDistance2d(bot, requester) > sPlayerbotAIConfig.reactDistance) // Use default formation location. (使用默认队伍阵型站位。)
         {
             relPos = WorldPosition(bot->GetMapId(), cos(GetFollowAngle()) * ai->GetRange("follow"), sin(GetFollowAngle()) * ai->GetRange("follow"), 0);
         }
-        else //Use relative location.
+        else // Use relative location. (使用相对偏移坐标。)
         {
             relPos -= WorldPosition(ai->GetMaster());
             relPos.rotateXY(-1 * ai->GetMaster()->GetOrientation());
@@ -92,6 +97,7 @@ bool FollowChatShortcutAction::Execute(Event& event)
     return true;
 }
 
+/// 执行动作主逻辑（原地待命指令快捷动作）
 bool StayChatShortcutAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -112,6 +118,7 @@ bool StayChatShortcutAction::Execute(Event& event)
     return true;
 }
 
+/// 执行动作主逻辑（警戒守卫指令快捷动作）
 bool GuardChatShortcutAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -132,6 +139,7 @@ bool GuardChatShortcutAction::Execute(Event& event)
     return true;
 }
 
+/// 执行动作主逻辑（自由活动指令快捷动作）
 bool FreeChatShortcutAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -148,6 +156,7 @@ bool FreeChatShortcutAction::Execute(Event& event)
     return true;
 }
 
+/// 执行动作主逻辑（漫步游荡指令快捷动作）
 bool WanderChatShortcutAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -164,6 +173,7 @@ bool WanderChatShortcutAction::Execute(Event& event)
     return true;
 }
 
+/// 执行动作主逻辑（撤退指令快捷动作）
 bool FleeChatShortcutAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -187,6 +197,7 @@ bool FleeChatShortcutAction::Execute(Event& event)
     return true;
 }
 
+/// 执行动作主逻辑（解散/避开指令快捷动作）
 bool GoawayChatShortcutAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -204,6 +215,7 @@ bool GoawayChatShortcutAction::Execute(Event& event)
     return true;
 }
 
+/// 执行动作主逻辑（刷怪指令快捷动作）
 bool GrindChatShortcutAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -217,6 +229,7 @@ bool GrindChatShortcutAction::Execute(Event& event)
     return true;
 }
 
+/// 执行动作主逻辑（坦克开怪指令快捷动作）
 bool TankAttackChatShortcutAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -234,6 +247,7 @@ bool TankAttackChatShortcutAction::Execute(Event& event)
     return true;
 }
 
+/// 执行动作主逻辑（全力输出指令快捷动作）
 bool MaxDpsChatShortcutAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();

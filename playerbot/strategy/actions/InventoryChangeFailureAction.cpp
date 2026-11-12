@@ -7,6 +7,7 @@ using namespace ai;
 
 std::map<InventoryResult, std::string> InventoryChangeFailureAction::messages;
 
+/// 执行动作主逻辑（背包操作失败通知动作）
 bool InventoryChangeFailureAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -82,6 +83,7 @@ bool InventoryChangeFailureAction::Execute(Event& event)
         messages[EQUIP_ERR_LOOT_CANT_LOOT_THAT_NOW] = "Cannot loot this right now";
     }
 
+    // 解析事件携带的网络封包数据
     WorldPacket p(event.getPacket());
     p.rpos(0);
     uint8 err;

@@ -1,11 +1,15 @@
+// 法师 - 触发器头文件 (MageTriggers.h)：定义法师增益、减益、冷却及状态检查触发条件
 #pragma once
 #include "playerbot/strategy/triggers/GenericTriggers.h"
 
 namespace ai
 {
+    // 法术反射/反制触发器：防护火焰结界 (FireWardTrigger)
     DEFLECT_TRIGGER(FireWardTrigger, "fire ward");
+    // 法术反射/反制触发器：防护冰霜结界 (FrostWardTrigger)
     DEFLECT_TRIGGER(FrostWardTrigger, "frost ward");
 
+    // 触发器：闪现术
     class BlinkTrigger : public Trigger
     {
     public:
@@ -18,6 +22,7 @@ namespace ai
         }
     };
 
+    // 触发器：奥术智慧
     class ArcaneIntellectOnPartyTrigger : public BuffOnPartyTrigger
     {
     public:
@@ -25,6 +30,7 @@ namespace ai
         virtual bool IsActive() override { return BuffOnPartyTrigger::IsActive() && !ai->HasAura("arcane brilliance", GetTarget()); }
     };
 
+    // 触发器：奥术智慧
     class ArcaneIntellectTrigger : public BuffTrigger 
     {
     public:
@@ -32,12 +38,14 @@ namespace ai
         virtual bool IsActive() override { return BuffTrigger::IsActive() && !ai->HasAura("arcane brilliance", GetTarget()); }
     };
 
+    // 触发器：奥术光辉
     class ArcaneBrillianceOnPartyTrigger : public GreaterBuffOnPartyTrigger
     {
     public:
         ArcaneBrillianceOnPartyTrigger(PlayerbotAI* ai) : GreaterBuffOnPartyTrigger(ai, "arcane brilliance", "arcane intellect", 4) {}
     };
 
+    // 触发器：任意法师护甲
     class AnyMageArmorTrigger : public BuffTrigger 
     {
     public:
@@ -45,6 +53,7 @@ namespace ai
         virtual bool IsActive() override;
     };
 
+    // 触发器：魔甲术
     class MageArmorTrigger : public BuffTrigger
     {
     public:
@@ -52,6 +61,7 @@ namespace ai
         virtual bool IsActive() override;
     };
 
+    // 触发器：冰甲术
     class IceArmorTrigger : public BuffTrigger
     {
     public:
@@ -59,6 +69,7 @@ namespace ai
         virtual bool IsActive() override;
     };
 
+    // 触发器：熔甲术
     class MoltenArmorTrigger : public BuffTrigger
     {
     public:
@@ -66,24 +77,28 @@ namespace ai
         virtual bool IsActive() override;
     };
 
+    // 触发器：火球术
     class FireballTrigger : public DebuffTrigger 
     {
     public:
         FireballTrigger(PlayerbotAI* ai) : DebuffTrigger(ai, "fireball") {}
-	};
+    };
 
+    // 触发器：炎爆术
     class PyroblastTrigger : public DebuffTrigger 
     {
     public:
         PyroblastTrigger(PlayerbotAI* ai) : DebuffTrigger(ai, "pyroblast", 10) {}
     };
 
+    // 触发器：飞弹速射
     class MissileBarrageTrigger : public HasAuraTrigger 
     {
     public:
         MissileBarrageTrigger(PlayerbotAI* ai) : HasAuraTrigger(ai, "missile barrage") {}
     };
 
+    // 触发器：奥术冲击
     class ArcaneBlastTrigger : public BuffTrigger 
     {
     public:
@@ -91,6 +106,7 @@ namespace ai
         virtual bool IsActive() override;
     };
 
+    // 触发器：奥术冲击
     class ArcaneBlastFullTrigger : public BuffTrigger
     {
     public:
@@ -98,70 +114,83 @@ namespace ai
         virtual bool IsActive() override;
     };
 
+    // 触发器：法术反制
     class CounterspellInterruptSpellTrigger : public InterruptSpellTrigger
     {
     public:
         CounterspellInterruptSpellTrigger(PlayerbotAI* ai) : InterruptSpellTrigger(ai, "counterspell") {}
     };
 
+    // 触发器：燃烧
     class CombustionTrigger : public BoostTrigger
     {
     public:
         CombustionTrigger(PlayerbotAI* ai) : BoostTrigger(ai, "combustion") {}
     };
 
+    // 触发器：冰冷血脉
     class IcyVeinsTrigger : public BoostTrigger
     {
     public:
         IcyVeinsTrigger(PlayerbotAI* ai) : BoostTrigger(ai, "icy veins") {}
     };
 
+    // 爆发增益触发器：召唤水元素 (WaterElementalBoostTrigger)
     BOOST_TRIGGER(WaterElementalBoostTrigger, "summon water elemental");
 
+    // 触发器：变形术
     class PolymorphTrigger : public HasCcTargetTrigger
     {
     public:
         PolymorphTrigger(PlayerbotAI* ai) : HasCcTargetTrigger(ai, "polymorph") {}
     };
 
+    // 触发器：解除诅咒
     class RemoveCurseTrigger : public NeedCureTrigger
     {
     public:
         RemoveCurseTrigger(PlayerbotAI* ai) : NeedCureTrigger(ai, "remove curse", DISPEL_CURSE) {}
     };
 
+    // 触发器：解除诅咒
     class PartyMemberRemoveCurseTrigger : public PartyMemberNeedCureTrigger
     {
     public:
         PartyMemberRemoveCurseTrigger(PlayerbotAI* ai) : PartyMemberNeedCureTrigger(ai, "remove curse", DISPEL_CURSE) {}
     };
 
+    // 触发器：法术吸取
     class SpellstealTrigger : public TargetAuraDispelTrigger
     {
     public:
         SpellstealTrigger(PlayerbotAI* ai) : TargetAuraDispelTrigger(ai, "spellsteal", DISPEL_MAGIC) {}
     };
 
+    // 触发器：法术反制
     class CounterspellEnemyHealerTrigger : public InterruptEnemyHealerTrigger
     {
     public:
         CounterspellEnemyHealerTrigger(PlayerbotAI* ai) : InterruptEnemyHealerTrigger(ai, "counterspell") {}
     };
 
+    // 触发器：奥术强化
     class ArcanePowerTrigger : public BuffTrigger
     {
     public:
         ArcanePowerTrigger(PlayerbotAI* ai) : BuffTrigger(ai, "arcane power") {}
     };
 
+    // 触发器：气定神闲
     class PresenceOfMindTrigger : public BuffTrigger
     {
     public:
         PresenceOfMindTrigger(PlayerbotAI* ai) : BuffTrigger(ai, "presence of mind") {}
     };
 
+    // 光环存在触发器：气定神闲 (PresenceOfMindAuraTrigger)
     HAS_AURA_TRIGGER(PresenceOfMindAuraTrigger, "presence of mind");
 
+    // 触发器：法力护盾
     class ManaShieldTrigger : public BuffTrigger
     {
     public:
@@ -169,12 +198,14 @@ namespace ai
         virtual bool IsActive() override;
     };
 
+    // 触发器：寒冰护体
     class IceBarrierTrigger : public BuffTrigger
     {
     public:
         IceBarrierTrigger(PlayerbotAI* ai) : BuffTrigger(ai, "ice barrier", 5) {}
     };
 
+    // FireSpellsLocked
     class FireSpellsLocked : public Trigger
     {
     public:
@@ -187,6 +218,7 @@ namespace ai
         }
     };
 
+    // FrostSpellsLocked
     class FrostSpellsLocked : public Trigger
     {
     public:
@@ -198,6 +230,7 @@ namespace ai
         }
     };
 
+    // 触发器：冰枪术
     class IceLanceTrigger : public Trigger
     {
     public:
@@ -206,12 +239,18 @@ namespace ai
         std::string GetTargetName() override { return "current target"; }
     };
 
+    // 增益触发器：镜像 (MirrorImageTrigger)
     BUFF_TRIGGER(MirrorImageTrigger, "mirror image");
+    // 增益触发器(带条件)：法术连击 (HotStreakTrigger)
     BUFF_TRIGGER_A(HotStreakTrigger, "hot streak");
+    // 增益触发器(带条件)：瞬发火球术(法术连击) (FireballOrFrostfireBoltFreeTrigger)
     BUFF_TRIGGER_A(FireballOrFrostfireBoltFreeTrigger, "fireball!");
+    // 减益触发器(带条件)：强化灼烧 (NoImprovedScorchDebuffTrigger)
     DEBUFF_TRIGGER_A(NoImprovedScorchDebuffTrigger, "improved scorch");
+    // 光环存在触发器：寒冰指 (FingersOfFrostTrigger)
     HAS_AURA_TRIGGER(FingersOfFrostTrigger, "fingers of frost");
 
+    // 触发器：目标无火焰易伤减益
     class NoFireVulnerabilityTrigger : public Trigger
     {
     public:
@@ -253,12 +292,14 @@ namespace ai
         virtual std::string GetTargetName() override { return "current target"; }
     };
 
+    // 触发器：活动炸弹
     class LivingBombTrigger : public DebuffTrigger 
     {
     public:
         LivingBombTrigger(PlayerbotAI* ai) : DebuffTrigger(ai, "living bomb") {}
     };
 
+    // 触发器：急速冷却
     class ColdSnapTrigger : public Trigger
     {
     public:
@@ -271,6 +312,7 @@ namespace ai
         }
     };
 
+    // 触发器：缺少食物触发器
     class NoFoodTrigger : public Trigger
     {
     public:
@@ -282,6 +324,7 @@ namespace ai
         }
     };
 
+    // 触发器：缺少饮料触发器
     class NoDrinkTrigger : public Trigger
     {
     public:
@@ -293,6 +336,7 @@ namespace ai
         }
     };
 
+    // 触发器：缺少法力宝石触发器
     class NoManaGemTrigger : public Trigger
     {
     public:

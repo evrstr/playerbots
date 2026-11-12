@@ -16,6 +16,7 @@
 
 using namespace ai;
 
+// 初始化各类策略、动作、触发器与状态值的上下文工厂链
 AiObjectContext::AiObjectContext(PlayerbotAI* ai) : PlayerbotAIAware(ai)
 {
     strategyContexts.Add(new StrategyContext());
@@ -37,6 +38,7 @@ AiObjectContext::AiObjectContext(PlayerbotAI* ai) : PlayerbotAIAware(ai)
     //valueContexts.Add(&sSharedValueContext);
 }
 
+// 遍历并擦除指定前缀的已创建 Value
 void AiObjectContext::ClearValues(std::string findName)
 {
     std::set<std::string> names = valueContexts.GetCreated();
@@ -53,6 +55,7 @@ void AiObjectContext::ClearValues(std::string findName)
     }
 }
 
+// 收集并清理超过有效期的非受保护 Value
 void AiObjectContext::ClearExpiredValues(std::string findName, uint32 interval)
 {
     std::vector<std::string> namesToErase;
@@ -80,6 +83,7 @@ void AiObjectContext::ClearExpiredValues(std::string findName, uint32 interval)
 }
 
 
+// 汇总格式化上下文中有效的 Value 供调试输出
 std::string AiObjectContext::FormatValues(std::string findName)
 {
     std::ostringstream out;
@@ -105,7 +109,7 @@ std::string AiObjectContext::FormatValues(std::string findName)
 
 void AiObjectContext::Update()
 {
-    /* Disabled until there is actually a strategy, trigger, action or value that has the Update() method. Currently this takes 8% cpu and does 'NOTHING'.
+    /* Disabled until there is actually a strategy, trigger, action or value that has the Update() method. Currently this takes 8% cpu and does 'NOTHING'. | 暂未启用：目前尚无需要每帧 Update() 的对象，空遍历会白耗约 8% CPU
     strategyContexts.Update();
     triggerContexts.Update();
     actionContexts.Update();
@@ -113,6 +117,7 @@ void AiObjectContext::Update()
     */
 }
 
+// 重置所有上下文中已创建对象的状态
 void AiObjectContext::Reset()
 {
     strategyContexts.Reset();
@@ -121,6 +126,7 @@ void AiObjectContext::Reset()
     valueContexts.Reset();
 }
 
+// 遍历所有 Value 并保存持久化数据
 std::list<std::string> AiObjectContext::Save()
 {
     std::list<std::string> result;
@@ -146,6 +152,7 @@ std::list<std::string> AiObjectContext::Save()
     return result;
 }
 
+// 按 "名称>数据" 格式解析并恢复持久化 Value
 void AiObjectContext::Load(std::list<std::string> data)
 {
     for (std::list<std::string>::iterator i = data.begin(); i != data.end(); ++i)

@@ -1,3 +1,4 @@
+// 策略值实现：Stances（贴近/坦克/背对/绕背战斗姿态实现及命令切换）
 
 #include "playerbot/playerbot.h"
 #include "Stances.h"
@@ -7,6 +8,7 @@
 
 using namespace ai;
 
+// 获取攻击目标或当前目标作为站位参照单位
 Unit* Stance::GetTarget()
 {
     Unit *target = ai->GetUnit(AI_VALUE(ObjectGuid, GetTargetName()));
@@ -18,6 +20,7 @@ Unit* Stance::GetTarget()
     return NULL;
 }
 
+// 在非战斗或无目标时返回空坐标，否则调用子类计算目标周围站位
 WorldLocation Stance::GetLocation()
 {
     Unit* target = GetTarget();
@@ -27,6 +30,7 @@ WorldLocation Stance::GetLocation()
     return GetLocationInternal();
 }
 
+// 以目标为中心、按指定角度和距离计算可达地形坐标
 WorldLocation Stance::GetNearLocation(float angle, float distance)
 {
     Unit* target = GetTarget();
@@ -41,6 +45,7 @@ WorldLocation Stance::GetNearLocation(float angle, float distance)
     return Formation::NullLocation;
 }
 
+// 根据近战范围和目标碰撞半径计算具体角度站位
 WorldLocation MoveStance::GetLocationInternal()
 {
     Unit* target = GetTarget();
@@ -52,6 +57,7 @@ WorldLocation MoveStance::GetLocationInternal()
 
 namespace ai
 {
+    // 近身姿态：贴近目标并在启用 behind 策略时优先绕背
     class NearStance : public MoveStance
     {
     public:
@@ -105,6 +111,7 @@ namespace ai
         }
     };
 
+    // 坦克姿态：与目标保持固定坦克朝向站位
     class TankStance : public MoveStance
     {
     public:
@@ -117,6 +124,7 @@ namespace ai
         }
     };
 
+    // 背对姿态：使机器人站到背对目标一侧并调整面向
     class TurnBackStance : public MoveStance
     {
     public:
@@ -146,6 +154,7 @@ namespace ai
         }
     };
 
+    // 绕背姿态：绕至目标背后位置（适用于盗贼背刺、防止招架）
     class BehindStance : public MoveStance
     {
     public:
@@ -177,21 +186,25 @@ namespace ai
     };
 };
 
+// 构造函数：默认使用 NearStance 近身姿态
 StanceValue::StanceValue(PlayerbotAI* ai) : ManualSetValue<Stance*>(ai, new NearStance(ai), "stance")
 {
 }
 
+// 释放并重置当前姿态指针
 void StanceValue::Reset()
 {
     if (value) delete value;
     value = new NearStance(ai);
 }
 
+// 返回当前姿态名称以便保存
 std::string StanceValue::Save()
 {
     return value ? value->getName() : "?";
 }
 
+// 按名称实例化对应的战斗站位姿态（near/tank/turnback/behind）
 bool StanceValue::Load(std::string name)
 {
     if (name == "behind")
@@ -219,6 +232,7 @@ bool StanceValue::Load(std::string name)
     return true;
 }
 
+// 执行聊天指令设置、重置或查询当前战斗站位姿态
 bool SetStanceAction::Execute(Event& event)
 {
     std::string stance = event.getParam();

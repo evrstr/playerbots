@@ -35,7 +35,7 @@
 namespace
 {
 
-    // Win-1251 to Unicode codepoint table for bytes 0x80-0xFF
+    // Win-1251 to Unicode codepoint table for bytes 0x80-0xFF (Win-1251 到 Unicode 码点映射表)
     static const uint32_t win1251_to_unicode[128] = {
         0x0402,
         0x0403,
@@ -227,9 +227,10 @@ namespace
 
 } // namespace
 
+// 将输入文本转为合法 UTF-8 并转义 JSON 特殊字符
 std::string PlayerbotLLMInterface::SanitizeForJson(const std::string& input)
 {
-    // If input is not valid UTF-8, assume Win-1251 (WoW 1.12.1 client encoding)
+    // If input is not valid UTF-8, assume Win-1251 (WoW 1.12.1 client encoding) | 非法 UTF-8 时按 1.12.1 客户端 Win-1251 编码转换
     bool inputIsUtf8 = IsValidUtf8(input);
     const std::string src = inputIsUtf8 ? input : Win1251ToUtf8(input);
 
@@ -285,6 +286,7 @@ inline void RestoreBlockingSocket(int sock) {
 #endif
 }
 
+// 带超时控制的 OpenSSL 响应读取循环
 inline std::string SSLRecvWithTimeout(SSL* ssl, int timeout_seconds, int& bytesRead) {
     char buffer[4096];
     std::string response;
@@ -316,6 +318,7 @@ inline std::string SSLRecvWithTimeout(SSL* ssl, int timeout_seconds, int& bytesR
     return response;
 }
 
+// 带超时控制的非阻塞 TCP Socket 响应读取循环
 inline std::string RecvWithTimeout(int sock, int timeout_seconds, int& bytesRead) {
     char buffer[4096];
     int bufferSize = sizeof(buffer);
@@ -370,6 +373,7 @@ std::string GetSSLError() {
     return std::string(err_buf);
 }
 
+// 通过 HTTP/HTTPS POST 调用远程 LLM API 生成回复并提取响应正文
 std::string PlayerbotLLMInterface::Generate(const std::string& prompt, int timeOutSeconds, int maxGenerations, std::vector<std::string> & debugLines) {
     bool debug = !debugLines.empty();
 
@@ -719,6 +723,7 @@ inline std::vector<std::string> splitResponse(const std::string& response, const
     return result;
 }
 
+// 使用起止/删除/分割正则表达式清洗并拆分 LLM 返回文本为多条聊天消息
 std::vector<std::string> PlayerbotLLMInterface::ParseResponse(const std::string& response, const std::string& startPattern, const std::string& endPattern, const std::string& deletePattern, const std::string& splitPattern, std::vector<std::string>& debugLines)
 {
     bool debug = !(debugLines.empty());
@@ -767,6 +772,7 @@ std::vector<std::string> PlayerbotLLMInterface::ParseResponse(const std::string&
     return responses;
 }
 
+// 当历史上下文超出配置长度时按句/词边界截断早期内容
 void PlayerbotLLMInterface::LimitContext(std::string& context, int currentLength)
 {
     if (sPlayerbotAIConfig.llmContextLength && (uint32)currentLength > sPlayerbotAIConfig.llmContextLength)

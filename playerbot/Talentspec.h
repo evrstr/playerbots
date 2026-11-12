@@ -5,6 +5,7 @@
 struct TalentEntry;
 struct TalentTabEntry;
 
+/// 天赋加点方案解析、校验、裁剪、平滑转职与应用类
 class TalentSpec {
     public:
 #define SORT_BY_DEFAULT 0
@@ -16,6 +17,7 @@ class TalentSpec {
 #define ADDED_POINTS 2
 #define REMOVED_POINTS -2
 
+        /// 单个天赋条目（ID、当前等级、最大等级及 DBC 信息）
         struct TalentListEntry
         {
             int entry;
@@ -64,6 +66,7 @@ class TalentSpec {
         std::vector<TalentListEntry> SubTalentList(std::vector<TalentListEntry>& oldList, std::vector<TalentListEntry>& newList, int reverse);
     };
 
+    /// 预设职业练级/满级天赋路线配置
     class TalentPath {
     public:
         TalentPath(int pathId, std::string pathName, int pathProbability) { id = pathId; name = pathName; probability = pathProbability; };
@@ -73,6 +76,7 @@ class TalentSpec {
         std::vector<TalentSpec> talentSpec;
     };
 
+    /// 某职业所有可用预设天赋路线的集合容器
     class ClassSpecs {
     public:
         ClassSpecs() {};

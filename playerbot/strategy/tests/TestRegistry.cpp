@@ -1,3 +1,4 @@
+/// 集成测试注册表、命名地点加载与移动/交通工具测试动态生成器实现
 #include "playerbot/playerbot.h"
 #include "TestRegistry.h"
 #include "playerbot/ChatHelper.h"
@@ -27,12 +28,14 @@ struct TeleLoc
 
 static std::vector<TeleLoc> sTeleLocations;
 
+/// 初始化测试框架内置静态命名地点坐标表
 static void InitTestLocations()
 {
     sNamedTestLocations["ironforge_outside"] = GuidPosition(ObjectGuid(), WorldPosition(0, -5150.0f, -856.0f, 508.4f));
     sNamedTestLocations["zg_boss1_room"] = GuidPosition(ObjectGuid(), WorldPosition(309, -12276.0f, -1399.0f, 130.9f));
 }
 
+/// 初始化核心 TeleportLocation 缓存列表
 static void InitTeleLocations()
 {
     for (auto const& [id, tele] : sObjectMgr.GetGameTeleMap())
@@ -42,6 +45,7 @@ static void InitTeleLocations()
     }
 }
 
+/// 线程安全延迟初始化全部静态测试地点与传点数据
 static void EnsureLocationsInit()
 {
     static std::mutex initMutex;
@@ -60,6 +64,7 @@ namespace
 {
     using ScenarioParams = std::map<std::string, std::string>;
 
+/// 规范化命名地点查询键（转小写、空格转下划线）
     std::string NormalizeLocationKey(std::string value)
     {
         const size_t begin = value.find_first_not_of(" \t\r\n");
@@ -72,6 +77,7 @@ namespace
         return value;
     }
 
+/// 解析无符号整数或返回默认值
     uint32 ParseUintOrDefault(const std::string& value, uint32 fallback)
     {
         if (value.empty())
@@ -84,6 +90,7 @@ namespace
         return static_cast<uint32>(std::stoul(value));
     }
 
+/// 从 mgroup 命令字符串中解析目标队伍人数（默认 5 人）
     uint32 ParseMGroupSize(const std::string& line)
     {
         static const uint32 defaultGroupSize = 5;
@@ -102,6 +109,7 @@ namespace
     }
 }
 
+/// 从旅行节点与传点数据动态生成常规陆路移动测试脚本
 void TestRegistry::GenerateMovementTestsImpl(int maxTests, float minDist, float maxDist)
 {
     if (sTeleLocations.size() < 2)
@@ -195,6 +203,7 @@ void TestRegistry::GenerateMovementTestsImpl(int maxTests, float minDist, float 
 
 namespace
 {
+/// 将地点名称清洗为测试标识符格式
     std::string SanitizeLocationName(std::string value)
     {
         std::transform(value.begin(), value.end(), value.begin(), ::tolower);
@@ -203,7 +212,8 @@ namespace
         return value;
     }
 
-    // Register a named location. If the name is taken by a different position, add _2, _3, ...
+    // Register a named location. If the name is taken by a different position, add _2, _3, ... | 注册命名地点，若同名不同位置则自动添加 _2, _3 后缀
+/// 注册唯一码头命名地点（位置不同时自动追加 _2, _3 后缀）
     std::string RegisterUniqueDockLocation(std::string name, const WorldPosition& pos)
     {
         name = SanitizeLocationName(name);
@@ -216,7 +226,7 @@ namespace
         {
             WorldPosition oldPos(existing);
             sLog.outString("[TRANSPORTGEN] loc '%s' exists at (%.0f,%.0f,%.0f m%u), new (%.0f,%.0f,%.0f m%u)", key.c_str(), oldPos.getX(), oldPos.getY(), oldPos.getZ(), oldPos.getMapId(), pos.getX(), pos.getY(), pos.getZ(), pos.getMapId());
-            // 3D distance: elevator top/bottom docks can sit right on top of each other in 2D
+            // 3D distance: elevator top/bottom docks can sit right on top of each other in 2D | 使用三维距离判定，避免上下层电梯码头因二维重合被误认为同一地点
             // (fDist is horizontal-only) but are far apart vertically.
             if (oldPos.getMapId() == pos.getMapId() && oldPos.distance(pos) < 50.0f)
                 return key;
@@ -229,8 +239,9 @@ namespace
         return key;
     }
 
-    // Compare with all separators stripped: tele/node names arrive as "grom_gol_base_camp",
+    // Compare with all separators stripped: tele/node names arrive as "grom_gol_base_camp", | 剥离分隔符以统一不同来源的码头/传点命名差异
     // "gromgolbasecamp" or "Grom'gol Base Campdock" depending on the source.
+/// 去除所有分隔符压缩码头名称以便模糊匹配
     std::string CompactDockName(const std::string& name)
     {
         std::string compact;
@@ -244,7 +255,8 @@ namespace
         return compact;
     }
 
-    // Docks of these locations are horde territory (guards kill an alliance bot).
+    // Docks of these locations are horde territory (guards kill an alliance bot). | 这些码头属于部落领地（联盟机器人靠近会被卫兵击杀）
+/// 判断码头名称是否属于部落领地
     bool IsHordeDockName(const std::string& name)
     {
         std::string compact = CompactDockName(name);
@@ -254,6 +266,7 @@ namespace
                compact.find("tirisfal") != std::string::npos || compact.find("durotar") != std::string::npos;
     }
 
+/// 判断码头名称是否属于联盟领地
     bool IsAllianceDockName(const std::string& name)
     {
         std::string compact = CompactDockName(name);
@@ -265,10 +278,11 @@ namespace
     }
 }
 
+/// 基于数据库持久化的交通节点与路径生成跨海乘船/飞艇/电梯测试脚本
 void TestRegistry::GenerateTransportTestsImpl(int maxTests)
 {
-    // Transport test generator, driven by the SAVED travel node store (ai_playerbot_travelnode*
-    // tables in the world DB - the same snapshot TravelNodeMap::loadNodeStore loads at startup).
+    // Transport test generator, driven by the SAVED travel node store (ai_playerbot_travelnode* | 基于数据库存储的旅行节点表生成交通工具乘坐测试，
+    // tables in the world DB - the same snapshot TravelNodeMap::loadNodeStore loads at startup). | 避免使用运行时节点图因裁剪而丢失码头节点。
     //
     // Structure (built by TravelNodeMap::generateTransportNodes):
     //  - every boat/zeppelin/elevator/tram has "stop" nodes linked over transport-type paths
@@ -325,7 +339,7 @@ void TestRegistry::GenerateTransportTestsImpl(int maxTests)
         } while (result->NextRow());
     }
 
-    // Stored path points for all transport links. Ride legs carry the ride waypoints; dock
+    // Stored path points for all transport links. Ride legs carry the ride waypoints; dock | 读取所有交通工具连线的缓存路径点
     // links carry {stop pos, dock world pos}.
     result = WorldDatabase.PQuery(
         "SELECT p.node_id, p.to_node_id, p.nr, p.map_id, p.x, p.y, p.z "
@@ -353,7 +367,7 @@ void TestRegistry::GenerateTransportTestsImpl(int maxTests)
         } while (result->NextRow());
     }
 
-    // Dock nodes: endpoints of the object=0 transport links. Their walk links (type=1) lead
+    // Dock nodes: endpoints of the object=0 transport links. Their walk links (type=1) lead | 读取与停靠点相连的地面码头节点及其步行连接路径
     // into the world - keep the shortest one's path to walk a few points in from the dock.
     std::ostringstream dockIdList;
     std::set<uint32> dockIds;
@@ -405,7 +419,7 @@ void TestRegistry::GenerateTransportTestsImpl(int maxTests)
         }
     }
 
-    // A point a few steps into the dock's walk path towards the world: safer to teleport to
+    // A point a few steps into the dock's walk path towards the world: safer to teleport to | 选择码头步行路径上离码头稍远且对齐地形多边形的安全点（防止卡在停靠船体模型内部）
     // (and to end a run at) than the raw node coordinate. Prefer the point FARTHEST out (still
     // <= 45 yd): the parked transport occupies the dock area, and a walk-in point inside that
     // footprint leaves the bot on top of the (off-mesh) platform - pathfinding from there is
@@ -446,7 +460,7 @@ void TestRegistry::GenerateTransportTestsImpl(int maxTests)
         if (bestD > 0.0f)
             return snapToMesh(best);
 
-        // No point in the band: fall back to the dock node itself. (The farthest stored path
+        // No point in the band: fall back to the dock node itself. (The farthest stored path | 若范围内无合适步行点则回退使用码头节点本身
         // point proved worse: the RFK bottom dock's only walk points sit in a dead pocket under
         // the parked platform footprint - pathfinding from there never starts.)
         return snapToMesh(dockPos);
@@ -514,7 +528,7 @@ void TestRegistry::GenerateTransportTestsImpl(int maxTests)
             continue;
         }
 
-        // Cul-de-sac check: a START dock whose only walk links lead to other docks/stops (its
+        // Cul-de-sac check: a START dock whose only walk links lead to other docks/stops (its | 死胡同检查：出发码头必须能步行连通至真实世界节点，防止孤岛卡死
         // sibling dock) can never be walked out of - live pathfinding confirms the stored link is
         // synthetic (RFK bottom docks: mesh island, path=1 to every node; Freewind dock_2 pair:
         // same "traveled 0 m" failure). A start dock must reach a real world node on foot.
@@ -550,7 +564,7 @@ void TestRegistry::GenerateTransportTestsImpl(int maxTests)
             continue;
         }
 
-        // Same rule as the movement generator: no generated rides into raid maps (ICC lifts etc.).
+        // Same rule as the movement generator: no generated rides into raid maps (ICC lifts etc.). | 跳过通往团队副本地图的交通工具（如冰冠堡垒电梯）
         if ((startDockPos.isDungeon() && startDockPos.getMapEntry()->IsRaid()) ||
             (endDockPos.isDungeon() && endDockPos.getMapEntry()->IsRaid()))
         {
@@ -558,7 +572,7 @@ void TestRegistry::GenerateTransportTestsImpl(int maxTests)
             continue;
         }
 
-        // A leg shorter than the pass threshold would pass instantly without any ride.
+        // A leg shorter than the pass threshold would pass instantly without any ride. | 跳过距离过短无法体现乘坐过程的连线（同时检查二维与垂直高度）
         // Vertical transport (elevators) can travel far in Z while the docks sit on top of
         // each other horizontally, so only skip when the points are close in BOTH 2D and Z.
         if (startDockPos.sqDistance2d(endDockPos) < 100.0f * 100.0f && std::abs(startDockPos.getZ() - endDockPos.getZ()) < 30.0f)
@@ -574,7 +588,7 @@ void TestRegistry::GenerateTransportTestsImpl(int maxTests)
             continue;
         }
 
-        // Ride time: the stored extra cost is seconds for elevators but junk (0.003) for boats
+        // Ride time: the stored extra cost is seconds for elevators but junk (0.003) for boats | 估算航行时间并加上完整周期与缓冲余量作为超时上限
         // and 0 for some lines, so fall back to ride path length / transport move speed.
         // Timeout = ride + one full transport cycle + slack, so a just-missed transport is
         // waited out, not failed.
@@ -602,7 +616,7 @@ void TestRegistry::GenerateTransportTestsImpl(int maxTests)
         if (timeoutSecs < 900)
             timeoutSecs = 900;
 
-        // Name the points after the nearest game tele; fall back to the transport name.
+        // Name the points after the nearest game tele; fall back to the transport name. | 优先以最近游戏传点命名码头，否则使用交通工具名称
         std::string startName;
         std::string endName;
         float bestStart = 300.0f;
@@ -634,7 +648,7 @@ void TestRegistry::GenerateTransportTestsImpl(int maxTests)
 
             if (endName.empty())
                 endName = transportName + "_" + std::to_string(entry);
-            // Always under a _dock key: a bare tele name would silently re-point every existing
+            // Always under a _dock key: a bare tele name would silently re-point every existing | 统一添加 _dock 后缀防止覆盖同名普通传点
             // teleport/distance-to use of that name (e.g. 'teleport menethil') at the pier.
             startName = RegisterUniqueDockLocation(startName + "_dock", startDockPos);
             endName = RegisterUniqueDockLocation(endName + "_dock", endDockPos);
@@ -689,6 +703,7 @@ void TestRegistry::GenerateTransportTestsImpl(int maxTests)
 
 using namespace ai;
 
+/// 提取测试脚本中的机器人创建前置要求（用于动态建号）
 std::string TestRegistry::GetBotCreationRequirement(const std::string& testName)
 {
     std::vector<std::string> script = GetTestScript(testName);
@@ -705,6 +720,7 @@ std::string TestRegistry::GetBotCreationRequirement(const std::string& testName)
     return "";
 }
 
+/// 计算测试脚本预计需要生成的额外机器人数量
 uint32 TestRegistry::ExpectedBotSpawnCount(const std::string& testName)
 {
     std::vector<std::string> script = GetTestScript(testName);
@@ -728,11 +744,13 @@ uint32 TestRegistry::ExpectedBotSpawnCount(const std::string& testName)
     return expectedBots;
 }
 
+/// 注册测试脚本到全局注册表
 void TestRegistry::RegisterTest(const std::string& name, const std::vector<std::string>& script)
 {
     sTestRegistry[name] = script;
 }
 
+/// 线程安全注册命名地点坐标
 void TestRegistry::RegisterNamedLocation(const std::string& name, const GuidPosition& pos)
 {
     EnsureLocationsInit();
@@ -743,12 +761,14 @@ void TestRegistry::RegisterNamedLocation(const std::string& name, const GuidPosi
     sNamedTestLocations[key] = pos;
 }
 
+/// 查询指定名称的测试是否已注册
 bool TestRegistry::HasTest(const std::string& name)
 {
     EnsureTestsRegistered();
     return sTestRegistry.find(name) != sTestRegistry.end();
 }
 
+/// 获取指定测试的脚本行列表
 std::vector<std::string> TestRegistry::GetTestScript(const std::string& name)
 {
     EnsureTestsRegistered();
@@ -758,6 +778,7 @@ std::vector<std::string> TestRegistry::GetTestScript(const std::string& name)
     return {};
 }
 
+/// 获取所有已注册测试名称列表
 std::vector<std::string> TestRegistry::GetAvailableTests()
 {
     EnsureTestsRegistered();
@@ -767,17 +788,20 @@ std::vector<std::string> TestRegistry::GetAvailableTests()
     return tests;
 }
 
+/// 触发生成常规移动测试
 void TestRegistry::GenerateMovementTests(int maxTests, float minDist, float maxDist)
 {
     EnsureLocationsInit();
     GenerateMovementTestsImpl(maxTests, minDist, maxDist);
 }
 
+/// 触发生成交通工具乘坐测试
 void TestRegistry::GenerateTransportTests(int maxTests)
 {
     GenerateTransportTestsImpl(maxTests);
 }
 
+/// 线程安全查找命名地点坐标（支持小写归一化回退）
 bool TestRegistry::LookupNamedLocation(const std::string& name, GuidPosition& out)
 {
     EnsureLocationsInit();
@@ -805,6 +829,7 @@ bool TestRegistry::LookupNamedLocation(const std::string& name, GuidPosition& ou
     return false;
 }
 
+/// 为指定机器人开启 test::<name> 策略并附加调试心跳策略
 void TestRegistry::StartTest(PlayerbotAI* ai, const std::string& testName)
 {
     std::string strategyName = "test::" + testName;
@@ -815,6 +840,7 @@ void TestRegistry::StartTest(PlayerbotAI* ai, const std::string& testName)
     ai->GetAiObjectContext()->GetValue<bool>("manual bool", "is running test")->Set(true);
 }
 
+/// 解析坐标字符串（map;x;y;z）或查表获取命名地点位置
 bool TestRegistry::ParseLocation(const std::string& str, GuidPosition& out)
 {
     std::string normalized = NormalizeLocationKey(str);
@@ -832,9 +858,10 @@ bool TestRegistry::ParseLocation(const std::string& str, GuidPosition& out)
     return false;
 }
 
+/// 线程安全按需惰性注册全量测试套件
 void TestRegistry::EnsureTestsRegistered()
 {
-    // Generated on demand, but lazily: TestAction ctors (per bot) and RA commands can hit this
+    // Generated on demand, but lazily: TestAction ctors (per bot) and RA commands can hit this | 加锁保护按需惰性注册过程以支持多线程并发调用
     // concurrently while sTestRegistry is written - guard the whole init.
     std::lock_guard<std::recursive_mutex> guard(sTestsRegisterMutex);
 
@@ -861,6 +888,7 @@ void TestRegistry::EnsureTestsRegistered()
     sTestsRegistering = false;
 }
 
+/// 对外暴露确保地点已初始化的入口
 void TestRegistry::EnsureLocationsInit()
 {
     ::EnsureLocationsInit();

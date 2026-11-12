@@ -9,11 +9,12 @@
 
 using namespace ai;
 
+/// 执行动作主逻辑（远离地面危险区域动作）
 bool MoveAwayFromHazard::Execute(Event& event)
 {
     const std::list<HazardPosition>& hazards = AI_VALUE(std::list<HazardPosition>, "hazards");
 
-    // Get the closest hazard to move away from
+    // Get the closest hazard to move away from (获取需要躲避的最近危险区域)
     const HazardPosition* closestHazard = nullptr;
     float closestHazardDistance = 9999.0f;
     for (const HazardPosition& hazard : hazards)
@@ -29,7 +30,7 @@ bool MoveAwayFromHazard::Execute(Event& event)
 
     if (closestHazard)
     {
-        // Check if the bot is inside the closest hazard
+        // Check if the bot is inside the closest hazard (检查机器人是否正处于最近的危险区域内部)
         const float hazardRadius = closestHazard->second;
         if (closestHazardDistance <= hazardRadius)
         {
@@ -57,7 +58,7 @@ bool MoveAwayFromHazard::Execute(Event& event)
                 WorldPosition point = initialPosition + WorldPosition(0, distance * cos(angle), distance * sin(angle), 1.0f);
                 point.setZ(point.getHeight());
 
-                // Check if the point is not near other hazards
+                // Check if the point is not near other hazards (检查坐标点是否远离其他危险区域)
                 if (!IsHazardNearby(point, hazards))
                 {
                     if (bot->IsWithinLOS(point.getX(), point.getY(), point.getZ() + bot->GetCollisionHeight()) && initialPosition.canPathTo(point, bot))
@@ -92,6 +93,7 @@ bool MoveAwayFromHazard::Execute(Event& event)
     return false;
 }
 
+/// 判断执行该动作的前置条件是否满足（远离地面危险区域动作）
 bool MoveAwayFromHazard::isPossible()
 {
     if (MovementAction::isPossible())
@@ -102,6 +104,7 @@ bool MoveAwayFromHazard::isPossible()
     return false;
 }
 
+/// 检查机器人当前周围是否存在需要规避的危险区域
 bool MoveAwayFromHazard::IsHazardNearby(const WorldPosition& point, const std::list<HazardPosition>& hazards) const
 {
     for (const HazardPosition& hazard : hazards)
@@ -118,14 +121,15 @@ bool MoveAwayFromHazard::IsHazardNearby(const WorldPosition& point, const std::l
     return false;
 }
 
+/// 遍历并筛选符合条件的附近生物辅助函数
 bool MoveAwayFromCreature::CreatureSearchHelperFunction(Event& event, uint32 creatureId)
 {
-    // Get the active attacking creatures
+    // Get the active attacking creatures (获取当前正在交战的敌对生物列表)
     std::list<Creature*> creatures;
     size_t closestCreatureIdx = 0;
     float closestCreatureDistance = 9999.0f;
 
-    // Iterate through the near creatures
+    // Iterate through the near creatures (遍历附近的生物单位)
     std::list<Unit*> units;
     MaNGOS::AllCreaturesOfEntryInRangeCheck u_check(bot, creatureID, range);
     MaNGOS::UnitListSearcher<MaNGOS::AllCreaturesOfEntryInRangeCheck> searcher(units, u_check);
@@ -138,7 +142,7 @@ bool MoveAwayFromCreature::CreatureSearchHelperFunction(Event& event, uint32 cre
         {
             creatures.push_back(creature);
 
-            // Get the closest creature to the bot
+            // Get the closest creature to the bot (获取距离机器人最近的生物)
             const float distance = bot->GetDistance(creature);
             if (distance < closestCreatureDistance)
             {
@@ -155,14 +159,14 @@ bool MoveAwayFromCreature::CreatureSearchHelperFunction(Event& event, uint32 cre
 
     const std::list<HazardPosition>& hazards = AI_VALUE(std::list<HazardPosition>, "hazards");
 
-    // Get the closest creature reference
+    // Get the closest creature reference (获取距离最近的生物参考坐标)
     auto it = creatures.begin();
     advance(it, closestCreatureIdx);
     Creature* closestCreature = *it;
-    // Remove the closest creature from the list to prevent checking it twice
+    // Remove the closest creature from the list to prevent checking it twice (从列表中移除最近的生物以免重复检测)
     creatures.erase(it);
 
-    // Generate the initial angle directly behind the bot looking at the closest creature
+    // Generate the initial angle directly behind the bot looking at the closest creature (生成机器人背对最近生物正后方的初始撤退角度)
     WorldPosition botPosition(bot);
     WorldPosition targetPosition(closestCreature);
     float angleLeft = targetPosition.getAngleTo(botPosition);
@@ -185,7 +189,7 @@ bool MoveAwayFromCreature::CreatureSearchHelperFunction(Event& event, uint32 cre
                 points.push_back(healPosition);
             }
         }
-        // Use a minimal move from where we are to a safe spot.
+        // Use a minimal move from where we are to a safe spot. (从当前位置执行最小位移移动至安全地点。)
         if (!points.empty())
         {
             points.sort([botPosition](WorldPosition i, WorldPosition j) { return botPosition.fDist(i) < botPosition.fDist(j); });
@@ -214,7 +218,7 @@ bool MoveAwayFromCreature::CreatureSearchHelperFunction(Event& event, uint32 cre
     {
         WorldPosition* validPoint = nullptr;
 
-        // Calculate a point to the left and right
+        // Calculate a point to the left and right (计算左右两侧的偏移点)
         WorldPosition pointLeft = targetPosition + WorldPosition(0, distance * cos(angleLeft), distance * sin(angleLeft), 1.0f);
         pointLeft.setZ(pointLeft.getHeight());
         WorldPosition pointRight = targetPosition + WorldPosition(0, distance * cos(angleRight), distance * sin(angleRight), 1.0f);
@@ -260,11 +264,13 @@ bool MoveAwayFromCreature::CreatureSearchHelperFunction(Event& event, uint32 cre
     return false;
 }
 
+/// 执行动作主逻辑（远离特定生物动作）
 bool MoveAwayFromCreature::Execute(Event& event)
 {
     return CreatureSearchHelperFunction(event, creatureID);
 }
 
+/// 判断执行该动作的前置条件是否满足（远离特定生物动作）
 bool MoveAwayFromCreature::isPossible()
 {
     if (MovementAction::isPossible())
@@ -275,9 +281,10 @@ bool MoveAwayFromCreature::isPossible()
     return false;
 }
 
+/// 验证三维坐标点是否处于合法地图边界与有效地形内
 bool MoveAwayFromCreature::IsValidPoint(const WorldPosition& point, const std::list<Creature*>& creatures, const std::list<HazardPosition>& hazards)
 {
-    // Check if the point is not near other game objects
+    // Check if the point is not near other game objects (检查坐标点是否远离其他游戏对象)
     if (!HasCreaturesNearby(point, creatures) && !IsHazardNearby(point, hazards))
     {
         if (bot->IsWithinLOS(point.getX(), point.getY(), point.getZ() + bot->GetCollisionHeight()))
@@ -290,6 +297,7 @@ bool MoveAwayFromCreature::IsValidPoint(const WorldPosition& point, const std::l
     return false;
 }
 
+/// 检查周围指定范围内是否存在生物单位
 bool MoveAwayFromCreature::HasCreaturesNearby(const WorldPosition& point, const std::list<Creature*>& creatures) const
 {
     for (const Creature* creature : creatures)
@@ -304,6 +312,7 @@ bool MoveAwayFromCreature::HasCreaturesNearby(const WorldPosition& point, const 
     return false;
 }
 
+/// 检查机器人当前周围是否存在需要规避的危险区域
 bool MoveAwayFromCreature::IsHazardNearby(const WorldPosition& point, const std::list<HazardPosition>& hazards) const
 {
     for (const HazardPosition& hazard : hazards)
@@ -320,6 +329,7 @@ bool MoveAwayFromCreature::IsHazardNearby(const WorldPosition& point, const std:
     return false;
 }
 
+/// 执行动作主逻辑（远离指定生物列表动作）
 bool MoveAwayFromSpecificCreatures::Execute(Event& event)
 {
     std::set<uint32>&creatureIDList = AI_VALUE(std::set<uint32>&, "avoid creature list");

@@ -1,3 +1,4 @@
+/// 通用非战斗基础行为、碰撞避让、世界增益、雕文与钓鱼策略实现
 
 #include "playerbot/playerbot.h"
 #include "NonCombatStrategy.h"
@@ -5,6 +6,7 @@
 
 using namespace ai;
 
+/// 初始化非战斗触发器：坐骑检查、AI Value 检查及黑暗之门穿越流程
 void NonCombatStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     triggers.push_back(new TriggerNode(
@@ -34,6 +36,7 @@ void NonCombatStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
     */
 }
 
+/// 初始化碰撞避让触发器：与其他机器人模型重叠时轻微错开站位
 void CollisionStrategy::InitNonCombatTriggers(std::list<TriggerNode*> &triggers)
 {
     triggers.push_back(new TriggerNode(
@@ -41,6 +44,7 @@ void CollisionStrategy::InitNonCombatTriggers(std::list<TriggerNode*> &triggers)
         NextAction::array(0, new NextAction("move out of collision", 2.0f), NULL)));
 }
 
+/// 初始化坐骑策略触发器
 void MountStrategy::InitNonCombatTriggers(std::list<TriggerNode*> &triggers)
 {
     /*triggers.push_back(new TriggerNode(
@@ -56,6 +60,7 @@ void MountStrategy::InitNonCombatTriggers(std::list<TriggerNode*> &triggers)
         NextAction::array(0, new NextAction("mount", 4.0f), NULL)));*/
 }
 
+/// 初始化作弊世界增益触发器：缺少预设世界 Buff 时自动补全
 void WorldBuffStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     triggers.push_back(new TriggerNode(
@@ -63,9 +68,10 @@ void WorldBuffStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
         NextAction::array(0, new NextAction("world buff", 1.0f), NULL)));
 }
 
+/// 移除世界增益策略时清除所有由其施加的预设世界 Buff 光环
 void WorldBuffStrategy::OnStrategyRemoved(BotState state)
 {
-    // Remove world buffs
+    // Remove world buffs | 移除已施加的世界增益光环
     Player* bot = ai->GetBot();
     if (bot)
     {
@@ -79,6 +85,7 @@ void WorldBuffStrategy::OnStrategyRemoved(BotState state)
     }
 }
 
+/// 初始化停战触发器：定期取消声望界面的“交战中”标记
 void NoWarStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     triggers.push_back(new TriggerNode(
@@ -86,6 +93,7 @@ void NoWarStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
         NextAction::array(0, new NextAction("faction", 1.0f), NULL)));
 }
 
+/// 初始化雕文策略触发器：定期自动装配配置的最佳雕文
 void GlyphStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     triggers.push_back(new TriggerNode(
@@ -93,6 +101,7 @@ void GlyphStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
         NextAction::array(0, new NextAction("auto set glyph", 1.0f), NULL)));
 }
 
+/// 初始化钓鱼策略触发器：寻水甩杆、点击鱼漂及钓鱼结束后换回装备
 void FishStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     triggers.push_back(new TriggerNode(

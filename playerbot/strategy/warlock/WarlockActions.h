@@ -1,3 +1,4 @@
+// 术士 - 动作头文件 (WarlockActions.h)：定义术士专用技能施放与战斗动作
 #pragma once
 
 #include "playerbot/strategy/actions/GenericActions.h"
@@ -5,42 +6,52 @@
 
 namespace ai
 {
-	SNARE_ACTION(CastDeathCoilSnareAction, "death coil");
-	ENEMY_HEALER_ACTION(CastDeathCoilOnHealerAction, "death coil");
-	SPELL_ACTION(CastDeathCoilAction, "death coil");
+    // 减速技能动作：凋零缠绕/死亡缠绕 (CastDeathCoilSnareAction)
+    SNARE_ACTION(CastDeathCoilSnareAction, "death coil");
+    // 针对敌方治疗动作：凋零缠绕/死亡缠绕 (CastDeathCoilOnHealerAction)
+    ENEMY_HEALER_ACTION(CastDeathCoilOnHealerAction, "death coil");
+    // 法术施放动作：凋零缠绕/死亡缠绕 (CastDeathCoilAction)
+    SPELL_ACTION(CastDeathCoilAction, "death coil");
+    // 自我增益动作：防护暗影结界 (CastShadowWardAction)
     BUFF_ACTION(CastShadowWardAction, "shadow ward");
-	
-	class CastDemonSkinAction : public CastBuffSpellAction 
-	{
-	public:
-		CastDemonSkinAction(PlayerbotAI* ai) : CastBuffSpellAction(ai, "demon skin") {}
-	};
+    
+    // 施放恶魔皮肤动作
+    class CastDemonSkinAction : public CastBuffSpellAction 
+    {
+    public:
+        CastDemonSkinAction(PlayerbotAI* ai) : CastBuffSpellAction(ai, "demon skin") {}
+    };
 
-	class CastDemonArmorAction : public CastBuffSpellAction
-	{
-	public:
-		CastDemonArmorAction(PlayerbotAI* ai) : CastBuffSpellAction(ai, "demon armor") {}
-	};
+    // 施放魔甲术动作
+    class CastDemonArmorAction : public CastBuffSpellAction
+    {
+    public:
+        CastDemonArmorAction(PlayerbotAI* ai) : CastBuffSpellAction(ai, "demon armor") {}
+    };
 
-	class CastFelArmorAction : public CastBuffSpellAction
-	{
-	public:
-		CastFelArmorAction(PlayerbotAI* ai) : CastBuffSpellAction(ai, "fel armor") {}
-	};
+    // 施放邪甲术动作
+    class CastFelArmorAction : public CastBuffSpellAction
+    {
+    public:
+        CastFelArmorAction(PlayerbotAI* ai) : CastBuffSpellAction(ai, "fel armor") {}
+    };
 
+    // 远程法术动作定义：暗影箭 (CastShadowBoltAction)
     BEGIN_RANGED_SPELL_ACTION(CastShadowBoltAction, "shadow bolt")
     END_SPELL_ACTION()
 
-	class CastDrainSoulAction : public CastSpellAction
-	{
-	public:
-		CastDrainSoulAction(PlayerbotAI* ai) : CastSpellAction(ai, "drain soul") {}
-	};
+    // 施放吸取灵魂动作
+    class CastDrainSoulAction : public CastSpellAction
+    {
+    public:
+        CastDrainSoulAction(PlayerbotAI* ai) : CastSpellAction(ai, "drain soul") {}
+    };
 
+    // 施放暗影灼烧动作
     class CastShadowburnAction : public CastSpellAction
     {
     public:
-		CastShadowburnAction(PlayerbotAI* ai) : CastSpellAction(ai, "shadowburn") {}
+        CastShadowburnAction(PlayerbotAI* ai) : CastSpellAction(ai, "shadowburn") {}
 
         bool Execute(Event& event) override
         {
@@ -67,6 +78,7 @@ namespace ai
         }
     };
 
+    // 施放复活目标动作
     class CastSoulstoneAction : public CastItemTargetAction
     {
     public:
@@ -111,159 +123,186 @@ namespace ai
         }
     };
 
+    // 施放灵魂碎裂动作
     class CastSoulShatterAction : public CastSpellAction
     {
     public:
-		CastSoulShatterAction(PlayerbotAI* ai) : CastSpellAction(ai, "soulshatter") {}
+        CastSoulShatterAction(PlayerbotAI* ai) : CastSpellAction(ai, "soulshatter") {}
         std::string GetTargetName() override { return "self target"; }
     };
 
+    // 施放灵魂之火动作
     class CastSoulFireAction : public CastSpellAction
     {
     public:
-		CastSoulFireAction(PlayerbotAI* ai) : CastSpellAction(ai, "soul fire") {}
+        CastSoulFireAction(PlayerbotAI* ai) : CastSpellAction(ai, "soul fire") {}
     };
 
-	BUFF_ACTION(CastDarkPactAction, "dark pact");
+    // 自我增益动作：黑暗契约 (CastDarkPactAction)
+    BUFF_ACTION(CastDarkPactAction, "dark pact");
 
-	class CastDrainManaAction : public CastSpellAction
-	{
-	public:
-		CastDrainManaAction(PlayerbotAI* ai) : CastSpellAction(ai, "drain mana") {}
-	};
+    // 施放吸取法力动作
+    class CastDrainManaAction : public CastSpellAction
+    {
+    public:
+        CastDrainManaAction(PlayerbotAI* ai) : CastSpellAction(ai, "drain mana") {}
+    };
 
-	class CastDrainLifeAction : public CastSpellAction
-	{
-	public:
-		CastDrainLifeAction(PlayerbotAI* ai) : CastSpellAction(ai, "drain life") {}
-	};
+    // 施放吸取生命动作
+    class CastDrainLifeAction : public CastSpellAction
+    {
+    public:
+        CastDrainLifeAction(PlayerbotAI* ai) : CastSpellAction(ai, "drain life") {}
+    };
 
+    // 施放疲劳诅咒动作
     class CastCurseOfExhaustionAction : public CastRangedDebuffSpellAction
     {
     public:
-		CastCurseOfExhaustionAction(PlayerbotAI* ai) : CastRangedDebuffSpellAction(ai, "curse of exhaustion") {}
+        CastCurseOfExhaustionAction(PlayerbotAI* ai) : CastRangedDebuffSpellAction(ai, "curse of exhaustion") {}
     };
 
-	class CastCorruptionAction : public CastRangedDebuffSpellAction
-	{
-	public:
-		CastCorruptionAction(PlayerbotAI* ai) : CastRangedDebuffSpellAction(ai, "corruption") {}
-	};
+    // 施放腐蚀术动作
+    class CastCorruptionAction : public CastRangedDebuffSpellAction
+    {
+    public:
+        CastCorruptionAction(PlayerbotAI* ai) : CastRangedDebuffSpellAction(ai, "corruption") {}
+    };
 
-	class CastCorruptionOnAttackerAction : public CastRangedDebuffSpellOnAttackerAction
-	{
-	public:
-	    CastCorruptionOnAttackerAction(PlayerbotAI* ai) : CastRangedDebuffSpellOnAttackerAction(ai, "corruption") {}
-	};
+    // 施放腐蚀术动作
+    class CastCorruptionOnAttackerAction : public CastRangedDebuffSpellOnAttackerAction
+    {
+    public:
+        CastCorruptionOnAttackerAction(PlayerbotAI* ai) : CastRangedDebuffSpellOnAttackerAction(ai, "corruption") {}
+    };
 
+    // 施放腐蚀之种动作
     class CastSeedOfCorruptionOnAttackerAction : public CastRangedDebuffSpellOnAttackerAction
     {
     public:
-		CastSeedOfCorruptionOnAttackerAction(PlayerbotAI* ai) : CastRangedDebuffSpellOnAttackerAction(ai, "seed of corruption") {}
+        CastSeedOfCorruptionOnAttackerAction(PlayerbotAI* ai) : CastRangedDebuffSpellOnAttackerAction(ai, "seed of corruption") {}
     };
 
+    // 施放痛苦无常动作
     class CastUnstableAfflictionOnAttackerAction : public CastRangedDebuffSpellOnAttackerAction
     {
     public:
-		CastUnstableAfflictionOnAttackerAction(PlayerbotAI* ai) : CastRangedDebuffSpellOnAttackerAction(ai, "unstable affliction") {}
+        CastUnstableAfflictionOnAttackerAction(PlayerbotAI* ai) : CastRangedDebuffSpellOnAttackerAction(ai, "unstable affliction") {}
     };
 
+    // 施放痛苦诅咒动作
     class CastCurseOfAgonyAction : public CastRangedDebuffSpellAction
     {
     public:
         CastCurseOfAgonyAction(PlayerbotAI* ai) : CastRangedDebuffSpellAction(ai, "curse of agony") {}
     };
 
+    // 施放痛苦诅咒动作
     class CastCurseOfAgonyOnAttackerAction : public CastRangedDebuffSpellOnAttackerAction
     {
     public:
         CastCurseOfAgonyOnAttackerAction(PlayerbotAI* ai) : CastRangedDebuffSpellOnAttackerAction(ai, "curse of agony") {}
     };
 
+    // 施放厄运诅咒动作
     class CastCurseOfDoomAction : public CastRangedDebuffSpellAction
     {
     public:
-		CastCurseOfDoomAction(PlayerbotAI* ai) : CastRangedDebuffSpellAction(ai, "curse of doom") {}
+        CastCurseOfDoomAction(PlayerbotAI* ai) : CastRangedDebuffSpellAction(ai, "curse of doom") {}
     };
 
+    // 施放厄运诅咒动作
     class CastCurseOfDoomOnAttackerAction : public CastRangedDebuffSpellOnAttackerAction
     {
     public:
-		CastCurseOfDoomOnAttackerAction(PlayerbotAI* ai) : CastRangedDebuffSpellOnAttackerAction(ai, "curse of doom") {}
+        CastCurseOfDoomOnAttackerAction(PlayerbotAI* ai) : CastRangedDebuffSpellOnAttackerAction(ai, "curse of doom") {}
     };
 
+    // 施放元素诅咒动作
     class CastCurseOfTheElementsAction : public CastRangedDebuffSpellAction
     {
     public:
         CastCurseOfTheElementsAction(PlayerbotAI* ai) : CastRangedDebuffSpellAction(ai, "curse of the elements") {}
     };
 
+    // 施放元素诅咒动作
     class CastCurseOfTheElementsOnAttackerAction : public CastRangedDebuffSpellOnAttackerAction
     {
     public:
         CastCurseOfTheElementsOnAttackerAction(PlayerbotAI* ai) : CastRangedDebuffSpellOnAttackerAction(ai, "curse of the elements") {}
     };
 
+    // 施放鲁莽诅咒动作
     class CastCurseOfRecklessnessAction : public CastRangedDebuffSpellAction
     {
     public:
         CastCurseOfRecklessnessAction(PlayerbotAI* ai) : CastRangedDebuffSpellAction(ai, "curse of recklessness") {}
     };
 
+    // 施放鲁莽诅咒动作
     class CastCurseOfRecklessnessOnAttackerAction : public CastRangedDebuffSpellOnAttackerAction
     {
     public:
         CastCurseOfRecklessnessOnAttackerAction(PlayerbotAI* ai) : CastRangedDebuffSpellOnAttackerAction(ai, "curse of recklessness") {}
     };
 
+    // 施放虚弱诅咒动作
     class CastCurseOfWeaknessAction : public CastRangedDebuffSpellAction
     {
     public:
         CastCurseOfWeaknessAction(PlayerbotAI* ai) : CastRangedDebuffSpellAction(ai, "curse of weakness") {}
     };
 
+    // 施放虚弱诅咒动作
     class CastCurseOfWeaknessOnAttackerAction : public CastRangedDebuffSpellOnAttackerAction
     {
     public:
         CastCurseOfWeaknessOnAttackerAction(PlayerbotAI* ai) : CastRangedDebuffSpellOnAttackerAction(ai, "curse of weakness") {}
     };
 
+    // 施放语言诅咒动作
     class CastCurseOfTonguesAction : public CastRangedDebuffSpellAction
     {
     public:
         CastCurseOfTonguesAction(PlayerbotAI* ai) : CastRangedDebuffSpellAction(ai, "curse of tongues") {}
     };
 
+    // 施放语言诅咒动作
     class CastCurseOfTonguesOnAttackerAction : public CastRangedDebuffSpellOnAttackerAction
     {
     public:
         CastCurseOfTonguesOnAttackerAction(PlayerbotAI* ai) : CastRangedDebuffSpellOnAttackerAction(ai, "curse of tongues") {}
     };
 
+    // 施放暗影诅咒动作
     class CastCurseOfShadowAction : public CastRangedDebuffSpellAction
     {
     public:
         CastCurseOfShadowAction(PlayerbotAI* ai) : CastRangedDebuffSpellAction(ai, "curse of shadow") {}
     };
 
+    // 施放暗影诅咒动作
     class CastCurseOfShadowOnAttackerAction : public CastRangedDebuffSpellOnAttackerAction
     {
     public:
         CastCurseOfShadowOnAttackerAction(PlayerbotAI* ai) : CastRangedDebuffSpellOnAttackerAction(ai, "curse of shadow") {}
     };
 
+    // 施放恶魔牺牲动作
     class CastDemonicSacrificeAction : public CastBuffSpellAction
     {
     public:
-		CastDemonicSacrificeAction(PlayerbotAI* ai) : CastBuffSpellAction(ai, "demonic sacrifice") {}
+        CastDemonicSacrificeAction(PlayerbotAI* ai) : CastBuffSpellAction(ai, "demonic sacrifice") {}
     };
 
+    // 施放灵魂链接动作
     class CastSoulLinkAction : public CastBuffSpellAction
     {
     public:
-		CastSoulLinkAction(PlayerbotAI* ai) : CastBuffSpellAction(ai, "soul link") {}
+        CastSoulLinkAction(PlayerbotAI* ai) : CastBuffSpellAction(ai, "soul link") {}
     };
 
+    // 施放牺牲动作
     class CastSacrificeAction : public CastPetSpellAction
     {
     public:
@@ -271,12 +310,14 @@ namespace ai
         std::string GetTargetName() override { return "self target"; }
     };
 
+    // 施放法术封锁动作
     class CastSpellLockAction : public CastPetSpellAction
     {
     public:
         CastSpellLockAction(PlayerbotAI* ai) : CastPetSpellAction(ai, "spell lock") {}
     };
 
+    // 施放法术封锁动作
     class CastSpellLockOnEnemyHealerAction : public CastPetSpellAction
     {
     public:
@@ -286,10 +327,11 @@ namespace ai
         virtual std::string getName() override { return GetSpellName() + " on enemy healer"; }
     };
 
-	class CastSummonImpAction : public CastBuffSpellAction
-	{
-	public:
-		CastSummonImpAction(PlayerbotAI* ai) : CastBuffSpellAction(ai, "summon imp") {}
+    // 施放召唤小鬼动作
+    class CastSummonImpAction : public CastBuffSpellAction
+    {
+    public:
+        CastSummonImpAction(PlayerbotAI* ai) : CastBuffSpellAction(ai, "summon imp") {}
         std::string GetTargetName() override { return "self target"; }
 
         bool isUseful() override
@@ -302,8 +344,9 @@ namespace ai
 
             return true;
         }
-	};
+    };
 
+    // 施放召唤魅魔动作
     class CastSummonSuccubusAction : public CastSpellAction
     {
     public:
@@ -322,10 +365,11 @@ namespace ai
         }
     };
 
-	class CastSummonFelhunterAction : public CastSpellAction
-	{
-	public:
-		CastSummonFelhunterAction(PlayerbotAI* ai) : CastSpellAction(ai, "summon felhunter") {}
+    // 施放召唤地狱猎犬动作
+    class CastSummonFelhunterAction : public CastSpellAction
+    {
+    public:
+        CastSummonFelhunterAction(PlayerbotAI* ai) : CastSpellAction(ai, "summon felhunter") {}
         std::string GetTargetName() override { return "self target"; }
 
         bool isUseful() override
@@ -338,8 +382,9 @@ namespace ai
 
             return true;
         }
-	};
+    };
 
+    // 施放召唤虚空行者动作
     class CastSummonVoidwalkerAction : public CastSpellAction
     {
     public:
@@ -358,6 +403,7 @@ namespace ai
         }
     };
 
+    // 施放召唤恶魔卫士动作
     class CastSummonFelguardAction : public CastSpellAction
     {
     public:
@@ -376,20 +422,23 @@ namespace ai
         }
     };
 
-	class CastSummonInfernoAction : public CastSpellAction
-	{
-	public:
-		CastSummonInfernoAction(PlayerbotAI* ai) : CastSpellAction(ai, "inferno") {}
-		virtual bool isPossible() { return true; }
-	};
+    // 施放地狱火动作
+    class CastSummonInfernoAction : public CastSpellAction
+    {
+    public:
+        CastSummonInfernoAction(PlayerbotAI* ai) : CastSpellAction(ai, "inferno") {}
+        virtual bool isPossible() { return true; }
+    };
 
-	class CastCreateHealthstoneAction : public CastSpellAction
-	{
-	public:
-		CastCreateHealthstoneAction(PlayerbotAI* ai) : CastSpellAction(ai, "create healthstone") {}
+    // 施放制造治疗石动作
+    class CastCreateHealthstoneAction : public CastSpellAction
+    {
+    public:
+        CastCreateHealthstoneAction(PlayerbotAI* ai) : CastSpellAction(ai, "create healthstone") {}
         std::string GetTargetName() override { return "self target"; }
-	};
+    };
 
+        // 施放制造灵魂石动作
         class CastCreateSoulstoneAction : public CastSpellAction
         {
         public:
@@ -397,20 +446,23 @@ namespace ai
         std::string GetTargetName() override { return "self target"; }
         };
 
-	class CastCreateFirestoneAction : public CastSpellAction
-	{
-	public:
-		CastCreateFirestoneAction(PlayerbotAI* ai) : CastSpellAction(ai, "create firestone") {}
+    // 施放制造火焰石动作
+    class CastCreateFirestoneAction : public CastSpellAction
+    {
+    public:
+        CastCreateFirestoneAction(PlayerbotAI* ai) : CastSpellAction(ai, "create firestone") {}
         std::string GetTargetName() override { return "self target"; }
-	};
+    };
 
-	class CastCreateSpellstoneAction : public CastSpellAction
-	{
-	public:
-		CastCreateSpellstoneAction(PlayerbotAI* ai) : CastSpellAction(ai, "create spellstone") {}
+    // 施放制造法术石动作
+    class CastCreateSpellstoneAction : public CastSpellAction
+    {
+    public:
+        CastCreateSpellstoneAction(PlayerbotAI* ai) : CastSpellAction(ai, "create spellstone") {}
         std::string GetTargetName() override { return "self target"; }
-	};
+    };
 
+    // 施放放逐术动作
     class CastBanishAction : public CastSpellAction
     {
     public:
@@ -420,63 +472,75 @@ namespace ai
         virtual ActionThreatType getThreatType() { return ActionThreatType::ACTION_THREAT_NONE; }
     };
 
+    // 施放放逐术动作
     class CastBanishOnCcAction : public CastCrowdControlSpellAction
     {
     public:
         CastBanishOnCcAction(PlayerbotAI* ai) : CastCrowdControlSpellAction(ai, "banish") {}
     };
 
+    // 施放腐蚀之种动作
     class CastSeedOfCorruptionAction : public CastRangedDebuffSpellAction
     {
     public:
         CastSeedOfCorruptionAction(PlayerbotAI* ai) : CastRangedDebuffSpellAction(ai, "seed of corruption") {}
     };
 
+    // 施放火焰之雨动作
     class CastRainOfFireAction : public CastSpellAction
     {
     public:
         CastRainOfFireAction(PlayerbotAI* ai) : CastSpellAction(ai, "rain of fire") {}
     };
 
+    // 施放暗影之怒动作
     class CastShadowfuryAction : public CastSpellAction
     {
     public:
         CastShadowfuryAction(PlayerbotAI* ai) : CastSpellAction(ai, "shadowfury") {}
     };
 
-	SNARE_ACTION(CastShadowfurySnareAction, "shadowfury");
-	RANGED_DEBUFF_ACTION(CastUnstableAfflictionAction, "unstable affliction");
+    // 减速技能动作：暗影之怒 (CastShadowfurySnareAction)
+    SNARE_ACTION(CastShadowfurySnareAction, "shadowfury");
+    // 远程减益技能动作：痛苦无常 (CastUnstableAfflictionAction)
+    RANGED_DEBUFF_ACTION(CastUnstableAfflictionAction, "unstable affliction");
 
+    // 施放献祭动作
     class CastImmolateAction : public CastRangedDebuffSpellAction
     {
     public:
         CastImmolateAction(PlayerbotAI* ai) : CastRangedDebuffSpellAction(ai, "immolate") {}
     };
 
+    // 施放点燃动作
     class CastConflagrateAction : public CastSpellAction
     {
     public:
         CastConflagrateAction(PlayerbotAI* ai) : CastSpellAction(ai, "conflagrate") {}
     };
 
+    // 施放烧尽动作
     class CastIncinerateAction : public CastSpellAction
     {
     public:
         CastIncinerateAction(PlayerbotAI* ai) : CastSpellAction(ai, "incinerate") {}
     };
 
+    // 施放恐惧术动作
     class CastFearAction : public CastRangedDebuffSpellAction
     {
     public:
         CastFearAction(PlayerbotAI* ai) : CastRangedDebuffSpellAction(ai, "fear") {}
     };
 
+    // 施放恐惧术动作
     class CastFearOnCcAction : public CastCrowdControlSpellAction
     {
     public:
         CastFearOnCcAction(PlayerbotAI* ai) : CastCrowdControlSpellAction(ai, "fear") {}
     };
 
+    // 施放生命分流动作
     class CastLifeTapAction: public CastSpellAction
     {
     public:
@@ -485,32 +549,38 @@ namespace ai
         virtual bool isUseful() override { return AI_VALUE2(uint8, "health", "self target") > sPlayerbotAIConfig.lowHealth; }
     };
 
+    // 施放诅咒增幅动作
     class CastAmplifyCurseAction : public CastBuffSpellAction
     {
     public:
         CastAmplifyCurseAction(PlayerbotAI* ai) : CastBuffSpellAction(ai, "amplify curse") {}
     };
 
+    // 施放生命虹吸动作
     class CastSiphonLifeAction : public CastRangedDebuffSpellAction
     {
     public:
         CastSiphonLifeAction(PlayerbotAI* ai) : CastRangedDebuffSpellAction(ai, "siphon life") {}
     };
 
+    // 施放生命虹吸动作
     class CastSiphonLifeOnAttackerAction : public CastRangedDebuffSpellOnAttackerAction
     {
     public:
         CastSiphonLifeOnAttackerAction(PlayerbotAI* ai) : CastRangedDebuffSpellOnAttackerAction(ai, "siphon life") {}
     };
 
+    // 施放恐惧嚎叫动作
     class CastHowlOfTerrorAction : public CastMeleeAoeSpellAction
     {
     public:
-		CastHowlOfTerrorAction(PlayerbotAI* ai) : CastMeleeAoeSpellAction(ai, "howl of terror", 10.0f) {}
+        CastHowlOfTerrorAction(PlayerbotAI* ai) : CastMeleeAoeSpellAction(ai, "howl of terror", 10.0f) {}
     };
 
-	SPELL_ACTION(CastSearingPainAction, "searing pain");
+    // 法术施放动作：灼热之痛 (CastSearingPainAction)
+    SPELL_ACTION(CastSearingPainAction, "searing pain");
 
+    // 施放更新PVE策略动作
     class UpdateWarlockPveStrategiesAction : public UpdateStrategyDependenciesAction
     {
     public:
@@ -608,6 +678,7 @@ namespace ai
         }
     };
 
+    // 施放更新PVP策略动作
     class UpdateWarlockPvpStrategiesAction : public UpdateStrategyDependenciesAction
     {
     public:
@@ -705,6 +776,7 @@ namespace ai
         }
     };
 
+    // 施放更新团队副本策略动作
     class UpdateWarlockRaidStrategiesAction : public UpdateStrategyDependenciesAction
     {
     public:

@@ -1,8 +1,10 @@
+// 法师 - 火焰法师策略头文件 (FireMageStrategy.h)
 #pragma once
 #include "MageStrategy.h"
 
 namespace ai
 {
+    // 火焰法师专精占位策略：用于专精识别与占位的策略类
     class FireMagePlaceholderStrategy : public SpecPlaceholderStrategy
     {
     public:
@@ -11,6 +13,7 @@ namespace ai
         std::string getName() override { return "fire"; }
     };
 
+    // 火焰法师策略：定义该专精/场景下的触发器与默认行为
     class FireMageStrategy : public MageStrategy
     {
     public:
@@ -25,6 +28,7 @@ namespace ai
         virtual NextAction** GetDefaultCombatActions() override;
     };
 
+    // 火焰法师PVE策略：定义该专精/场景下的触发器与默认行为
     class FireMagePveStrategy : public FireMageStrategy
     {
     public:
@@ -38,6 +42,7 @@ namespace ai
         void InitDeadTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 火焰法师PVP策略：定义该专精/场景下的触发器与默认行为
     class FireMagePvpStrategy : public FireMageStrategy
     {
     public:
@@ -51,6 +56,7 @@ namespace ai
         void InitDeadTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 火焰法师团队副本策略：定义该专精/场景下的触发器与默认行为
     class FireMageRaidStrategy : public FireMageStrategy
     {
     public:
@@ -64,6 +70,7 @@ namespace ai
         void InitDeadTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 火焰法师AOE群体策略：定义该专精/场景下的触发器与默认行为
     class FireMageAoeStrategy : public MageAoeStrategy
     {
     public:
@@ -74,6 +81,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 火焰法师AOE群体PVE策略：定义该专精/场景下的触发器与默认行为
     class FireMageAoePveStrategy : public FireMageAoeStrategy
     {
     public:
@@ -85,6 +93,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 火焰法师AOE群体PVP策略：定义该专精/场景下的触发器与默认行为
     class FireMageAoePvpStrategy : public FireMageAoeStrategy
     {
     public:
@@ -96,6 +105,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 火焰法师AOE群体团队副本策略：定义该专精/场景下的触发器与默认行为
     class FireMageAoeRaidStrategy : public FireMageAoeStrategy
     {
     public:
@@ -107,6 +117,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 火焰法师增益Buff策略：定义该专精/场景下的触发器与默认行为
     class FireMageBuffStrategy : public MageBuffStrategy
     {
     public:
@@ -117,6 +128,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 火焰法师增益BuffPVE策略：定义该专精/场景下的触发器与默认行为
     class FireMageBuffPveStrategy : public FireMageBuffStrategy
     {
     public:
@@ -128,6 +140,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 火焰法师增益BuffPVP策略：定义该专精/场景下的触发器与默认行为
     class FireMageBuffPvpStrategy : public FireMageBuffStrategy
     {
     public:
@@ -139,6 +152,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 火焰法师增益Buff团队副本策略：定义该专精/场景下的触发器与默认行为
     class FireMageBuffRaidStrategy : public FireMageBuffStrategy
     {
     public:
@@ -150,6 +164,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 火焰法师爆发增益策略：定义该专精/场景下的触发器与默认行为
     class FireMageBoostStrategy : public MageBoostStrategy
     {
     public:
@@ -160,6 +175,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 火焰法师爆发增益PVE策略：定义该专精/场景下的触发器与默认行为
     class FireMageBoostPveStrategy : public FireMageBoostStrategy
     {
     public:
@@ -171,6 +187,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 火焰法师爆发增益PVP策略：定义该专精/场景下的触发器与默认行为
     class FireMageBoostPvpStrategy : public FireMageBoostStrategy
     {
     public:
@@ -182,6 +199,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 火焰法师爆发增益团队副本策略：定义该专精/场景下的触发器与默认行为
     class FireMageBoostRaidStrategy : public FireMageBoostStrategy
     {
     public:
@@ -193,6 +211,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 火焰法师控制(CC)策略：定义该专精/场景下的触发器与默认行为
     class FireMageCcStrategy : public MageCcStrategy
     {
     public:
@@ -203,6 +222,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 火焰法师控制(CC)PVE策略：定义该专精/场景下的触发器与默认行为
     class FireMageCcPveStrategy : public FireMageCcStrategy
     {
     public:
@@ -214,6 +234,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 火焰法师控制(CC)PVP策略：定义该专精/场景下的触发器与默认行为
     class FireMageCcPvpStrategy : public FireMageCcStrategy
     {
     public:
@@ -225,6 +246,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 火焰法师控制(CC)团队副本策略：定义该专精/场景下的触发器与默认行为
     class FireMageCcRaidStrategy : public FireMageCcStrategy
     {
     public:
@@ -236,6 +258,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 火焰法师驱散净化策略：定义该专精/场景下的触发器与默认行为
     class FireMageCureStrategy : public MageCureStrategy
     {
     public:
@@ -246,6 +269,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 火焰法师驱散净化PVE策略：定义该专精/场景下的触发器与默认行为
     class FireMageCurePveStrategy : public FireMageCureStrategy
     {
     public:
@@ -257,6 +281,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 火焰法师驱散净化PVP策略：定义该专精/场景下的触发器与默认行为
     class FireMageCurePvpStrategy : public FireMageCureStrategy
     {
     public:
@@ -268,6 +293,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 火焰法师驱散净化团队副本策略：定义该专精/场景下的触发器与默认行为
     class FireMageCureRaidStrategy : public FireMageCureStrategy
     {
     public:

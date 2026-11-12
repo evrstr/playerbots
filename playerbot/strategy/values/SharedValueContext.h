@@ -1,3 +1,4 @@
+// 策略值头文件：SharedValueContext（跨机器人共享的全局只读策略值上下文与单例）
 #pragma once
 
 #include "PvpValues.h"
@@ -11,6 +12,7 @@
 
 namespace ai
 {
+    // 全局共享值注册上下文：注册全服掉落表、任务关系表、全坐骑表等跨机器人共享的只读计算值
     class SharedValueContext : public NamedObjectContext<UntypedValue>
     {
     public:
@@ -46,6 +48,7 @@ namespace ai
     };
 
 
+    // 共享值对象管理器：提供全局共享值的线程级缓存访问与模板查询接口
     class SharedObjectContext
     {
     public:

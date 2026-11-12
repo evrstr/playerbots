@@ -1,3 +1,4 @@
+// 策略值实现：AoeValues（AOE 密集点查找与区域减益判断）
 
 #include "playerbot/playerbot.h"
 #include "AoeValues.h"
@@ -6,6 +7,7 @@
 #include "playerbot/ServerFacade.h"
 using namespace ai;
 
+// 在指定距离内按两倍 AOE 半径聚类，返回敌人数最多的目标群组
 std::list<ObjectGuid> AoeCountValue::FindMaxDensity(Player* bot, float range)
 {
     int maxCount = 0;
@@ -54,13 +56,14 @@ std::list<ObjectGuid> AoeCountValue::FindMaxDensity(Player* bot, float range)
     return groups[maxGroup];
 }
 
+// 根据最大密集敌群的包围盒中心计算 AOE 释放坐标
 WorldLocation AoePositionValue::Calculate()
 {
     std::list<ObjectGuid> group = AoeCountValue::FindMaxDensity(bot);
     if (group.empty())
         return WorldLocation();
 
-    // Note: don't know where these values come from or even used.
+    // Note: don't know where these values come from or even used. | 注：暂不确定这些坐标数值的来源及具体用途
     float x1, y1, x2, y2;
     for (std::list<ObjectGuid>::iterator i = group.begin(); i != group.end(); ++i)
     {
@@ -84,11 +87,13 @@ WorldLocation AoePositionValue::Calculate()
     return WorldLocation(bot->GetMapId(), x, y, z, 0);
 }
 
+// 返回当前最大密集敌群的目标数量
 uint8 AoeCountValue::Calculate()
 {
     return FindMaxDensity(bot).size();
 }
 
+// 遍历附近忽略视线的动态法术对象，检查目标是否处于非正向区域法术影响中
 bool HasAreaDebuffValue::Calculate()
 {
     if (!GetTarget())
@@ -112,7 +117,7 @@ bool HasAreaDebuffValue::Calculate()
         if (!spellProto)
             continue;
         
-        // I will not move when flame wreath is cast or the raid blows up
+        // I will not move when flame wreath is cast or the raid blows up | 遇到火圈（烈焰花环 29946）时不躲避，否则会导致灭团
         if (spellProto->Id == 29946)
             continue;
 

@@ -15,6 +15,7 @@
 #include "playerbot/PlayerbotAIConfig.h"
 #include "playerbot/WorldPosition.h"
 
+/// 核心服务端 API 兼容外观层，屏蔽 MaNGOS 与 CMaNGOS 不同版本间的函数名与参数差异
 class ServerFacade
 {
     public:
@@ -26,7 +27,7 @@ class ServerFacade
             return instance;
         }
 
-	public:
+    public:
         bool UnitIsDead(Unit *unit)
         {
 #ifdef MANGOS

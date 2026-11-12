@@ -5,6 +5,7 @@
 
 using namespace ai;
 
+/// 执行动作主逻辑（移除指定光环动作）
 bool RemoveAuraAction::Execute(Event& event)
 {
     std::string spell = aura;

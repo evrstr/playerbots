@@ -5,6 +5,7 @@
 
 using namespace ai;
 
+/// 执行动作主逻辑（列出任务指令动作）
 bool ListQuestsAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -35,6 +36,7 @@ bool ListQuestsAction::Execute(Event& event)
     return true;
 }
 
+/// 按过滤条件格式化并输出任务日志清单
 void ListQuestsAction::ListQuests(Player* requester, QuestListFilter filter, QuestTravelDetail travelDetail, std::set<uint32> onlyQuestIds)
 {
     bool showIncompleted = filter & QUEST_LIST_FILTER_INCOMPLETED;
@@ -54,6 +56,7 @@ void ListQuestsAction::ListQuests(Player* requester, QuestListFilter filter, Que
     ai->TellPlayer(requester, out);
 }
 
+/// 按过滤条件格式化并输出任务日志清单
 int ListQuestsAction::ListQuests(Player* requester, bool completed, bool silent, QuestTravelDetail travelDetail, std::set<uint32> onlyQuestIds)
 {
     TravelTarget* target;

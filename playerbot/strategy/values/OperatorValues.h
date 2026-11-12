@@ -1,8 +1,10 @@
+// 策略值头文件：OperatorValues（策略组合逻辑运算符：与/非/或/大于比较）
 #pragma once
 #include "playerbot/strategy/Value.h"
 
 namespace ai
 {
+    // 逻辑与计算器：判断逗号分隔的多个布尔 AI 值是否全部为真
     class BoolAndValue : public BoolCalculatedValue, public Qualified
     {
     public:
@@ -10,7 +12,7 @@ namespace ai
         virtual bool Calculate() override;
 
 #ifdef GenerateBotHelp
-        virtual std::string GetHelpName() { return "bool and"; } //Must equal iternal name
+        virtual std::string GetHelpName() { return "bool and"; } //Must equal iternal name | 必须与内部名称一致
         virtual std::string GetHelpTypeName() { return "operator"; }
         virtual std::string GetHelpDescription()
         {
@@ -20,6 +22,7 @@ namespace ai
 #endif 
     };
 
+    // 逻辑非计算器：判断逗号分隔的多个布尔 AI 值是否全部为假
     class NotValue : public BoolCalculatedValue, public Qualified
     {
     public:
@@ -27,7 +30,7 @@ namespace ai
         virtual bool Calculate() override;
 
 #ifdef GenerateBotHelp
-        virtual std::string GetHelpName() { return "not"; } //Must equal iternal name
+        virtual std::string GetHelpName() { return "not"; } //Must equal iternal name | 必须与内部名称一致
         virtual std::string GetHelpTypeName() { return "operator"; }
         virtual std::string GetHelpDescription()
         {
@@ -37,6 +40,7 @@ namespace ai
 #endif 
     };
 
+    // 逻辑或计算器：判断逗号分隔的多个布尔 AI 值中是否至少有一个为真
     class BoolOrValue : public BoolCalculatedValue, public Qualified
     {
     public:
@@ -44,7 +48,7 @@ namespace ai
         virtual bool Calculate() override;
 
 #ifdef GenerateBotHelp
-        virtual std::string GetHelpName() { return "bool or"; } //Must equal iternal name
+        virtual std::string GetHelpName() { return "bool or"; } //Must equal iternal name | 必须与内部名称一致
         virtual std::string GetHelpTypeName() { return "operator"; }
         virtual std::string GetHelpDescription()
         {
@@ -54,6 +58,7 @@ namespace ai
 #endif 
     };
 
+    // 数值比较计算器：比较两个数值或 AI 值的大小（左值大于右值时返回真）
     class GT32Value : public BoolCalculatedValue, public Qualified
     {
     public:
@@ -61,7 +66,7 @@ namespace ai
         virtual bool Calculate() override;
 
 #ifdef GenerateBotHelp
-        virtual std::string GetHelpName() { return "gt"; } //Must equal iternal name
+        virtual std::string GetHelpName() { return "gt"; } //Must equal iternal name | 必须与内部名称一致
         virtual std::string GetHelpTypeName() { return "operator"; }
         virtual std::string GetHelpDescription()
         {

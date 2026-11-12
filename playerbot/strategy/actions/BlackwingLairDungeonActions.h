@@ -9,23 +9,30 @@ namespace ai
 {
     const uint32 SPELL_DISARM_TRAP = 1842;
 
+    /// 启用黑翼之巢副本策略动作：开启黑翼之巢团队副本专用战术策略
     class BlackwingLairEnableDungeonStrategyAction : public ChangeAllStrategyAction
     {
     public:
+        /// 构造函数：初始化启用黑翼之巢副本策略动作
         BlackwingLairEnableDungeonStrategyAction(PlayerbotAI* ai) : ChangeAllStrategyAction(ai, "enable blackwing lair strategy", "+blackwing lair") {}
     };
 
+    /// 禁用黑翼之巢副本策略动作：离开或完成时关闭黑翼之巢副本策略
     class BlackwingLairDisableDungeonStrategyAction : public ChangeAllStrategyAction
     {
     public:
+        /// 构造函数：初始化禁用黑翼之巢副本策略动作
         BlackwingLairDisableDungeonStrategyAction(PlayerbotAI* ai) : ChangeAllStrategyAction(ai, "disable blackwing lair strategy", "-blackwing lair") {}
     };
 
+    /// 前往压制装置动作（黑翼之巢）：引导盗贼前往陷阱房中的龙族压制装置附近
     class MoveToSuppressionDeviceAction : public MovementAction
     {
     public:
+        /// 构造函数：初始化前往压制装置动作（黑翼之巢）
         MoveToSuppressionDeviceAction(PlayerbotAI* ai) : MovementAction(ai, "move to suppression device") {}
 
+        /// 执行动作主逻辑（前往压制装置动作（黑翼之巢））
         bool Execute(Event& event) override
         {
             std::list<GuidPosition> gos = AI_VALUE(std::list<GuidPosition>, "go usable filter::go trapped filter::entry filter::{gos in sight,suppression devices}");
@@ -58,11 +65,13 @@ namespace ai
             return MoveTo(closest.getMapId(), closest.getX(), closest.getY(), closest.getZ());
         }
 
+        /// 判断执行该动作的前置条件是否满足（前往压制装置动作（黑翼之巢））
         bool isPossible() override
         {
             return ai->CanMove();
         }
 
+        /// 判断当前状态下该动作是否可用/有效（前往压制装置动作（黑翼之巢））
         bool isUseful() override
         {
             std::list<GuidPosition> gos = AI_VALUE(std::list<GuidPosition>, "go usable filter::go trapped filter::entry filter::{gos in sight,suppression devices}");
@@ -70,11 +79,14 @@ namespace ai
         }
     };
 
+    /// 潜行接近压制装置动作（黑翼之巢）：盗贼在解除陷阱前进入潜行状态
     class StealthForSuppressionDeviceAction : public Action
     {
     public:
+        /// 构造函数：初始化潜行接近压制装置动作（黑翼之巢）
         StealthForSuppressionDeviceAction(PlayerbotAI* ai) : Action(ai, "stealth for suppression device") {}
 
+        /// 执行动作主逻辑（潜行接近压制装置动作（黑翼之巢））
         bool Execute(Event& event) override
         {
             if (bot->getClass() != CLASS_ROGUE)
@@ -94,26 +106,31 @@ namespace ai
             return false;
         }
 
+        /// 判断执行该动作的前置条件是否满足（潜行接近压制装置动作（黑翼之巢））
         bool isPossible() override
         {
             return bot->getClass() == CLASS_ROGUE && !ai->HasAura("stealth", bot);
         }
 
+        /// 判断当前状态下该动作是否可用/有效（潜行接近压制装置动作（黑翼之巢））
         bool isUseful() override
         {
             if (ai->HasAura("stealth", bot))
                 return false;
 
-            // Core rogue stealth logic had some WSG/EYE flag checks, added in here too just in case
+            // Core rogue stealth logic had some WSG/EYE flag checks, added in here too just in case (核心盗贼潜行逻辑包含战歌/风暴旗帜检查，此处一并加入以防万一)
             return !ai->HasAura(23333, bot) && !ai->HasAura(23335, bot) && !ai->HasAura(34976, bot);
         }
     };
 
+    /// 停用压制装置动作（黑翼之巢）：与开启的压制装置交互使其暂时失效
     class DeactivateSuppressionDeviceAction : public Action
     {
     public:
+        /// 构造函数：初始化停用压制装置动作（黑翼之巢）
         DeactivateSuppressionDeviceAction(PlayerbotAI* ai) : Action(ai, "deactivate suppression device") {}
 
+        /// 执行动作主逻辑（停用压制装置动作（黑翼之巢））
         bool Execute(Event& event) override
         {
             std::list<GuidPosition> gos = AI_VALUE(std::list<GuidPosition>, "entry filter::{gos close,suppression devices}");
@@ -148,17 +165,21 @@ namespace ai
             return false;
         }
 
+        /// 判断执行该动作的前置条件是否满足（停用压制装置动作（黑翼之巢））
         bool isPossible() override
         {
             return ai->CanMove();
         }
     };
 
+    /// 解除压制装置陷阱动作（黑翼之巢）：盗贼施放解除陷阱技能关闭压制装置
     class DisarmSuppressionDeviceAction : public Action
     {
     public:
+        /// 构造函数：初始化解除压制装置陷阱动作（黑翼之巢）
         DisarmSuppressionDeviceAction(PlayerbotAI* ai) : Action(ai, "disarm suppression device") {}
 
+        /// 执行动作主逻辑（解除压制装置陷阱动作（黑翼之巢））
         bool Execute(Event& event) override
         {
             if (bot->getClass() != CLASS_ROGUE)
@@ -204,6 +225,7 @@ namespace ai
             return ai->CastSpell(SPELL_DISARM_TRAP, closestGo);
         }
 
+        /// 判断执行该动作的前置条件是否满足（解除压制装置陷阱动作（黑翼之巢））
         bool isPossible() override
         {
             return bot->getClass() == CLASS_ROGUE && 
@@ -211,6 +233,7 @@ namespace ai
                    ai->CanMove();
         }
 
+        /// 判断当前状态下该动作是否可用/有效（解除压制装置陷阱动作（黑翼之巢））
         bool isUseful() override
         {
             std::list<GuidPosition> gos = AI_VALUE(std::list<GuidPosition>, "go usable filter::go trapped filter::entry filter::{gos close,suppression devices}");

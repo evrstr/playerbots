@@ -1,13 +1,17 @@
+// 潜行者 - 动作头文件 (RogueActions.h)：定义潜行者专用技能施放与战斗动作
 #pragma once
 #include "playerbot/strategy/actions/GenericActions.h"
 #include "playerbot/strategy/actions/UseItemAction.h"
 
 namespace ai
 {
+    // 自我增益动作：冷血 (CastColdBloodAction)
     BUFF_ACTION(CastColdBloodAction, "cold blood");
 
+    // 条件自我增益动作：伺机待发 (CastPreparationAction)
     BUFF_ACTION_U(CastPreparationAction, "preparation", !bot->IsSpellReady(14177) || !bot->IsSpellReady(2983) || !bot->IsSpellReady(2094));
 
+    // 施放暗影步动作
     class CastShadowstepAction : public CastSpellAction 
     {
     public:
@@ -26,19 +30,22 @@ namespace ai
         }
     };
 
-	class CastEvasionAction : public CastBuffSpellAction
-	{
-	public:
-		CastEvasionAction(PlayerbotAI* ai) : CastBuffSpellAction(ai, "evasion") {}
-	};
+    // 施放闪避动作
+    class CastEvasionAction : public CastBuffSpellAction
+    {
+    public:
+        CastEvasionAction(PlayerbotAI* ai) : CastBuffSpellAction(ai, "evasion") {}
+    };
 
-	class CastSprintAction : public CastBuffSpellAction
-	{
-	public:
-		CastSprintAction(PlayerbotAI* ai) : CastBuffSpellAction(ai, "sprint") {}
+    // 施放疾跑动作
+    class CastSprintAction : public CastBuffSpellAction
+    {
+    public:
+        CastSprintAction(PlayerbotAI* ai) : CastBuffSpellAction(ai, "sprint") {}
         virtual std::string GetTargetName() override { return "self target"; }
-	};
+    };
 
+    // 施放潜行动作
     class CastStealthAction : public CastBuffSpellAction
     {
     public:
@@ -70,6 +77,7 @@ namespace ai
         }
     };
 
+    // 施放解除潜行动作
     class RogueUnstealthAction : public Action 
     {
     public:
@@ -89,6 +97,7 @@ namespace ai
         }
     };
 
+    // 施放检查潜行动作
     class CheckStealthAction : public Action 
     {
     public:
@@ -123,34 +132,39 @@ namespace ai
         }
     };
 
-	class CastKickAction : public CastMeleeSpellAction
-	{
-	public:
-		CastKickAction(PlayerbotAI* ai) : CastMeleeSpellAction(ai, "kick") {}
-	};
+    // 施放脚踢动作
+    class CastKickAction : public CastMeleeSpellAction
+    {
+    public:
+        CastKickAction(PlayerbotAI* ai) : CastMeleeSpellAction(ai, "kick") {}
+    };
 
-	class CastFeintAction : public CastBuffSpellAction
-	{
-	public:
-		CastFeintAction(PlayerbotAI* ai) : CastBuffSpellAction(ai, "feint") {}
-	};
+    // 施放佯攻动作
+    class CastFeintAction : public CastBuffSpellAction
+    {
+    public:
+        CastFeintAction(PlayerbotAI* ai) : CastBuffSpellAction(ai, "feint") {}
+    };
 
-	class CastDismantleAction : public CastSpellAction
-	{
-	public:
-		CastDismantleAction(PlayerbotAI* ai) : CastSpellAction(ai, "dismantle") {}
-	};
+    // 施放拆卸动作
+    class CastDismantleAction : public CastSpellAction
+    {
+    public:
+        CastDismantleAction(PlayerbotAI* ai) : CastSpellAction(ai, "dismantle") {}
+    };
 
-	class CastDistractAction : public CastSpellAction
-	{
-	public:
-		CastDistractAction(PlayerbotAI* ai) : CastSpellAction(ai, "distract") {}
-	};
+    // 施放扰乱动作
+    class CastDistractAction : public CastSpellAction
+    {
+    public:
+        CastDistractAction(PlayerbotAI* ai) : CastSpellAction(ai, "distract") {}
+    };
 
-	class CastVanishAction : public CastBuffSpellAction
-	{
-	public:
-		CastVanishAction(PlayerbotAI* ai) : CastBuffSpellAction(ai, "vanish") {}
+    // 施放消失动作
+    class CastVanishAction : public CastBuffSpellAction
+    {
+    public:
+        CastVanishAction(PlayerbotAI* ai) : CastBuffSpellAction(ai, "vanish") {}
 
         virtual bool isUseful()
         {
@@ -173,28 +187,33 @@ namespace ai
             }
             return false;
         }
-	};
+    };
 
+    // 范围近战减益动作：致盲 (CastBlindAction)
     MELEE_DEBUFF_ACTION_R(CastBlindAction, "blind", 10.0f);
 
-	class CastBladeFlurryAction : public CastBuffSpellAction
-	{
-	public:
-		CastBladeFlurryAction(PlayerbotAI* ai) : CastBuffSpellAction(ai, "blade flurry") {}
-	};
+    // 施放剑刃乱舞动作
+    class CastBladeFlurryAction : public CastBuffSpellAction
+    {
+    public:
+        CastBladeFlurryAction(PlayerbotAI* ai) : CastBuffSpellAction(ai, "blade flurry") {}
+    };
 
-	class CastAdrenalineRushAction : public CastBuffSpellAction
-	{
-	public:
-		CastAdrenalineRushAction(PlayerbotAI* ai) : CastBuffSpellAction(ai, "adrenaline rush") {}
-	};
+    // 施放冲动动作
+    class CastAdrenalineRushAction : public CastBuffSpellAction
+    {
+    public:
+        CastAdrenalineRushAction(PlayerbotAI* ai) : CastBuffSpellAction(ai, "adrenaline rush") {}
+    };
 
-	class CastKillingSpreeAction : public CastBuffSpellAction
-	{
-	public:
-		CastKillingSpreeAction(PlayerbotAI* ai) : CastBuffSpellAction(ai, "killing spree") {}
-	};
+    // 施放杀戮盛宴动作
+    class CastKillingSpreeAction : public CastBuffSpellAction
+    {
+    public:
+        CastKillingSpreeAction(PlayerbotAI* ai) : CastBuffSpellAction(ai, "killing spree") {}
+    };
 
+    // 施放脚踢动作
     class CastKickOnEnemyHealerAction : public CastSpellOnEnemyHealerAction
     {
     public:
@@ -207,18 +226,21 @@ namespace ai
         std::string GetReachActionName() override { return "reach melee"; }
     };
 
+    // 施放嫁祸诀窍动作
     class CastTricksOfTheTradeOnPartyAction : public BuffOnPartyAction 
     {
     public:
         CastTricksOfTheTradeOnPartyAction(PlayerbotAI* ai) : BuffOnPartyAction(ai, "tricks of the trade") {}
     };
 
+    // 施放暗影斗篷动作
     class CastCloakOfShadowsAction : public CastCureSpellAction
     {
     public:
         CastCloakOfShadowsAction(PlayerbotAI* ai) : CastCureSpellAction(ai, "cloak of shadows") {}
     };
 
+    // 施放闷棍动作
     class CastSapAction : public CastMeleeSpellAction
     {
     public:
@@ -232,54 +254,63 @@ namespace ai
         virtual bool isUseful() override { return true; }
     };
 
+    // 施放锁喉动作
     class CastGarroteAction : public CastMeleeSpellAction
     {
     public:
         CastGarroteAction(PlayerbotAI* ai) : CastMeleeSpellAction(ai, "garrote") {}
     };
 
+    // 施放偷袭动作
     class CastCheapShotAction : public CastMeleeSpellAction
     {
     public:
         CastCheapShotAction(PlayerbotAI* ai) : CastMeleeSpellAction(ai, "cheap shot") {}
     };
 
+    // 施放伏击动作
     class CastAmbushAction : public CastMeleeSpellAction
     {
     public:
         CastAmbushAction(PlayerbotAI* ai) : CastMeleeSpellAction(ai, "ambush") {}
     };
 
+    // 施放刺骨动作
     class CastEviscerateAction : public CastMeleeSpellAction
     {
     public:
         CastEviscerateAction(PlayerbotAI* ai) : CastMeleeSpellAction(ai, "eviscerate") {}
     };
 
+    // 施放切割动作
     class CastSliceAndDiceAction : public CastMeleeSpellAction
     {
     public:
         CastSliceAndDiceAction(PlayerbotAI* ai) : CastMeleeSpellAction(ai, "slice and dice") {}
     };
 
+    // 施放破甲动作
     class CastExposeArmorAction : public CastMeleeSpellAction
     {
     public:
         CastExposeArmorAction(PlayerbotAI* ai) : CastMeleeSpellAction(ai, "expose armor") {}
     };
 
+    // 施放割裂动作
     class CastRuptureAction : public CastMeleeDebuffSpellAction
     {
     public:
         CastRuptureAction(PlayerbotAI* ai) : CastMeleeDebuffSpellAction(ai, "rupture") {}
     };
 
+    // 施放肾击动作
     class CastKidneyShotAction : public CastMeleeSpellAction
     {
     public:
         CastKidneyShotAction(PlayerbotAI* ai) : CastMeleeSpellAction(ai, "kidney shot") {}
     };
 
+    // 施放潜行者连击终结技动作
     class CastComboAction : public CastMeleeSpellAction
     {
     public:
@@ -291,42 +322,49 @@ namespace ai
         }
     };
 
+    // 施放邪恶攻击动作
     class CastSinisterStrikeAction : public CastComboAction
     {
     public:
         CastSinisterStrikeAction(PlayerbotAI* ai) : CastComboAction(ai, "sinister strike") {}
     };
 
+    // 施放毁伤动作
     class CastMutilateAction : public CastComboAction
     {
     public:
         CastMutilateAction(PlayerbotAI* ai) : CastComboAction(ai, "mutilate") {}
     };
 
+    // 施放还击动作
     class CastRiposteAction : public CastComboAction
     {
     public:
         CastRiposteAction(PlayerbotAI* ai) : CastComboAction(ai, "riposte") {}
     };
 
+    // 施放凿击动作
     class CastGougeAction : public CastComboAction
     {
     public:
         CastGougeAction(PlayerbotAI* ai) : CastComboAction(ai, "gouge") {}
     };
 
+    // 施放背刺动作
     class CastBackstabAction : public CastComboAction
     {
     public:
         CastBackstabAction(PlayerbotAI* ai) : CastComboAction(ai, "backstab") {}
     };
 
+    // 施放出血动作
     class CastHemorrhageAction : public CastComboAction
     {
     public:
         CastHemorrhageAction(PlayerbotAI* ai) : CastComboAction(ai, "hemorrhage") {}
     };
 
+    // 施放鬼魅攻击动作
     class CastGhostlyStrikeAction : public CastComboAction
     {
     public:
@@ -339,8 +377,10 @@ namespace ai
         }
     };
 
+    // 法术施放动作：预谋 (CastPremeditationAction)
     SPELL_ACTION(CastPremeditationAction, "premeditation");
 
+    // 武器涂毒动作
     class ApplyPoisonAction : public Action
     {
     public:
@@ -477,42 +517,49 @@ namespace ai
         std::vector<uint32> poisonItemIds;
     };
 
+    // 涂抹致命毒药动作
     class ApplyDeadlyPoisonAction : public ApplyPoisonAction
     {
     public:
         ApplyDeadlyPoisonAction(PlayerbotAI* ai, bool inMainHand) : ApplyPoisonAction(ai, inMainHand, { 2892, 2893, 8984, 8985, 20844, 22053, 22054, 43232, 43233 }, "apply deadly poison") {}
     };
 
+    // 涂抹减速毒药动作
     class ApplyCripplingPoisonAction : public ApplyPoisonAction
     {
     public:
         ApplyCripplingPoisonAction(PlayerbotAI* ai, bool inMainHand) : ApplyPoisonAction(ai, inMainHand, { 3775, 3776 }, "apply crippling poison") {}
     };
 
+    // 涂抹麻痹毒药动作
     class ApplyMindPoisonAction : public ApplyPoisonAction
     {
     public:
         ApplyMindPoisonAction(PlayerbotAI* ai, bool inMainHand) : ApplyPoisonAction(ai, inMainHand, { 5237, 6951, 9186 }, "apply mind poison") {}
     };
 
+    // 涂抹速效毒药动作
     class ApplyInstantPoisonAction : public ApplyPoisonAction
     {
     public:
         ApplyInstantPoisonAction(PlayerbotAI* ai, bool inMainHand) : ApplyPoisonAction(ai, inMainHand, { 6947, 6949, 6950, 8926, 8927, 8928, 21927, 43230, 43231 }, "apply instant poison") {}
     };
 
+    // 涂抹致伤毒药动作
     class ApplyWoundPoisonAction : public ApplyPoisonAction
     {
     public:
         ApplyWoundPoisonAction(PlayerbotAI* ai, bool inMainHand) : ApplyPoisonAction(ai, inMainHand, { 10918, 10920, 10921, 10922, 22055, 43234, 43235 }, "apply wound poison") {}
     };
 
+    // 涂抹麻醉毒药动作
     class ApplyAnestheticPoisonAction : public ApplyPoisonAction
     {
     public:
         ApplyAnestheticPoisonAction(PlayerbotAI* ai, bool inMainHand) : ApplyPoisonAction(ai, inMainHand, { 21835, 43237 }, "apply anesthetic poison") {}
     };
 
+    // 施放更新PVE策略动作
     class UpdateRoguePveStrategiesAction : public UpdateStrategyDependenciesAction
     {
     public:
@@ -610,6 +657,7 @@ namespace ai
         }
     };
 
+    // 施放更新PVP策略动作
     class UpdateRoguePvpStrategiesAction : public UpdateStrategyDependenciesAction
     {
     public:
@@ -707,6 +755,7 @@ namespace ai
         }
     };
 
+    // 施放更新团队副本策略动作
     class UpdateRogueRaidStrategiesAction : public UpdateStrategyDependenciesAction
     {
     public:

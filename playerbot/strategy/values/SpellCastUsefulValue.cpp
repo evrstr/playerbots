@@ -1,3 +1,4 @@
+// 策略值实现：SpellCastUsefulValue（跳过法术检查与技能冷却就绪校验）
 
 #include "playerbot/playerbot.h"
 #include "SpellCastUsefulValue.h"
@@ -9,30 +10,31 @@
 
 using namespace ai;
 
+// 校验法术冷却、法术原型及 skip spells list 屏蔽列表（含特殊触发判定）
 bool SpellCastUsefulValue::Calculate()
 {
     uint32 spellid = AI_VALUE2(uint32, "spell id", qualifier);
-	if (!spellid)
-		return true; // there can be known alternatives
+    if (!spellid)
+        return true; // there can be known alternatives | 存在其他可用替代等级或法术时允许继续尝试
 
-	SpellEntry const *spellInfo = sServerFacade.LookupSpellInfo(spellid);
-	if (!spellInfo)
-		return true; // there can be known alternatives
+    SpellEntry const *spellInfo = sServerFacade.LookupSpellInfo(spellid);
+    if (!spellInfo)
+        return true; // there can be known alternatives | 存在其他可用替代等级或法术时允许继续尝试
 
-	if (spellInfo->Attributes & SPELL_ATTR_ON_NEXT_SWING ||
-		spellInfo->Attributes & SPELL_ATTR_ON_NEXT_SWING_NO_DAMAGE)
-	{
-		Spell* spell = bot->GetCurrentSpell(CURRENT_MELEE_SPELL);
+    if (spellInfo->Attributes & SPELL_ATTR_ON_NEXT_SWING ||
+        spellInfo->Attributes & SPELL_ATTR_ON_NEXT_SWING_NO_DAMAGE)
+    {
+        Spell* spell = bot->GetCurrentSpell(CURRENT_MELEE_SPELL);
 #ifdef CMANGOS
-		if (spell && spell->m_spellInfo->Id == spellid && IsNextMeleeSwingSpell(spell->m_spellInfo) && bot->hasUnitState(UNIT_STAT_MELEE_ATTACKING))
+        if (spell && spell->m_spellInfo->Id == spellid && IsNextMeleeSwingSpell(spell->m_spellInfo) && bot->hasUnitState(UNIT_STAT_MELEE_ATTACKING))
 #endif
 #ifdef MANGOS
-		if (spell && spell->m_spellInfo->Id == spellid && spell->IsNextMeleeSwingSpell() && bot->hasUnitState(UNIT_STAT_MELEE_ATTACKING))
+        if (spell && spell->m_spellInfo->Id == spellid && spell->IsNextMeleeSwingSpell() && bot->hasUnitState(UNIT_STAT_MELEE_ATTACKING))
 #endif
-			return false;
-	}
-	else
-	{
+            return false;
+    }
+    else
+    {
         uint32 lastSpellId = AI_VALUE(LastSpellCast&, "last spell cast").id;
         if (spellid == lastSpellId)
         {
@@ -40,7 +42,7 @@ bool SpellCastUsefulValue::Calculate()
             if (pSpell && (pSpell->getState() == SPELL_STATE_CASTING || pSpell->getState() == SPELL_STATE_CHANNELING))
                 return false;
         }
-	}
+    }
 
     if (IsAutoRepeatRangedSpell(spellInfo) && bot->GetCurrentSpell(CURRENT_AUTOREPEAT_SPELL) &&
             bot->GetCurrentSpell(CURRENT_AUTOREPEAT_SPELL)->m_spellInfo->Id == spellid)
@@ -48,7 +50,7 @@ bool SpellCastUsefulValue::Calculate()
         return false;
     }
 
-    // TODO: workaround
+    // TODO: workaround | 待办：针对特定法术的临时兼容处理
     if (qualifier == "windfury weapon" || qualifier == "flametongue weapon" || qualifier == "frostbrand weapon" ||
             qualifier == "rockbiter weapon" || qualifier == "earthliving weapon" || qualifier == "spellstone")
     {
@@ -77,9 +79,10 @@ bool SpellCastUsefulValue::Calculate()
             return false;
     }
 
-	return true;
+    return true;
 }
 
+// 解析法术 ID 并检查机器人当前是否冷却就绪
 bool SpellReadyValue::Calculate()
 {
     uint32 spellid = stoi(qualifier);

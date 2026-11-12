@@ -1,7 +1,9 @@
+// 策略值头文件：Arrow（箭头阵型单位位置、槽位与阵型构建）
 #pragma once
 
 namespace ai
 {
+    // 二维平面位置坐标封装（用于阵型计算）
     class UnitPosition
     {
     public:
@@ -10,6 +12,7 @@ namespace ai
         float x, y;
     };
 
+    // 阵型中的单个成员单元，记录小队索引、是否为主控及分配位置
     class FormationUnit
     {
     public:
@@ -33,6 +36,7 @@ namespace ai
         UnitPosition position;
     };
 
+    // 阵型单位布局器抽象基类，定义槽位内成员排布接口
     class UnitPlacer
     {
     public:
@@ -44,6 +48,7 @@ namespace ai
         float range = 0;
     };
 
+    // 阵型角色槽位（如坦克/近战/远程/治疗），负责管理并放置所属成员
     class FormationSlot
     {
     public:
@@ -63,6 +68,7 @@ namespace ai
     };
 
 
+    // 多行排布器，将大量成员按每行最多 6 人分排部署
     class MultiLineUnitPlacer : public UnitPlacer
     {
     public:
@@ -75,6 +81,7 @@ namespace ai
         float orientation;
     };
 
+    // 单行排布器，将成员按弧度/横向单排展开
     class SingleLineUnitPlacer
     {
     public:
@@ -87,6 +94,7 @@ namespace ai
         float orientation, range;
     };
 
+    // 箭头阵型类：根据角色职责构建箭头状阵型并返回当前机器人的站位
     class ArrowFormation : public MoveAheadFormation
     {
     public:

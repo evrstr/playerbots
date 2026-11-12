@@ -15,6 +15,7 @@ inline std::string _D_AIPLAYERBOT_CONFIG = "aiplayerbot.conf";
 inline std::string _D_AIPLAYERBOT_CONFIG = SYSCONFDIR "aiplayerbot.conf";
 #endif
 
+/// 机器人作弊/便捷权限位掩码枚举（飞行点/金币/血蓝/物品/冷却/修理等）
 enum class BotCheatMask : uint32
 {
     none = 0,
@@ -34,6 +35,7 @@ enum class BotCheatMask : uint32
     maxMask = 1 << 13
 };
 
+/// 机器人自动登录模式枚举
 enum class BotAutoLogin : uint32
 {
     DISABLED = 0,
@@ -41,6 +43,7 @@ enum class BotAutoLogin : uint32
     LOGIN_ONLY_ALWAYS_ACTIVE = 2
 };
 
+/// 玩家自身启用托管 AI(SelfBot) 权限等级枚举
 enum class BotSelfBotLevel : uint32
 {
     DISABLED = 0,
@@ -51,6 +54,7 @@ enum class BotSelfBotLevel : uint32
     ALWAYS_ACTIVE = 5
 };
 
+/// 机器人常驻在线状态枚举
 enum class BotAlwaysOnline : uint32
 {
     DISABLED = 0,
@@ -58,6 +62,7 @@ enum class BotAlwaysOnline : uint32
     DISABLED_BY_COMMAND = 2
 };
 
+/// 随机机器人登录匹配条件类型枚举
 enum class BotLoginCriteriaType : uint8
 {
     RACECLASS = 0,
@@ -68,6 +73,7 @@ enum class BotLoginCriteriaType : uint8
 
 #define MAX_GEAR_PROGRESSION_LEVEL 6
 
+/// 配置文件条目底层访问包装类
 class ConfigAccess
 {
 private:
@@ -80,6 +86,7 @@ public:
     std::mutex m_configLock;
 };
 
+/// 解析后的 LLM 服务接口 URL 结构
 struct ParsedUrl {
     std::string hostname;
     std::string path;
@@ -93,6 +100,7 @@ using GlyphPriorityList = std::vector<GlyphPriority>;
 using GlyphPriorityLevelMap = std::unordered_map<uint32, GlyphPriorityList>;
 using GlyphPrioritySpecMap = std::unordered_map<uint32, GlyphPriorityLevelMap>;
 
+/// Playerbot 全局配置单例类，集中存储 aiplayerbot.conf 的所有策略、距离、广播、随机机器人及 LLM 参数
 class PlayerbotAIConfig
 {
 public:
@@ -109,7 +117,7 @@ public:
     bool IsFreeAltBot(uint32 guid);
     bool IsFreeAltBot(Player* player) {return IsFreeAltBot(player->GetGUIDLow());}
     bool IsInRandomQuestItemList(uint32 id);
-	bool IsInPvpProhibitedZone(uint32 id);
+    bool IsInPvpProhibitedZone(uint32 id);
 
     bool enabled;
     bool allowGuildBots;
@@ -222,14 +230,14 @@ public:
     uint32 randomBotArenaTeamCount;
     bool deleteRandomBotArenaTeams;
     std::list<uint32> randomBotArenaTeams;
-	bool RandombotsWalkingRPG;
-	bool RandombotsWalkingRPGInDoors;
+    bool RandombotsWalkingRPG;
+    bool RandombotsWalkingRPGInDoors;
     bool boostFollow;
     bool turnInRpg;
     bool globalSoundEffects;
     bool shareTargets;
     std::list<uint32> randomBotGuilds;
-	std::list<uint32> pvpProhibitedZoneIds;
+    std::list<uint32> pvpProhibitedZoneIds;
     bool enableGreet;
     bool randomBotShowHelmet;
     bool randomBotShowCloak;
@@ -237,7 +245,7 @@ public:
     bool instantRandomize;
     bool gearscorecheck;
     int32 levelCheck;
-	bool randomBotPreQuests;
+    bool randomBotPreQuests;
     float playerbotsXPrate;
     bool disableBotOptimizations;
     bool disableActivityPriorities;
@@ -389,6 +397,7 @@ public:
 
     std::vector<std::string> BotCheatMaskName = { "taxi", "gold", "health", "mana", "power", "item", "cooldown", "repair", "movespeed", "attackspeed", "breath", "glyph", "quest", "maxMask" };
 
+    /// 世界增益(World Buff)配置条目结构
     struct worldBuff{
         uint32 spellId;
         uint32 factionId = 0;

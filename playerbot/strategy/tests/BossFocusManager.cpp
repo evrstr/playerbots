@@ -1,3 +1,4 @@
+/// 测试框架：Boss 焦点目标生命周期管理器实现
 #include "BossFocusManager.h"
 #include "Entities/Creature.h"
 #include "Grids/GridNotifiers.h"
@@ -8,6 +9,7 @@
 
 using namespace ai;
 
+/// 在场景或地图对象库中查找当前指定的焦点怪物实体（优先使用缓存 GUID）
 Creature* BossFocusManager::FindFocusMob()
 {
     if (!ctx.focusMobEntry || ctx.focusMobKilled)
@@ -16,7 +18,7 @@ Creature* BossFocusManager::FindFocusMob()
     Creature* focusMob = nullptr;
     bool foundDead = false;
 
-    // Try stored GUID first
+    // Try stored GUID first | 优先尝试已存储的 GUID
     if (ctx.focusMobGuid)
     {
         if (Creature* c = bot->GetMap()->GetCreature(ctx.focusMobGuid))
@@ -28,7 +30,7 @@ Creature* BossFocusManager::FindFocusMob()
         }
     }
 
-    // Search nearby
+    // Search nearby | 在周围 500 码范围内搜索
     if (!focusMob && !foundDead)
     {
         std::list<Creature*> creatures;
@@ -51,7 +53,7 @@ Creature* BossFocusManager::FindFocusMob()
         }
     }
 
-    // Search map object store
+    // Search map object store | 在地图全量对象库中搜索
     if (!focusMob && !foundDead)
     {
         auto& objectStore = bot->GetMap()->GetObjectsStore();
@@ -83,6 +85,7 @@ Creature* BossFocusManager::FindFocusMob()
     return focusMob;
 }
 
+/// 若焦点怪物已死亡或消失，每隔 10 秒尝试重新刷新并使其主动开战
 void BossFocusManager::RespawnFocusMob()
 {
     uint32 now = WorldTimer::getMSTime();
@@ -100,16 +103,17 @@ void BossFocusManager::RespawnFocusMob()
     }
 }
 
+/// 解除焦点怪物脱战距离限制（Leash），并强制其与机器人及队友建立仇恨交战
 void BossFocusManager::EngageFocusMob(Creature* focusMob)
 {
-    // Disable leashing
+    // Disable leashing | 禁用怪物的脱战归位距离（Leash）限制
     focusMob->GetCombatManager().SetLeashingDisable(true);
 
-    // Ensure boss attacks bot
+    // Ensure boss attacks bot | 确保 Boss 攻击机器人
     if (focusMob->AI() && !focusMob->GetVictim())
         focusMob->AI()->AttackStart(bot);
 
-    // Check if retarget needed
+    // Check if retarget needed | 检查是否需要重新选定目标
     Unit* currentTarget = bot->GetVictim();
     bool needRetarget = !currentTarget || currentTarget->GetObjectGuid() != focusMob->GetObjectGuid();
 
@@ -118,7 +122,7 @@ void BossFocusManager::EngageFocusMob(Creature* focusMob)
         bot->SetSelectionGuid(focusMob->GetObjectGuid());
         bot->Attack(focusMob, true);
 
-        // Engage group members
+        // Engage group members | 使小队成员一同进入与 Boss 的交战状态
         if (Group* group = bot->GetGroup())
         {
             for (auto itr = group->GetFirstMember(); itr != nullptr; itr = itr->next())
@@ -134,6 +138,7 @@ void BossFocusManager::EngageFocusMob(Creature* focusMob)
     }
 }
 
+/// 在观察窗口期间每秒周期性输出焦点怪物、机器人及小队成员的血量/战斗状态摘要
 void BossFocusManager::LogObserveStatus()
 {
     uint32 now = WorldTimer::getMSTime();
@@ -171,6 +176,7 @@ void BossFocusManager::LogObserveStatus()
     }
 }
 
+/// 每帧更新逻辑：维护焦点怪物交战状态、自动重生并定时记录状态日志
 void BossFocusManager::Update()
 {
     if (!ctx.focusMobEntry || !ctx.observing)

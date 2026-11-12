@@ -1,8 +1,10 @@
+// 萨满祭司 - 增强萨满祭司策略头文件 (EnhancementShamanStrategy.h)
 #pragma once
 #include "ShamanStrategy.h"
 
 namespace ai
 {
+    // 增强萨满祭司专精占位策略：用于专精识别与占位的策略类
     class EnhancementShamanPlaceholderStrategy : public SpecPlaceholderStrategy
     {
     public:
@@ -11,6 +13,7 @@ namespace ai
         std::string getName() override { return "enhancement"; }
     };
 
+    // 增强萨满祭司策略：定义该专精/场景下的触发器与默认行为
     class EnhancementShamanStrategy : public ShamanStrategy
     {
     public:
@@ -25,6 +28,7 @@ namespace ai
         virtual NextAction** GetDefaultCombatActions() override;
     };
 
+    // 增强萨满祭司PVE策略：定义该专精/场景下的触发器与默认行为
     class EnhancementShamanPveStrategy : public EnhancementShamanStrategy
     {
     public:
@@ -38,6 +42,7 @@ namespace ai
         void InitDeadTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 增强萨满祭司PVP策略：定义该专精/场景下的触发器与默认行为
     class EnhancementShamanPvpStrategy : public EnhancementShamanStrategy
     {
     public:
@@ -51,6 +56,7 @@ namespace ai
         void InitDeadTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 增强萨满祭司团队副本策略：定义该专精/场景下的触发器与默认行为
     class EnhancementShamanRaidStrategy : public EnhancementShamanStrategy
     {
     public:
@@ -64,6 +70,7 @@ namespace ai
         void InitDeadTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 增强萨满祭司AOE群体策略：定义该专精/场景下的触发器与默认行为
     class EnhancementShamanAoeStrategy : public ShamanAoeStrategy
     {
     public:
@@ -74,6 +81,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 增强萨满祭司AOE群体PVE策略：定义该专精/场景下的触发器与默认行为
     class EnhancementShamanAoePveStrategy : public EnhancementShamanAoeStrategy
     {
     public:
@@ -85,6 +93,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 增强萨满祭司AOE群体PVP策略：定义该专精/场景下的触发器与默认行为
     class EnhancementShamanAoePvpStrategy : public EnhancementShamanAoeStrategy
     {
     public:
@@ -96,6 +105,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 增强萨满祭司AOE群体团队副本策略：定义该专精/场景下的触发器与默认行为
     class EnhancementShamanAoeRaidStrategy : public EnhancementShamanAoeStrategy
     {
     public:
@@ -107,6 +117,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 增强萨满祭司控制(CC)策略：定义该专精/场景下的触发器与默认行为
     class EnhancementShamanCcStrategy : public ShamanCcStrategy
     {
     public:
@@ -117,6 +128,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 增强萨满祭司控制(CC)PVE策略：定义该专精/场景下的触发器与默认行为
     class EnhancementShamanCcPveStrategy : public EnhancementShamanCcStrategy
     {
     public:
@@ -128,6 +140,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 增强萨满祭司控制(CC)PVP策略：定义该专精/场景下的触发器与默认行为
     class EnhancementShamanCcPvpStrategy : public EnhancementShamanCcStrategy
     {
     public:
@@ -139,6 +152,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 增强萨满祭司控制(CC)团队副本策略：定义该专精/场景下的触发器与默认行为
     class EnhancementShamanCcRaidStrategy : public EnhancementShamanCcStrategy
     {
     public:
@@ -150,6 +164,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 增强萨满祭司驱散净化策略：定义该专精/场景下的触发器与默认行为
     class EnhancementShamanCureStrategy : public ShamanCureStrategy
     {
     public:
@@ -160,6 +175,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 增强萨满祭司驱散净化PVE策略：定义该专精/场景下的触发器与默认行为
     class EnhancementShamanCurePveStrategy : public EnhancementShamanCureStrategy
     {
     public:
@@ -171,6 +187,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 增强萨满祭司驱散净化PVP策略：定义该专精/场景下的触发器与默认行为
     class EnhancementShamanCurePvpStrategy : public EnhancementShamanCureStrategy
     {
     public:
@@ -182,6 +199,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 增强萨满祭司驱散净化团队副本策略：定义该专精/场景下的触发器与默认行为
     class EnhancementShamanCureRaidStrategy : public EnhancementShamanCureStrategy
     {
     public:
@@ -193,6 +211,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 增强萨满祭司图腾策略：定义该专精/场景下的触发器与默认行为
     class EnhancementShamanTotemsStrategy : public ShamanTotemsStrategy
     {
     public:
@@ -203,6 +222,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 增强萨满祭司图腾PVE策略：定义该专精/场景下的触发器与默认行为
     class EnhancementShamanTotemsPveStrategy : public EnhancementShamanTotemsStrategy
     {
     public:
@@ -214,6 +234,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 增强萨满祭司图腾PVP策略：定义该专精/场景下的触发器与默认行为
     class EnhancementShamanTotemsPvpStrategy : public EnhancementShamanTotemsStrategy
     {
     public:
@@ -225,6 +246,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 增强萨满祭司图腾团队副本策略：定义该专精/场景下的触发器与默认行为
     class EnhancementShamanTotemsRaidStrategy : public EnhancementShamanTotemsStrategy
     {
     public:
@@ -236,6 +258,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 增强萨满祭司增益Buff策略：定义该专精/场景下的触发器与默认行为
     class EnhancementShamanBuffStrategy : public ShamanBuffStrategy
     {
     public:
@@ -246,6 +269,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 增强萨满祭司增益BuffPVE策略：定义该专精/场景下的触发器与默认行为
     class EnhancementShamanBuffPveStrategy : public EnhancementShamanBuffStrategy
     {
     public:
@@ -257,6 +281,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 增强萨满祭司增益BuffPVP策略：定义该专精/场景下的触发器与默认行为
     class EnhancementShamanBuffPvpStrategy : public EnhancementShamanBuffStrategy
     {
     public:
@@ -268,6 +293,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 增强萨满祭司增益Buff团队副本策略：定义该专精/场景下的触发器与默认行为
     class EnhancementShamanBuffRaidStrategy : public EnhancementShamanBuffStrategy
     {
     public:
@@ -279,6 +305,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 增强萨满祭司爆发增益策略：定义该专精/场景下的触发器与默认行为
     class EnhancementShamanBoostStrategy : public ShamanBoostStrategy
     {
     public:
@@ -289,6 +316,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 增强萨满祭司爆发增益PVE策略：定义该专精/场景下的触发器与默认行为
     class EnhancementShamanBoostPveStrategy : public EnhancementShamanBoostStrategy
     {
     public:
@@ -300,6 +328,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 增强萨满祭司爆发增益PVP策略：定义该专精/场景下的触发器与默认行为
     class EnhancementShamanBoostPvpStrategy : public EnhancementShamanBoostStrategy
     {
     public:
@@ -311,6 +340,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 增强萨满祭司爆发增益团队副本策略：定义该专精/场景下的触发器与默认行为
     class EnhancementShamanBoostRaidStrategy : public EnhancementShamanBoostStrategy
     {
     public:

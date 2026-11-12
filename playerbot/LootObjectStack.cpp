@@ -34,23 +34,25 @@ bool LootTarget::operator< (const LootTarget& other) const
     return guid < other.guid;
 }
 
+// 移除早于指定时间戳的过期拾取目标记录
 void LootTargetList::shrink(time_t fromTime)
 {
     for (std::set<LootTarget>::iterator i = begin(); i != end(); )
     {
         if (i->asOfTime <= fromTime)
             erase(i++);
-		else
-			++i;
+        else
+            ++i;
     }
 }
 
 LootObject::LootObject(Player* bot, ObjectGuid guid)
-	: guid(), skillId(SKILL_NONE), reqSkillValue(0), reqItem(0)
+    : guid(), skillId(SKILL_NONE), reqSkillValue(0), reqItem(0)
 {
     Refresh(bot, guid);
 }
 
+// 刷新目标的尸体拾取/剥皮标志或游戏物体锁/任务物品条件
 void LootObject::Refresh(Player* bot, ObjectGuid guid, bool debug)
 {
     skillId = SKILL_NONE;
@@ -219,6 +221,7 @@ LootObject::LootObject(const LootObject& other)
     reqItem = other.reqItem;
 }
 
+// 综合校验任务需求、专业技能等级、采矿/剥皮工具及占用状态判断当前是否可拾取
 bool LootObject::IsLootPossible(Player* bot)
 {
     if (IsEmpty() || !GetWorldObject(bot))
@@ -229,7 +232,7 @@ bool LootObject::IsLootPossible(Player* bot)
     if (reqItem && !bot->HasItemCount(reqItem, 1))
     {
         bool canOpen = false;
-        // If this is a chest and it was locked before, check if it's unlocked now so we don't need item
+        // If this is a chest and it was locked before, check if it's unlocked now so we don't need item | 宝箱若已解锁则无需再检查钥匙
         if (guid.IsGameObject())
         {
             GameObject* go = ai->GetGameObject(guid);
@@ -303,7 +306,7 @@ bool LootObject::IsLootPossible(Player* bot)
                 }
             }
 
-            //Ignore objects that are currently in use.
+            //Ignore objects that are currently in use. (忽略正在被使用或已开启的物体)
             if (go->IsInUse() || go->GetGoState() == GO_STATE_ACTIVE)
                 return false;
         }
@@ -334,6 +337,7 @@ bool LootObject::IsLootPossible(Player* bot)
     return true;
 }
 
+// 添加候选拾取目标，超出上限时淘汰最远目标
 bool LootObjectStack::Add(ObjectGuid guid)
 {
     if (!availableLoot.insert(guid).second)
@@ -373,6 +377,7 @@ LootObject LootObjectStack::GetLoot(float maxDistance)
     return ordered.empty() ? LootObject() : *ordered.begin();
 }
 
+// 过滤有效可拾取目标并按距离升序排列
 std::vector<LootObject> LootObjectStack::OrderByDistance(float maxDistance)
 {
     availableLoot.shrink(time(0) - 30);

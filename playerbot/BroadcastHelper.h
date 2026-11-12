@@ -3,12 +3,14 @@
 namespace ai
 {
 
+    /// 机器人聊天广播助手类，封装频道推送、物品拾取、任务进度、击杀、升级与公会事件播报
     class BroadcastHelper
     {
     public:
         BroadcastHelper();
 
     public:
+        /// 广播目标频道枚举
         enum ToChannel
         {
             TO_GUILD = 1,

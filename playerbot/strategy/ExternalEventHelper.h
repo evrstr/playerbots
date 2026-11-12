@@ -5,11 +5,13 @@
 
 namespace ai
 {
+    /// 外部事件分发助手，负责解析聊天命令与世界数据包并派发至对应 Trigger
     class ExternalEventHelper 
     {
     public:
         ExternalEventHelper(AiObjectContext* aiObjectContext) : aiObjectContext(aiObjectContext) {}
 
+        /// 解析聊天命令（含命令链接、带参命令、帮助与快捷指令）并触发相应事件
         bool ParseChatCommand(std::string command, Player* owner = NULL)
         {
             std::string linkCommand = ChatHelper::parseValue("command", command);
@@ -57,6 +59,7 @@ namespace ai
             return true;
         }
 
+        /// 根据 opcode 映射查找触发器并将数据包转发至对应 Trigger
         bool HandlePacket(std::map<uint16, std::string> &handlers, const WorldPacket &packet, Player* owner = NULL)
         {
             uint16 opcode = packet.GetOpcode();
@@ -78,6 +81,7 @@ namespace ai
             return true;
         }
 
+        /// 根据名称获取 Trigger 并注入外部参数事件
         bool HandleCommand(std::string name, std::string param, Player* owner = NULL, bool forceCommand = false)
         {
             Trigger* trigger = aiObjectContext->GetTrigger(name);

@@ -1,3 +1,4 @@
+// 猎人 - 猎人策略实现文件 (HunterStrategy.cpp)
 
 #include "playerbot/playerbot.h"
 #include "HunterStrategy.h"
@@ -5,6 +6,7 @@
 
 using namespace ai;
 
+// 动作节点工厂：配置技能前置(P)、备选(A)与后续(C)动作优先级链
 class HunterStrategyActionNodeFactory : public NamedObjectFactory<ActionNode>
 {
 public:
@@ -22,37 +24,50 @@ public:
     }
 
 private:
+    // 动作节点 aimed_shot：瞄准射击 -> 备选(A)动作：奥术射击
     ACTION_NODE_A(aimed_shot, "aimed shot", "arcane shot");
 
+    // 动作节点 rapid_fire：急速射击 -> 备选(A)动作：准备就绪
     ACTION_NODE_A(rapid_fire, "rapid fire", "readiness");
 
+    // 动作节点 aspect_of_the_pack：豹群守护 -> 备选(A)动作：猎豹守护
     ACTION_NODE_A(aspect_of_the_pack, "aspect of the pack", "aspect of the cheetah");
 
+    // 动作节点 aspect_of_the_dragonhawk：龙鹰守护 -> 备选(A)动作：雄鹰守护
     ACTION_NODE_A(aspect_of_the_dragonhawk, "aspect of the dragonhawk", "aspect of the hawk");
 
+    // 动作节点 wing_clip：摔绊 -> 备选(A)动作：猛禽一击
     ACTION_NODE_A(wing_clip, "wing clip", "raptor strike");
 
+    // 动作节点 intimidation：胁迫 -> 备选(A)动作：摔绊
     ACTION_NODE_A(intimidation, "intimidation", "wing clip");
 
+    // 动作节点 scatter_shot：驱散射击 -> 备选(A)动作：胁迫
     ACTION_NODE_A(scatter_shot, "scatter shot", "intimidation");
 
+    // 动作节点 feign_death_threat：假死 -> 后续(C)动作：remove feign death
     ACTION_NODE_C(feign_death_threat, "feign death", "remove feign death");
 
+    // 动作节点 tame_beast：驯服野兽 -> 后续(C)动作：召唤宠物
     ACTION_NODE_C(tame_beast, "tame beast", "call pet")
 };
 
+// 构造函数：初始化猎人策略并挂载动作节点工厂
 HunterStrategy::HunterStrategy(PlayerbotAI* ai) : ClassStrategy(ai)
 {
     actionNodeFactories.Add(std::make_unique<HunterStrategyActionNodeFactory>());
 }
 
+// 经典旧世 (Vanilla 60级) 版本逻辑
 #ifdef MANGOSBOT_ZERO // Vanilla
 
+// 获取默认战斗动作序列 (猎人策略)
 NextAction** HunterStrategy::GetDefaultCombatActions()
 {
     return NextAction::array(0, new NextAction("auto shot", ACTION_IDLE), NULL);
 }
 
+// 初始化战斗阶段触发器列表 (猎人策略)
 void HunterStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     ClassStrategy::InitCombatTriggers(triggers);
@@ -90,6 +105,7 @@ void HunterStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
         NextAction::array(0, new NextAction("tame beast", ACTION_EMERGENCY), NULL)));
 }
 
+// 初始化非战斗阶段触发器列表 (猎人策略)
 void HunterStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     ClassStrategy::InitNonCombatTriggers(triggers);
@@ -110,6 +126,7 @@ void HunterStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
         NextAction::array(0, new NextAction("tame beast", ACTION_EMERGENCY), NULL)));
 }
 
+// 初始化反应阶段触发器列表 (猎人策略)
 void HunterStrategy::InitReactionTriggers(std::list<TriggerNode*>& triggers)
 {
     ClassStrategy::InitReactionTriggers(triggers);
@@ -119,31 +136,37 @@ void HunterStrategy::InitReactionTriggers(std::list<TriggerNode*>& triggers)
         NextAction::array(0, new NextAction("tranquilizing shot", ACTION_INTERRUPT), NULL)));
 }
 
+// 初始化死亡状态触发器列表 (猎人策略)
 void HunterStrategy::InitDeadTriggers(std::list<TriggerNode*>& triggers)
 {
     ClassStrategy::InitDeadTriggers(triggers);
 }
 
+// 初始化战斗阶段触发器列表 (猎人PVP策略)
 void HunterPvpStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     ClassPvpStrategy::InitCombatTriggers(triggers);
 }
 
+// 初始化非战斗阶段触发器列表 (猎人PVP策略)
 void HunterPvpStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     ClassPvpStrategy::InitNonCombatTriggers(triggers);
 }
 
+// 初始化反应阶段触发器列表 (猎人PVP策略)
 void HunterPvpStrategy::InitReactionTriggers(std::list<TriggerNode*>& triggers)
 {
     ClassPvpStrategy::InitReactionTriggers(triggers);
 }
 
+// 初始化死亡状态触发器列表 (猎人PVP策略)
 void HunterPvpStrategy::InitDeadTriggers(std::list<TriggerNode*>& triggers)
 {
     ClassPvpStrategy::InitDeadTriggers(triggers);
 }
 
+// 初始化战斗阶段触发器列表 (猎人PVE策略)
 void HunterPveStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     ClassPveStrategy::InitCombatTriggers(triggers);
@@ -154,21 +177,25 @@ void HunterPveStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
         NextAction::array(0, new NextAction("immolation trap on target", ACTION_INTERRUPT), NULL)));
 }
 
+// 初始化非战斗阶段触发器列表 (猎人PVE策略)
 void HunterPveStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     ClassPveStrategy::InitNonCombatTriggers(triggers);
 }
 
+// 初始化反应阶段触发器列表 (猎人PVE策略)
 void HunterPveStrategy::InitReactionTriggers(std::list<TriggerNode*>& triggers)
 {
     ClassPveStrategy::InitReactionTriggers(triggers);
 }
 
+// 初始化死亡状态触发器列表 (猎人PVE策略)
 void HunterPveStrategy::InitDeadTriggers(std::list<TriggerNode*>& triggers)
 {
     ClassPveStrategy::InitDeadTriggers(triggers);
 }
 
+// 初始化战斗阶段触发器列表 (猎人团队副本策略)
 void HunterRaidStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     ClassRaidStrategy::InitCombatTriggers(triggers);
@@ -178,21 +205,25 @@ void HunterRaidStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
         NextAction::array(0, new NextAction("feign death threat", ACTION_EMERGENCY), NULL)));
 }
 
+// 初始化非战斗阶段触发器列表 (猎人团队副本策略)
 void HunterRaidStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     ClassRaidStrategy::InitNonCombatTriggers(triggers);
 }
 
+// 初始化反应阶段触发器列表 (猎人团队副本策略)
 void HunterRaidStrategy::InitReactionTriggers(std::list<TriggerNode*>& triggers)
 {
     ClassRaidStrategy::InitReactionTriggers(triggers);
 }
 
+// 初始化死亡状态触发器列表 (猎人团队副本策略)
 void HunterRaidStrategy::InitDeadTriggers(std::list<TriggerNode*>& triggers)
 {
     ClassRaidStrategy::InitDeadTriggers(triggers);
 }
 
+// 初始化战斗阶段触发器列表 (猎人AOE群体策略)
 void HunterAoeStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     AoeStrategy::InitCombatTriggers(triggers);
@@ -211,41 +242,49 @@ void HunterAoeStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
         NextAction::array(0, new NextAction("multi-shot", ACTION_HIGH), NULL)));
 }
 
+// 初始化非战斗阶段触发器列表 (猎人AOE群体策略)
 void HunterAoeStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     AoeStrategy::InitNonCombatTriggers(triggers);
 }
 
+// 初始化战斗阶段触发器列表 (猎人AOE群体PVP策略)
 void HunterAoePvpStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     AoePvpStrategy::InitCombatTriggers(triggers);
 }
 
+// 初始化非战斗阶段触发器列表 (猎人AOE群体PVP策略)
 void HunterAoePvpStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     AoePvpStrategy::InitNonCombatTriggers(triggers);
 }
 
+// 初始化战斗阶段触发器列表 (猎人AOE群体PVE策略)
 void HunterAoePveStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     AoePveStrategy::InitCombatTriggers(triggers);
 }
 
+// 初始化非战斗阶段触发器列表 (猎人AOE群体PVE策略)
 void HunterAoePveStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     AoePveStrategy::InitNonCombatTriggers(triggers);
 }
 
+// 初始化战斗阶段触发器列表 (猎人AOE群体团队副本策略)
 void HunterAoeRaidStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     AoeRaidStrategy::InitCombatTriggers(triggers);
 }
 
+// 初始化非战斗阶段触发器列表 (猎人AOE群体团队副本策略)
 void HunterAoeRaidStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     AoeRaidStrategy::InitNonCombatTriggers(triggers);
 }
 
+// 初始化战斗阶段触发器列表 (猎人增益Buff策略)
 void HunterBuffStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     BuffStrategy::InitCombatTriggers(triggers);
@@ -259,6 +298,7 @@ void HunterBuffStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
         NextAction::array(0, new NextAction("remove feign death", ACTION_HIGH), NULL)));
 }
 
+// 初始化非战斗阶段触发器列表 (猎人增益Buff策略)
 void HunterBuffStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     BuffStrategy::InitNonCombatTriggers(triggers);
@@ -272,36 +312,43 @@ void HunterBuffStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers
         NextAction::array(0, new NextAction("apply oil", ACTION_NORMAL), NULL)));
 }
 
+// 初始化战斗阶段触发器列表 (猎人增益BuffPVP策略)
 void HunterBuffPvpStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     BuffPvpStrategy::InitCombatTriggers(triggers);
 }
 
+// 初始化非战斗阶段触发器列表 (猎人增益BuffPVP策略)
 void HunterBuffPvpStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     BuffPvpStrategy::InitNonCombatTriggers(triggers);
 }
 
+// 初始化战斗阶段触发器列表 (猎人增益BuffPVE策略)
 void HunterBuffPveStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     BuffPveStrategy::InitCombatTriggers(triggers);
 }
 
+// 初始化非战斗阶段触发器列表 (猎人增益BuffPVE策略)
 void HunterBuffPveStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     BuffPveStrategy::InitNonCombatTriggers(triggers);
 }
 
+// 初始化战斗阶段触发器列表 (猎人增益Buff团队副本策略)
 void HunterBuffRaidStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     BuffRaidStrategy::InitCombatTriggers(triggers);
 }
 
+// 初始化非战斗阶段触发器列表 (猎人增益Buff团队副本策略)
 void HunterBuffRaidStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     BuffRaidStrategy::InitNonCombatTriggers(triggers);
 }
 
+// 初始化战斗阶段触发器列表 (猎人爆发增益策略)
 void HunterBoostStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     BoostStrategy::InitCombatTriggers(triggers);
@@ -311,41 +358,49 @@ void HunterBoostStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
         NextAction::array(0, new NextAction("rapid fire", ACTION_HIGH + 5), NULL)));
 }
 
+// 初始化非战斗阶段触发器列表 (猎人爆发增益策略)
 void HunterBoostStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     BoostStrategy::InitNonCombatTriggers(triggers);
 }
 
+// 初始化战斗阶段触发器列表 (猎人爆发增益PVP策略)
 void HunterBoostPvpStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     BoostPvpStrategy::InitCombatTriggers(triggers);
 }
 
+// 初始化非战斗阶段触发器列表 (猎人爆发增益PVP策略)
 void HunterBoostPvpStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     BoostPvpStrategy::InitNonCombatTriggers(triggers);
 }
 
+// 初始化战斗阶段触发器列表 (猎人爆发增益PVE策略)
 void HunterBoostPveStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     BoostPveStrategy::InitCombatTriggers(triggers);
 }
 
+// 初始化非战斗阶段触发器列表 (猎人爆发增益PVE策略)
 void HunterBoostPveStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     BoostPveStrategy::InitNonCombatTriggers(triggers);
 }
 
+// 初始化战斗阶段触发器列表 (猎人爆发增益团队副本策略)
 void HunterBoostRaidStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     BoostRaidStrategy::InitCombatTriggers(triggers);
 }
 
+// 初始化非战斗阶段触发器列表 (猎人爆发增益团队副本策略)
 void HunterBoostRaidStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     BoostRaidStrategy::InitNonCombatTriggers(triggers);
 }
 
+// 初始化战斗阶段触发器列表 (猎人控制(CC)策略)
 void HunterCcStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     CcStrategy::InitCombatTriggers(triggers);
@@ -365,11 +420,13 @@ void HunterCcStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
         NextAction::array(0, new NextAction("scare beast on cc", ACTION_HIGH + 2), NULL)));
 }
 
+// 初始化非战斗阶段触发器列表 (猎人控制(CC)策略)
 void HunterCcStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     CcStrategy::InitNonCombatTriggers(triggers);
 }
 
+// 初始化战斗阶段触发器列表 (猎人控制(CC)PVP策略)
 void HunterCcPvpStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     CcPvpStrategy::InitCombatTriggers(triggers);
@@ -388,11 +445,13 @@ void HunterCcPvpStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
         NextAction::array(0, new NextAction("concussive shot", ACTION_HIGH + 1), NULL)));
 }
 
+// 初始化非战斗阶段触发器列表 (猎人控制(CC)PVP策略)
 void HunterCcPvpStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     CcPvpStrategy::InitNonCombatTriggers(triggers);
 }
 
+// 初始化战斗阶段触发器列表 (猎人控制(CC)PVE策略)
 void HunterCcPveStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     CcPveStrategy::InitCombatTriggers(triggers);
@@ -406,21 +465,25 @@ void HunterCcPveStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
         NextAction::array(0, new NextAction("concussive shot", ACTION_HIGH + 1), NULL)));
 }
 
+// 初始化非战斗阶段触发器列表 (猎人控制(CC)PVE策略)
 void HunterCcPveStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     CcPveStrategy::InitNonCombatTriggers(triggers);
 }
 
+// 初始化战斗阶段触发器列表 (猎人控制(CC)团队副本策略)
 void HunterCcRaidStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     CcRaidStrategy::InitCombatTriggers(triggers);
 }
 
+// 初始化非战斗阶段触发器列表 (猎人控制(CC)团队副本策略)
 void HunterCcRaidStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     CcRaidStrategy::InitNonCombatTriggers(triggers);
 }
 
+// 初始化战斗阶段触发器列表 (猎人钉刺策略)
 void HunterStingStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     if (ai->HasStrategy("aoe", BotState::BOT_STATE_COMBAT))
@@ -439,6 +502,7 @@ void HunterStingStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
         NextAction::array(0, new NextAction("viper sting", ACTION_NORMAL + 5), NULL)));
 }
 
+// 初始化战斗阶段触发器列表 (猎人钉刺PVP策略)
 void HunterStingPvpStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     triggers.push_back(new TriggerNode(
@@ -446,6 +510,7 @@ void HunterStingPvpStrategy::InitCombatTriggers(std::list<TriggerNode*>& trigger
         NextAction::array(0, new NextAction("serpent sting", ACTION_NORMAL + 4), NULL)));
 }
 
+// 初始化战斗阶段触发器列表 (猎人钉刺PVE策略)
 void HunterStingPveStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     triggers.push_back(new TriggerNode(
@@ -453,11 +518,13 @@ void HunterStingPveStrategy::InitCombatTriggers(std::list<TriggerNode*>& trigger
         NextAction::array(0, new NextAction("serpent sting", ACTION_NORMAL + 4), NULL)));
 }
 
+// 初始化战斗阶段触发器列表 (猎人钉刺团队副本策略)
 void HunterStingRaidStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
 
 }
 
+// 初始化战斗阶段触发器列表 (猎人守护策略)
 void HunterAspectStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     triggers.push_back(new TriggerNode(
@@ -465,6 +532,7 @@ void HunterAspectStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
         NextAction::array(0, new NextAction("aspect of the hawk", ACTION_HIGH + 5), NULL)));
 }
 
+// 初始化非战斗阶段触发器列表 (猎人守护策略)
 void HunterAspectStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     triggers.push_back(new TriggerNode(
@@ -472,6 +540,7 @@ void HunterAspectStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& trigge
         NextAction::array(0, new NextAction("aspect of the hawk", ACTION_NORMAL), NULL)));
 }
 
+// 初始化战斗阶段触发器列表 (猎人守护PVP策略)
 void HunterAspectPvpStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     triggers.push_back(new TriggerNode(
@@ -483,6 +552,7 @@ void HunterAspectPvpStrategy::InitCombatTriggers(std::list<TriggerNode*>& trigge
         NextAction::array(0, new NextAction("aspect of the cheetah", ACTION_HIGH + 6), NULL)));
 }
 
+// 初始化非战斗阶段触发器列表 (猎人守护PVP策略)
 void HunterAspectPvpStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     triggers.push_back(new TriggerNode(
@@ -494,34 +564,41 @@ void HunterAspectPvpStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& tri
         NextAction::array(0, new NextAction("aspect of the cheetah", ACTION_HIGH + 6), NULL)));
 }
 
+// 初始化战斗阶段触发器列表 (猎人守护PVE策略)
 void HunterAspectPveStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
 
 }
 
+// 初始化非战斗阶段触发器列表 (猎人守护PVE策略)
 void HunterAspectPveStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
 
 }
 
+// 初始化战斗阶段触发器列表 (猎人守护团队副本策略)
 void HunterAspectRaidStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
 
 }
 
+// 初始化非战斗阶段触发器列表 (猎人守护团队副本策略)
 void HunterAspectRaidStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
 
 }
 
 #endif
+// 燃烧的远征 (TBC 70级) 版本逻辑
 #ifdef MANGOSBOT_ONE // TBC
 
+// 获取默认战斗动作序列 (猎人策略)
 NextAction** HunterStrategy::GetDefaultCombatActions()
 {
     return NextAction::array(0, new NextAction("auto shot", ACTION_IDLE), NULL);
 }
 
+// 初始化战斗阶段触发器列表 (猎人策略)
 void HunterStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     ClassStrategy::InitCombatTriggers(triggers);
@@ -567,6 +644,7 @@ void HunterStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
         NextAction::array(0, new NextAction("tame beast", ACTION_EMERGENCY), NULL)));    
 }
 
+// 初始化非战斗阶段触发器列表 (猎人策略)
 void HunterStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     ClassStrategy::InitNonCombatTriggers(triggers);
@@ -587,6 +665,7 @@ void HunterStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
         NextAction::array(0, new NextAction("tame beast", ACTION_EMERGENCY), NULL)));
 }
 
+// 初始化反应阶段触发器列表 (猎人策略)
 void HunterStrategy::InitReactionTriggers(std::list<TriggerNode*>& triggers)
 {
     ClassStrategy::InitReactionTriggers(triggers);
@@ -596,31 +675,37 @@ void HunterStrategy::InitReactionTriggers(std::list<TriggerNode*>& triggers)
         NextAction::array(0, new NextAction("tranquilizing shot", ACTION_INTERRUPT), NULL)));
 }
 
+// 初始化死亡状态触发器列表 (猎人策略)
 void HunterStrategy::InitDeadTriggers(std::list<TriggerNode*>& triggers)
 {
     ClassStrategy::InitDeadTriggers(triggers);
 }
 
+// 初始化战斗阶段触发器列表 (猎人PVP策略)
 void HunterPvpStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     ClassPvpStrategy::InitCombatTriggers(triggers);
 }
 
+// 初始化非战斗阶段触发器列表 (猎人PVP策略)
 void HunterPvpStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     ClassPvpStrategy::InitNonCombatTriggers(triggers);
 }
 
+// 初始化反应阶段触发器列表 (猎人PVP策略)
 void HunterPvpStrategy::InitReactionTriggers(std::list<TriggerNode*>& triggers)
 {
     ClassPvpStrategy::InitReactionTriggers(triggers);
 }
 
+// 初始化死亡状态触发器列表 (猎人PVP策略)
 void HunterPvpStrategy::InitDeadTriggers(std::list<TriggerNode*>& triggers)
 {
     ClassPvpStrategy::InitDeadTriggers(triggers);
 }
 
+// 初始化战斗阶段触发器列表 (猎人PVE策略)
 void HunterPveStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     ClassPveStrategy::InitCombatTriggers(triggers);
@@ -631,21 +716,25 @@ void HunterPveStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
         NextAction::array(0, new NextAction("immolation trap on target", ACTION_INTERRUPT), NULL)));
 }
 
+// 初始化非战斗阶段触发器列表 (猎人PVE策略)
 void HunterPveStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     ClassPveStrategy::InitNonCombatTriggers(triggers);
 }
 
+// 初始化反应阶段触发器列表 (猎人PVE策略)
 void HunterPveStrategy::InitReactionTriggers(std::list<TriggerNode*>& triggers)
 {
     ClassPveStrategy::InitReactionTriggers(triggers);
 }
 
+// 初始化死亡状态触发器列表 (猎人PVE策略)
 void HunterPveStrategy::InitDeadTriggers(std::list<TriggerNode*>& triggers)
 {
     ClassPveStrategy::InitDeadTriggers(triggers);
 }
 
+// 初始化战斗阶段触发器列表 (猎人团队副本策略)
 void HunterRaidStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     ClassRaidStrategy::InitCombatTriggers(triggers);
@@ -655,21 +744,25 @@ void HunterRaidStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
         NextAction::array(0, new NextAction("feign death threat", ACTION_EMERGENCY), NULL)));
 }
 
+// 初始化非战斗阶段触发器列表 (猎人团队副本策略)
 void HunterRaidStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     ClassRaidStrategy::InitNonCombatTriggers(triggers);
 }
 
+// 初始化反应阶段触发器列表 (猎人团队副本策略)
 void HunterRaidStrategy::InitReactionTriggers(std::list<TriggerNode*>& triggers)
 {
     ClassRaidStrategy::InitReactionTriggers(triggers);
 }
 
+// 初始化死亡状态触发器列表 (猎人团队副本策略)
 void HunterRaidStrategy::InitDeadTriggers(std::list<TriggerNode*>& triggers)
 {
     ClassRaidStrategy::InitDeadTriggers(triggers);
 }
 
+// 初始化战斗阶段触发器列表 (猎人AOE群体策略)
 void HunterAoeStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     AoeStrategy::InitCombatTriggers(triggers);
@@ -688,41 +781,49 @@ void HunterAoeStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
         NextAction::array(0, new NextAction("multi-shot", ACTION_HIGH), NULL)));
 }
 
+// 初始化非战斗阶段触发器列表 (猎人AOE群体策略)
 void HunterAoeStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     AoeStrategy::InitNonCombatTriggers(triggers);
 }
 
+// 初始化战斗阶段触发器列表 (猎人AOE群体PVP策略)
 void HunterAoePvpStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     AoePvpStrategy::InitCombatTriggers(triggers);
 }
 
+// 初始化非战斗阶段触发器列表 (猎人AOE群体PVP策略)
 void HunterAoePvpStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     AoePvpStrategy::InitNonCombatTriggers(triggers);
 }
 
+// 初始化战斗阶段触发器列表 (猎人AOE群体PVE策略)
 void HunterAoePveStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     AoePveStrategy::InitCombatTriggers(triggers);
 }
 
+// 初始化非战斗阶段触发器列表 (猎人AOE群体PVE策略)
 void HunterAoePveStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     AoePveStrategy::InitNonCombatTriggers(triggers);
 }
 
+// 初始化战斗阶段触发器列表 (猎人AOE群体团队副本策略)
 void HunterAoeRaidStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     AoeRaidStrategy::InitCombatTriggers(triggers);
 }
 
+// 初始化非战斗阶段触发器列表 (猎人AOE群体团队副本策略)
 void HunterAoeRaidStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     AoeRaidStrategy::InitNonCombatTriggers(triggers);
 }
 
+// 初始化战斗阶段触发器列表 (猎人增益Buff策略)
 void HunterBuffStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     BuffStrategy::InitCombatTriggers(triggers);
@@ -736,6 +837,7 @@ void HunterBuffStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
         NextAction::array(0, new NextAction("remove feign death", ACTION_HIGH), NULL)));    
 }
 
+// 初始化非战斗阶段触发器列表 (猎人增益Buff策略)
 void HunterBuffStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     BuffStrategy::InitNonCombatTriggers(triggers);
@@ -749,36 +851,43 @@ void HunterBuffStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers
         NextAction::array(0, new NextAction("apply oil", ACTION_NORMAL), NULL)));
 }
 
+// 初始化战斗阶段触发器列表 (猎人增益BuffPVP策略)
 void HunterBuffPvpStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     BuffPvpStrategy::InitCombatTriggers(triggers);
 }
 
+// 初始化非战斗阶段触发器列表 (猎人增益BuffPVP策略)
 void HunterBuffPvpStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     BuffPvpStrategy::InitNonCombatTriggers(triggers);
 }
 
+// 初始化战斗阶段触发器列表 (猎人增益BuffPVE策略)
 void HunterBuffPveStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     BuffPveStrategy::InitCombatTriggers(triggers);
 }
 
+// 初始化非战斗阶段触发器列表 (猎人增益BuffPVE策略)
 void HunterBuffPveStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     BuffPveStrategy::InitNonCombatTriggers(triggers);
 }
 
+// 初始化战斗阶段触发器列表 (猎人增益Buff团队副本策略)
 void HunterBuffRaidStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     BuffRaidStrategy::InitCombatTriggers(triggers);
 }
 
+// 初始化非战斗阶段触发器列表 (猎人增益Buff团队副本策略)
 void HunterBuffRaidStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     BuffRaidStrategy::InitNonCombatTriggers(triggers);
 }
 
+// 初始化战斗阶段触发器列表 (猎人爆发增益策略)
 void HunterBoostStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     BoostStrategy::InitCombatTriggers(triggers);
@@ -788,41 +897,49 @@ void HunterBoostStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
         NextAction::array(0, new NextAction("rapid fire", ACTION_HIGH + 5), NULL)));
 }
 
+// 初始化非战斗阶段触发器列表 (猎人爆发增益策略)
 void HunterBoostStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     BoostStrategy::InitNonCombatTriggers(triggers);
 }
 
+// 初始化战斗阶段触发器列表 (猎人爆发增益PVP策略)
 void HunterBoostPvpStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     BoostPvpStrategy::InitCombatTriggers(triggers);
 }
 
+// 初始化非战斗阶段触发器列表 (猎人爆发增益PVP策略)
 void HunterBoostPvpStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     BoostPvpStrategy::InitNonCombatTriggers(triggers);
 }
 
+// 初始化战斗阶段触发器列表 (猎人爆发增益PVE策略)
 void HunterBoostPveStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     BoostPveStrategy::InitCombatTriggers(triggers);
 }
 
+// 初始化非战斗阶段触发器列表 (猎人爆发增益PVE策略)
 void HunterBoostPveStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     BoostPveStrategy::InitNonCombatTriggers(triggers);
 }
 
+// 初始化战斗阶段触发器列表 (猎人爆发增益团队副本策略)
 void HunterBoostRaidStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     BoostRaidStrategy::InitCombatTriggers(triggers);
 }
 
+// 初始化非战斗阶段触发器列表 (猎人爆发增益团队副本策略)
 void HunterBoostRaidStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     BoostRaidStrategy::InitNonCombatTriggers(triggers);
 }
 
+// 初始化战斗阶段触发器列表 (猎人控制(CC)策略)
 void HunterCcStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     CcStrategy::InitCombatTriggers(triggers);
@@ -849,11 +966,13 @@ void HunterCcStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
         NextAction::array(0, new NextAction("concussive shot", ACTION_HIGH + 1), NULL)));
 }
 
+// 初始化非战斗阶段触发器列表 (猎人控制(CC)策略)
 void HunterCcStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     CcStrategy::InitNonCombatTriggers(triggers);
 }
 
+// 初始化战斗阶段触发器列表 (猎人控制(CC)PVP策略)
 void HunterCcPvpStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     CcPvpStrategy::InitCombatTriggers(triggers);
@@ -863,31 +982,37 @@ void HunterCcPvpStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
         NextAction::array(0, new NextAction("freezing trap in place", ACTION_INTERRUPT + 3), NULL)));
 }
 
+// 初始化非战斗阶段触发器列表 (猎人控制(CC)PVP策略)
 void HunterCcPvpStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     CcPvpStrategy::InitNonCombatTriggers(triggers);
 }
 
+// 初始化战斗阶段触发器列表 (猎人控制(CC)PVE策略)
 void HunterCcPveStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     CcPveStrategy::InitCombatTriggers(triggers);
 }
 
+// 初始化非战斗阶段触发器列表 (猎人控制(CC)PVE策略)
 void HunterCcPveStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     CcPveStrategy::InitNonCombatTriggers(triggers);
 }
 
+// 初始化战斗阶段触发器列表 (猎人控制(CC)团队副本策略)
 void HunterCcRaidStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     CcRaidStrategy::InitCombatTriggers(triggers);
 }
 
+// 初始化非战斗阶段触发器列表 (猎人控制(CC)团队副本策略)
 void HunterCcRaidStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     CcRaidStrategy::InitNonCombatTriggers(triggers);
 }
 
+// 初始化战斗阶段触发器列表 (猎人钉刺策略)
 void HunterStingStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     if (ai->HasStrategy("aoe", BotState::BOT_STATE_COMBAT))
@@ -906,6 +1031,7 @@ void HunterStingStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
         NextAction::array(0, new NextAction("viper sting", ACTION_NORMAL + 5), NULL)));
 }
 
+// 初始化战斗阶段触发器列表 (猎人钉刺PVP策略)
 void HunterStingPvpStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     triggers.push_back(new TriggerNode(
@@ -913,6 +1039,7 @@ void HunterStingPvpStrategy::InitCombatTriggers(std::list<TriggerNode*>& trigger
         NextAction::array(0, new NextAction("serpent sting", ACTION_NORMAL + 4), NULL)));
 }
 
+// 初始化战斗阶段触发器列表 (猎人钉刺PVE策略)
 void HunterStingPveStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     triggers.push_back(new TriggerNode(
@@ -920,11 +1047,13 @@ void HunterStingPveStrategy::InitCombatTriggers(std::list<TriggerNode*>& trigger
         NextAction::array(0, new NextAction("serpent sting", ACTION_NORMAL + 4), NULL)));
 }
 
+// 初始化战斗阶段触发器列表 (猎人钉刺团队副本策略)
 void HunterStingRaidStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
 
 }
 
+// 初始化战斗阶段触发器列表 (猎人守护策略)
 void HunterAspectStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     triggers.push_back(new TriggerNode(
@@ -932,6 +1061,7 @@ void HunterAspectStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
         NextAction::array(0, new NextAction("aspect of the hawk", ACTION_HIGH + 5), NULL)));
 }
 
+// 初始化非战斗阶段触发器列表 (猎人守护策略)
 void HunterAspectStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     triggers.push_back(new TriggerNode(
@@ -939,6 +1069,7 @@ void HunterAspectStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& trigge
         NextAction::array(0, new NextAction("aspect of the hawk", ACTION_NORMAL), NULL)));
 }
 
+// 初始化战斗阶段触发器列表 (猎人守护PVP策略)
 void HunterAspectPvpStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     // TO DO: This needs to be done better, currently it spams unnecessarily
@@ -957,6 +1088,7 @@ void HunterAspectPvpStrategy::InitCombatTriggers(std::list<TriggerNode*>& trigge
         NextAction::array(0, new NextAction("aspect of the cheetah", ACTION_HIGH + 6), NULL)));
 }
 
+// 初始化非战斗阶段触发器列表 (猎人守护PVP策略)
 void HunterAspectPvpStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     triggers.push_back(new TriggerNode(
@@ -968,34 +1100,41 @@ void HunterAspectPvpStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& tri
         NextAction::array(0, new NextAction("aspect of the cheetah", ACTION_HIGH + 6), NULL)));
 }
 
+// 初始化战斗阶段触发器列表 (猎人守护PVE策略)
 void HunterAspectPveStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
 
 }
 
+// 初始化非战斗阶段触发器列表 (猎人守护PVE策略)
 void HunterAspectPveStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
 
 }
 
+// 初始化战斗阶段触发器列表 (猎人守护团队副本策略)
 void HunterAspectRaidStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
 
 }
 
+// 初始化非战斗阶段触发器列表 (猎人守护团队副本策略)
 void HunterAspectRaidStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
 
 }
 
 #endif
+// 巫妖王之怒 (WotLK 80级) 版本逻辑
 #ifdef MANGOSBOT_TWO // WOTLK
 
+// 获取默认战斗动作序列 (猎人策略)
 NextAction** HunterStrategy::GetDefaultCombatActions()
 {
     return NextAction::array(0, new NextAction("auto shot", ACTION_IDLE), NULL);
 }
 
+// 初始化战斗阶段触发器列表 (猎人策略)
 void HunterStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     ClassStrategy::InitCombatTriggers(triggers);
@@ -1037,6 +1176,7 @@ void HunterStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
         NextAction::array(0, new NextAction("tame beast", ACTION_EMERGENCY), NULL)));
 }
 
+// 初始化非战斗阶段触发器列表 (猎人策略)
 void HunterStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     ClassStrategy::InitNonCombatTriggers(triggers);
@@ -1057,6 +1197,7 @@ void HunterStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
         NextAction::array(0, new NextAction("tame beast", ACTION_EMERGENCY), NULL)));
 }
 
+// 初始化反应阶段触发器列表 (猎人策略)
 void HunterStrategy::InitReactionTriggers(std::list<TriggerNode*>& triggers)
 {
     ClassStrategy::InitReactionTriggers(triggers);
@@ -1066,31 +1207,37 @@ void HunterStrategy::InitReactionTriggers(std::list<TriggerNode*>& triggers)
         NextAction::array(0, new NextAction("tranquilizing shot", ACTION_INTERRUPT), NULL)));
 }
 
+// 初始化死亡状态触发器列表 (猎人策略)
 void HunterStrategy::InitDeadTriggers(std::list<TriggerNode*>& triggers)
 {
     ClassStrategy::InitDeadTriggers(triggers);
 }
 
+// 初始化战斗阶段触发器列表 (猎人PVP策略)
 void HunterPvpStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     ClassPvpStrategy::InitCombatTriggers(triggers);
 }
 
+// 初始化非战斗阶段触发器列表 (猎人PVP策略)
 void HunterPvpStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     ClassPvpStrategy::InitNonCombatTriggers(triggers);
 }
 
+// 初始化反应阶段触发器列表 (猎人PVP策略)
 void HunterPvpStrategy::InitReactionTriggers(std::list<TriggerNode*>& triggers)
 {
     ClassPvpStrategy::InitReactionTriggers(triggers);
 }
 
+// 初始化死亡状态触发器列表 (猎人PVP策略)
 void HunterPvpStrategy::InitDeadTriggers(std::list<TriggerNode*>& triggers)
 {
     ClassPvpStrategy::InitDeadTriggers(triggers);
 }
 
+// 初始化战斗阶段触发器列表 (猎人PVE策略)
 void HunterPveStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     ClassPveStrategy::InitCombatTriggers(triggers);
@@ -1101,21 +1248,25 @@ void HunterPveStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
         NextAction::array(0, new NextAction("immolation trap on target", ACTION_INTERRUPT), NULL)));
 }
 
+// 初始化非战斗阶段触发器列表 (猎人PVE策略)
 void HunterPveStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     ClassPveStrategy::InitNonCombatTriggers(triggers);
 }
 
+// 初始化反应阶段触发器列表 (猎人PVE策略)
 void HunterPveStrategy::InitReactionTriggers(std::list<TriggerNode*>& triggers)
 {
     ClassPveStrategy::InitReactionTriggers(triggers);
 }
 
+// 初始化死亡状态触发器列表 (猎人PVE策略)
 void HunterPveStrategy::InitDeadTriggers(std::list<TriggerNode*>& triggers)
 {
     ClassPveStrategy::InitDeadTriggers(triggers);
 }
 
+// 初始化战斗阶段触发器列表 (猎人团队副本策略)
 void HunterRaidStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     ClassRaidStrategy::InitCombatTriggers(triggers);
@@ -1125,21 +1276,25 @@ void HunterRaidStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
         NextAction::array(0, new NextAction("feign death threat", ACTION_EMERGENCY), NULL)));
 }
 
+// 初始化非战斗阶段触发器列表 (猎人团队副本策略)
 void HunterRaidStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     ClassRaidStrategy::InitNonCombatTriggers(triggers);
 }
 
+// 初始化反应阶段触发器列表 (猎人团队副本策略)
 void HunterRaidStrategy::InitReactionTriggers(std::list<TriggerNode*>& triggers)
 {
     ClassRaidStrategy::InitReactionTriggers(triggers);
 }
 
+// 初始化死亡状态触发器列表 (猎人团队副本策略)
 void HunterRaidStrategy::InitDeadTriggers(std::list<TriggerNode*>& triggers)
 {
     ClassRaidStrategy::InitDeadTriggers(triggers);
 }
 
+// 初始化战斗阶段触发器列表 (猎人AOE群体策略)
 void HunterAoeStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     AoeStrategy::InitCombatTriggers(triggers);
@@ -1158,41 +1313,49 @@ void HunterAoeStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
         NextAction::array(0, new NextAction("multi-shot", ACTION_HIGH), NULL)));
 }
 
+// 初始化非战斗阶段触发器列表 (猎人AOE群体策略)
 void HunterAoeStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     AoeStrategy::InitNonCombatTriggers(triggers);
 }
 
+// 初始化战斗阶段触发器列表 (猎人AOE群体PVP策略)
 void HunterAoePvpStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     AoePvpStrategy::InitCombatTriggers(triggers);
 }
 
+// 初始化非战斗阶段触发器列表 (猎人AOE群体PVP策略)
 void HunterAoePvpStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     AoePvpStrategy::InitNonCombatTriggers(triggers);
 }
 
+// 初始化战斗阶段触发器列表 (猎人AOE群体PVE策略)
 void HunterAoePveStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     AoePveStrategy::InitCombatTriggers(triggers);
 }
 
+// 初始化非战斗阶段触发器列表 (猎人AOE群体PVE策略)
 void HunterAoePveStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     AoePveStrategy::InitNonCombatTriggers(triggers);
 }
 
+// 初始化战斗阶段触发器列表 (猎人AOE群体团队副本策略)
 void HunterAoeRaidStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     AoeRaidStrategy::InitCombatTriggers(triggers);
 }
 
+// 初始化非战斗阶段触发器列表 (猎人AOE群体团队副本策略)
 void HunterAoeRaidStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     AoeRaidStrategy::InitNonCombatTriggers(triggers);
 }
 
+// 初始化战斗阶段触发器列表 (猎人增益Buff策略)
 void HunterBuffStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     BuffStrategy::InitCombatTriggers(triggers);
@@ -1206,6 +1369,7 @@ void HunterBuffStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
         NextAction::array(0, new NextAction("remove feign death", ACTION_HIGH), NULL)));
 }
 
+// 初始化非战斗阶段触发器列表 (猎人增益Buff策略)
 void HunterBuffStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     BuffStrategy::InitNonCombatTriggers(triggers);
@@ -1219,36 +1383,43 @@ void HunterBuffStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers
         NextAction::array(0, new NextAction("apply oil", ACTION_NORMAL), NULL)));
 }
 
+// 初始化战斗阶段触发器列表 (猎人增益BuffPVP策略)
 void HunterBuffPvpStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     BuffPvpStrategy::InitCombatTriggers(triggers);
 }
 
+// 初始化非战斗阶段触发器列表 (猎人增益BuffPVP策略)
 void HunterBuffPvpStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     BuffPvpStrategy::InitNonCombatTriggers(triggers);
 }
 
+// 初始化战斗阶段触发器列表 (猎人增益BuffPVE策略)
 void HunterBuffPveStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     BuffPveStrategy::InitCombatTriggers(triggers);
 }
 
+// 初始化非战斗阶段触发器列表 (猎人增益BuffPVE策略)
 void HunterBuffPveStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     BuffPveStrategy::InitNonCombatTriggers(triggers);
 }
 
+// 初始化战斗阶段触发器列表 (猎人增益Buff团队副本策略)
 void HunterBuffRaidStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     BuffRaidStrategy::InitCombatTriggers(triggers);
 }
 
+// 初始化非战斗阶段触发器列表 (猎人增益Buff团队副本策略)
 void HunterBuffRaidStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     BuffRaidStrategy::InitNonCombatTriggers(triggers);
 }
 
+// 初始化战斗阶段触发器列表 (猎人爆发增益策略)
 void HunterBoostStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     BoostStrategy::InitCombatTriggers(triggers);
@@ -1258,41 +1429,49 @@ void HunterBoostStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
         NextAction::array(0, new NextAction("rapid fire", ACTION_HIGH + 5), NULL)));
 }
 
+// 初始化非战斗阶段触发器列表 (猎人爆发增益策略)
 void HunterBoostStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     BoostStrategy::InitNonCombatTriggers(triggers);
 }
 
+// 初始化战斗阶段触发器列表 (猎人爆发增益PVP策略)
 void HunterBoostPvpStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     BoostPvpStrategy::InitCombatTriggers(triggers);
 }
 
+// 初始化非战斗阶段触发器列表 (猎人爆发增益PVP策略)
 void HunterBoostPvpStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     BoostPvpStrategy::InitNonCombatTriggers(triggers);
 }
 
+// 初始化战斗阶段触发器列表 (猎人爆发增益PVE策略)
 void HunterBoostPveStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     BoostPveStrategy::InitCombatTriggers(triggers);
 }
 
+// 初始化非战斗阶段触发器列表 (猎人爆发增益PVE策略)
 void HunterBoostPveStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     BoostPveStrategy::InitNonCombatTriggers(triggers);
 }
 
+// 初始化战斗阶段触发器列表 (猎人爆发增益团队副本策略)
 void HunterBoostRaidStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     BoostRaidStrategy::InitCombatTriggers(triggers);
 }
 
+// 初始化非战斗阶段触发器列表 (猎人爆发增益团队副本策略)
 void HunterBoostRaidStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     BoostRaidStrategy::InitNonCombatTriggers(triggers);
 }
 
+// 初始化战斗阶段触发器列表 (猎人控制(CC)策略)
 void HunterCcStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     CcStrategy::InitCombatTriggers(triggers);
@@ -1319,11 +1498,13 @@ void HunterCcStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
         NextAction::array(0, new NextAction("concussive shot", ACTION_HIGH + 1), NULL)));
 }
 
+// 初始化非战斗阶段触发器列表 (猎人控制(CC)策略)
 void HunterCcStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     CcStrategy::InitNonCombatTriggers(triggers);
 }
 
+// 初始化战斗阶段触发器列表 (猎人控制(CC)PVP策略)
 void HunterCcPvpStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     CcPvpStrategy::InitCombatTriggers(triggers);
@@ -1333,31 +1514,37 @@ void HunterCcPvpStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
         NextAction::array(0, new NextAction("freezing trap in place", ACTION_INTERRUPT + 3), NULL)));
 }
 
+// 初始化非战斗阶段触发器列表 (猎人控制(CC)PVP策略)
 void HunterCcPvpStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     CcPvpStrategy::InitNonCombatTriggers(triggers);
 }
 
+// 初始化战斗阶段触发器列表 (猎人控制(CC)PVE策略)
 void HunterCcPveStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     CcPveStrategy::InitCombatTriggers(triggers);
 }
 
+// 初始化非战斗阶段触发器列表 (猎人控制(CC)PVE策略)
 void HunterCcPveStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     CcPveStrategy::InitNonCombatTriggers(triggers);
 }
 
+// 初始化战斗阶段触发器列表 (猎人控制(CC)团队副本策略)
 void HunterCcRaidStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     CcRaidStrategy::InitCombatTriggers(triggers);
 }
 
+// 初始化非战斗阶段触发器列表 (猎人控制(CC)团队副本策略)
 void HunterCcRaidStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     CcRaidStrategy::InitNonCombatTriggers(triggers);
 }
 
+// 初始化战斗阶段触发器列表 (猎人钉刺策略)
 void HunterStingStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     if (ai->HasStrategy("aoe", BotState::BOT_STATE_COMBAT))
@@ -1376,6 +1563,7 @@ void HunterStingStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
         NextAction::array(0, new NextAction("viper sting", ACTION_NORMAL + 5), NULL)));
 }
 
+// 初始化战斗阶段触发器列表 (猎人钉刺PVP策略)
 void HunterStingPvpStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     triggers.push_back(new TriggerNode(
@@ -1383,6 +1571,7 @@ void HunterStingPvpStrategy::InitCombatTriggers(std::list<TriggerNode*>& trigger
         NextAction::array(0, new NextAction("serpent sting", ACTION_NORMAL + 4), NULL)));
 }
 
+// 初始化战斗阶段触发器列表 (猎人钉刺PVE策略)
 void HunterStingPveStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     triggers.push_back(new TriggerNode(
@@ -1390,11 +1579,13 @@ void HunterStingPveStrategy::InitCombatTriggers(std::list<TriggerNode*>& trigger
         NextAction::array(0, new NextAction("serpent sting", ACTION_NORMAL + 4), NULL)));
 }
 
+// 初始化战斗阶段触发器列表 (猎人钉刺团队副本策略)
 void HunterStingRaidStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
 
 }
 
+// 初始化战斗阶段触发器列表 (猎人守护策略)
 void HunterAspectStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     triggers.push_back(new TriggerNode(
@@ -1402,6 +1593,7 @@ void HunterAspectStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
         NextAction::array(0, new NextAction("aspect of the dragonhawk", ACTION_HIGH + 5), NULL)));
 }
 
+// 初始化非战斗阶段触发器列表 (猎人守护策略)
 void HunterAspectStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     triggers.push_back(new TriggerNode(
@@ -1409,6 +1601,7 @@ void HunterAspectStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& trigge
         NextAction::array(0, new NextAction("aspect of the dragonhawk", ACTION_NORMAL), NULL)));
 }
 
+// 初始化战斗阶段触发器列表 (猎人守护PVP策略)
 void HunterAspectPvpStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     // TO DO: This needs to be done better, currently it spams unnecessarily
@@ -1427,6 +1620,7 @@ void HunterAspectPvpStrategy::InitCombatTriggers(std::list<TriggerNode*>& trigge
         NextAction::array(0, new NextAction("aspect of the cheetah", ACTION_HIGH + 6), NULL)));
 }
 
+// 初始化非战斗阶段触发器列表 (猎人守护PVP策略)
 void HunterAspectPvpStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     triggers.push_back(new TriggerNode(
@@ -1438,21 +1632,25 @@ void HunterAspectPvpStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& tri
         NextAction::array(0, new NextAction("aspect of the cheetah", ACTION_HIGH + 6), NULL)));
 }
 
+// 初始化战斗阶段触发器列表 (猎人守护PVE策略)
 void HunterAspectPveStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
 
 }
 
+// 初始化非战斗阶段触发器列表 (猎人守护PVE策略)
 void HunterAspectPveStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
 
 }
 
+// 初始化战斗阶段触发器列表 (猎人守护团队副本策略)
 void HunterAspectRaidStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
 
 }
 
+// 初始化非战斗阶段触发器列表 (猎人守护团队副本策略)
 void HunterAspectRaidStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
 
@@ -1460,6 +1658,7 @@ void HunterAspectRaidStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& tr
 
 #endif
 
+// 初始化战斗阶段触发器列表 (猎人手动钉刺策略)
 void HunterManualStingStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     if (ai->HasStrategy("aoe", BotState::BOT_STATE_COMBAT))
@@ -1474,6 +1673,7 @@ void HunterManualStingStrategy::InitCombatTriggers(std::list<TriggerNode*>& trig
         NextAction::array(0, new NextAction(actionName, ACTION_HIGH), NULL)));
 }
 
+// 初始化战斗阶段触发器列表 (猎人手动守护策略)
 void HunterManualAspectStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     triggers.push_back(new TriggerNode(
@@ -1481,11 +1681,13 @@ void HunterManualAspectStrategy::InitCombatTriggers(std::list<TriggerNode*>& tri
         NextAction::array(0, new NextAction(actionName, ACTION_HIGH), NULL)));
 }
 
+// 初始化非战斗阶段触发器列表 (猎人手动守护策略)
 void HunterManualAspectStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     InitCombatTriggers(triggers);
 }
 
+// 初始化战斗阶段触发器列表 (猎人宠物策略)
 void HunterPetStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     triggers.push_back(new TriggerNode(
@@ -1493,6 +1695,7 @@ void HunterPetStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
         NextAction::array(0, new NextAction("mend pet", ACTION_HIGH), NULL)));
 }
 
+// 初始化非战斗阶段触发器列表 (猎人宠物策略)
 void HunterPetStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     triggers.push_back(new TriggerNode(

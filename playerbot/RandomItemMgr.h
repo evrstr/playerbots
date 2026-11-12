@@ -12,6 +12,7 @@
 #endif
 #include "strategy/values/ItemUsageValue.h"
 
+/// 随机物品用途分类枚举（公会任务及奖励装备/材料）
 enum RandomItemType
 {
     RANDOM_ITEM_GUILD_TASK,
@@ -23,6 +24,7 @@ enum RandomItemType
 
 #define MAX_STAT_SCALES 32
 
+/// 物品获取来源分类枚举
 enum ItemSource
 {
     ITEM_SOURCE_NONE,
@@ -33,6 +35,7 @@ enum ItemSource
     ITEM_SOURCE_PVP
 };
 
+/// 物品属性倾向掩码枚举（法伤/治疗/攻强/坦克/法系）
 enum ItemSpecType
 {
     ITEM_SPEC_NONE = 0x0,
@@ -43,6 +46,7 @@ enum ItemSpecType
     ITEM_SPEC_CASTER = 0x10,
 };
 
+/// 职业专精属性权重方案元信息
 struct WeightScaleInfo
 {
     uint32 id;
@@ -50,12 +54,14 @@ struct WeightScaleInfo
     uint8 classId;
 };
 
+/// 单项属性名称与权重值
 struct WeightScaleStat
 {
     std::string stat;
     uint32 weight;
 };
 
+/// 物品缓存评估条目（记录各权重方案评分、来源、声望、技能与装等）
 struct ItemInfoEntry
 {
     ItemInfoEntry() : minLevel(0), itemLevel(0), source(0), team(0), repRank(0), repFaction(0), reqSkill(0), reqSkillRank(0), pvpRank(0), quality(0), slot(0), itemId(0)
@@ -95,6 +101,7 @@ struct WeightScale
 
 //typedef std::map<uint32, WeightScale> WeightScales;
 
+/// 随机物品筛选谓词基类
 class RandomItemPredicate
 {
 public:
@@ -105,6 +112,7 @@ public:
 typedef std::vector<uint32> RandomItemList;
 typedef std::map<RandomItemType, RandomItemList> RandomItemCache;
 
+/// 机器人配装缓存查询键（等级、职业、专精、槽位、品质）
 class BotEquipKey
 {
 public:
@@ -132,6 +140,7 @@ public:
 
 typedef std::map<BotEquipKey, RandomItemList> BotEquipCache;
 
+/// 随机物品与装备评分管理器，维护全物品属性评分、随机附魔、宝石、药水/食物/弹药/雕文缓存
 class RandomItemMgr
 {
     public:
@@ -143,7 +152,7 @@ class RandomItemMgr
             return instance;
         }
 
-	public:
+    public:
         void Init();
         static bool HandleConsoleCommand(ChatHandler* handler, char const* args);
         RandomItemList Query(uint32 level, RandomItemType type, RandomItemPredicate* predicate);

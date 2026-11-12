@@ -4,6 +4,7 @@
 
 using namespace ai;
 
+/// 执行动作主逻辑（专业技能指令动作）
 bool SkillAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -23,7 +24,7 @@ bool SkillAction::Execute(Event& event)
 
     std::set<uint32> skillIds = ChatHelper::ExtractAllSkillIds(skillName);
 
-    // converting string that we try to find to lower case
+    // converting string that we try to find to lower case (将待查找的文本转换为小写)
     wstrToLower(wnamepart);
 
     bool skillFound = false;

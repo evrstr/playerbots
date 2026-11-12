@@ -1,3 +1,4 @@
+/// 测试命令：组队与机器人生成管理命令实现
 #include "playerbot/playerbot.h"
 #include "CommandParty.h"
 #include "Grids/GridNotifiers.h"
@@ -9,6 +10,7 @@
 
 using namespace ai;
 
+/// 执行 spawn 命令：创建一个测试机器人并将其 GUID 记录到 spawnedBots
 TestResult CommandPartySpawnBot::Execute(const std::string& params, Player* bot, PlayerbotAI* ai, TestContext& ctx, std::string& message)
 {
     if (!ai->GetHolder())
@@ -31,6 +33,7 @@ TestResult CommandPartySpawnBot::Execute(const std::string& params, Player* bot,
     return TestResult::PASS;
 }
 
+/// 执行 despawn 命令：下线并移除所有已生成的测试机器人
 TestResult CommandPartyDespawnBot::Execute(const std::string& params, Player* bot,
                     PlayerbotAI* ai, TestContext& ctx, std::string& message)
 {
@@ -48,6 +51,7 @@ TestResult CommandPartyDespawnBot::Execute(const std::string& params, Player* bo
     return TestResult::PASS;
 }
 
+/// 执行 form 命令：将已生成的机器人组成小队并设置跟随队长
 TestResult CommandPartyForm::Execute(const std::string& params, Player* bot,
                     PlayerbotAI* ai, TestContext& ctx, std::string& message)
 {
@@ -102,6 +106,7 @@ TestResult CommandPartyForm::Execute(const std::string& params, Player* bot,
     return TestResult::PASS;
 }
 
+/// 执行 mgroup 命令：使用测试框架快捷参数批量生成机器人队伍
 TestResult CommandPartySpawnGroup::Execute(const std::string& params, Player* bot,
                     PlayerbotAI* ai, TestContext& ctx, std::string& message)
 {

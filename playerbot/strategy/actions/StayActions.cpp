@@ -7,6 +7,7 @@
 
 using namespace ai;
 
+/// 停止机器人当前所有移动并保持原地待命
 bool StayActionBase::Stay(Player* requester)
 {
     AI_VALUE(LastMovement&, "last movement").Set(NULL);
@@ -15,15 +16,15 @@ bool StayActionBase::Stay(Player* requester)
 
     MotionMaster &mm = *bot->GetMotionMaster();
 #ifdef CMANGOS
-	if (mm.GetCurrentMovementGeneratorType() == TAXI_MOTION_TYPE || bot->IsTaxiFlying())
+    if (mm.GetCurrentMovementGeneratorType() == TAXI_MOTION_TYPE || bot->IsTaxiFlying())
 #endif
 #ifdef MANGOS
-	if (mm.GetCurrentMovementGeneratorType() == FLIGHT_MOTION_TYPE || bot->IsFlying())
+    if (mm.GetCurrentMovementGeneratorType() == FLIGHT_MOTION_TYPE || bot->IsFlying())
 #endif
-	{
-		if (verbose) ai->TellError(requester, "I can not stay, I'm flying!");
-		return false;
-	} 
+    {
+        if (verbose) ai->TellError(requester, "I can not stay, I'm flying!");
+        return false;
+    } 
 
     uint32 sitDelay = sPlayerbotAIConfig.sitDelay / 1000;
     time_t stayTime = AI_VALUE(time_t, "stay time");
@@ -38,23 +39,26 @@ bool StayActionBase::Stay(Player* requester)
         return false;
 
     ai->StopMoving();
-	bot->clearUnitState(UNIT_STAT_CHASE);
-	bot->clearUnitState(UNIT_STAT_FOLLOW);
+    bot->clearUnitState(UNIT_STAT_CHASE);
+    bot->clearUnitState(UNIT_STAT_FOLLOW);
 
     return true;
 }
 
+/// 执行动作主逻辑（原地待命动作）
 bool StayAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
     return Stay(requester);
 }
 
+/// 判断当前状态下该动作是否可用/有效（原地待命动作）
 bool StayAction::isUseful()
 {
     return !AI_VALUE2(bool, "moving", "self target");
 }
 
+/// 执行动作主逻辑（坐下休息动作）
 bool SitAction::Execute(Event& event)
 {
     if (sServerFacade.isMoving(bot))
@@ -64,6 +68,7 @@ bool SitAction::Execute(Event& event)
     return true;
 }
 
+/// 判断当前状态下该动作是否可用/有效（坐下休息动作）
 bool SitAction::isUseful()
 {
     return !AI_VALUE2(bool, "moving", "self target");

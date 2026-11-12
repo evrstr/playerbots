@@ -1,3 +1,4 @@
+/// 卡死与停滞检测触发器定义
 #pragma once
 #include "playerbot/strategy/Trigger.h"
 #include "playerbot/ServerFacade.h"
@@ -6,6 +7,7 @@
 
 namespace ai
 {
+    /// 辅助格式化字符串函数（类似 sprintf）
     template< typename... Args >
     std::string string_sprintf(const char* format, Args... args) {
         int length = std::snprintf(nullptr, 0, format, args...);
@@ -19,6 +21,7 @@ namespace ai
         return str;
     }
 
+    /// 触发器：移动卡死检测（位置长时间未变化或10分钟内移动距离不足50码）
     class MoveStuckTrigger : public Trigger
     {
     public:
@@ -62,6 +65,7 @@ namespace ai
         }
     };
 
+    /// 触发器：长时间移动卡死或处于无效/未加载网格（Grid/MMap）检测
     class MoveLongStuckTrigger : public Trigger
     {
     public:
@@ -146,6 +150,7 @@ namespace ai
         }
     };
 
+    /// 触发器：战斗状态长时间停滞或决斗超时卡死检测
     class CombatStuckTrigger : public Trigger
     {
     public:
@@ -186,6 +191,7 @@ namespace ai
         }
     };
 
+    /// 触发器：战斗僵持检测（双方长时间静止且血量签名无变化）
     class CombatStandoffTrigger : public Trigger
     {
     public:
@@ -263,6 +269,7 @@ namespace ai
         time_t lastChange = time(0);
     };
 
+    /// 触发器：移动死循环卡死检测（原地打转计时达到上限）
     class MovementLoopStuckTrigger : public Trigger
     {
     public:
@@ -283,6 +290,7 @@ namespace ai
         }
     };
 
+    /// 触发器：超长时间战斗卡死检测（超过15分钟战斗状态未变）
     class CombatLongStuckTrigger : public Trigger
     {
     public:
@@ -324,6 +332,7 @@ namespace ai
         }
     };
 
+    /// 触发器：检测到非真人队长的队伍领袖处于 AFK 状态
     class LeaderIsAfkTrigger : public Trigger
     {
     public:

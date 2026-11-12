@@ -1,8 +1,10 @@
+/// 旅行与传送门触发器定义
 #pragma once
 #include "playerbot/strategy/Trigger.h"
 
 namespace ai
 {
+    /// 触发器：附近有任务发布/交付NPC
     class HasNearbyQuestTakerTrigger : public Trigger
     {
     public:
@@ -11,6 +13,7 @@ namespace ai
         virtual bool IsActive() override;
     };
 
+    /// 触发器：处于黑暗之门附近区域
     class NearDarkPortalTrigger : public Trigger
     {
     public:
@@ -19,6 +22,7 @@ namespace ai
         virtual bool IsActive() override;
     };
 
+    /// 触发器：位于艾泽拉斯黑暗之门前
     class AtDarkPortalAzerothTrigger : public Trigger
     {
     public:
@@ -27,6 +31,7 @@ namespace ai
         virtual bool IsActive() override;
     };
 
+    /// 触发器：位于外域黑暗之门前
     class AtDarkPortalOutlandTrigger : public Trigger
     {
     public:

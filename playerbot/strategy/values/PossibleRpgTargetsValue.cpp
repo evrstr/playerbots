@@ -1,3 +1,4 @@
+// 策略值实现：PossibleRpgTargetsValue（可交互 RPG NPC 扫描与标志过滤）
 
 #include "playerbot/playerbot.h"
 #include "PossibleRpgTargetsValue.h"
@@ -15,6 +16,7 @@ using namespace MaNGOS;
 
 std::vector<uint32> PossibleRpgTargetsValue::allowedNpcFlags;
 
+// 构造函数：初始化可交互 NPC 标志列表（任务、商人、修理、旅店、银行、飞行、拍卖等）
 PossibleRpgTargetsValue::PossibleRpgTargetsValue(PlayerbotAI* ai, float range) :
         NearestUnitsValue(ai, "possible rpg targets", range, true)
 {
@@ -46,6 +48,7 @@ PossibleRpgTargetsValue::PossibleRpgTargetsValue(PlayerbotAI* ai, float range) :
     }
 }
 
+// 扫描 RPG 交互半径内的友好/中立生物单位
 void PossibleRpgTargetsValue::FindUnits(std::list<Unit*> &targets)
 {
     AnyUnitInObjectRangeCheck u_check(bot, range);
@@ -53,6 +56,7 @@ void PossibleRpgTargetsValue::FindUnits(std::list<Unit*> &targets)
     Cell::VisitAllObjects(bot, searcher, range);
 }
 
+// 筛选非敌对存活 NPC，且具备任务物品目标、任务对话状态或允许的 NPC 功能标志
 bool PossibleRpgTargetsValue::AcceptUnit(Unit* unit)
 {
     TravelTarget* travelTarget = context->GetValue<TravelTarget*>("travel target")->Get();
@@ -66,12 +70,12 @@ bool PossibleRpgTargetsValue::AcceptUnit(Unit* unit)
     if (CanUseItemOn::HasQuestItemForEntry(bot->GetPlayerbotAI(), (int32)unit->GetEntry()))
         return true;
 
-	if (unit->HasFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_SPIRITHEALER))
-		return false;
+    if (unit->HasFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_SPIRITHEALER))
+        return false;
 
     for (std::vector<uint32>::iterator i = allowedNpcFlags.begin(); i != allowedNpcFlags.end(); ++i)
     {
-		if (unit->HasFlag(UNIT_NPC_FLAGS, *i)) return true;
+        if (unit->HasFlag(UNIT_NPC_FLAGS, *i)) return true;
     }
 
     if (urand(1, 100) < 25 && sServerFacade.IsFriendlyTo(unit, bot))

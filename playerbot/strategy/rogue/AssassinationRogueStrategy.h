@@ -1,8 +1,10 @@
+// 潜行者 - 刺杀潜行者策略头文件 (AssassinationRogueStrategy.h)
 #pragma once
 #include "RogueStrategy.h"
 
 namespace ai
 {
+    // 刺杀潜行者专精占位策略：用于专精识别与占位的策略类
     class AssassinationRoguePlaceholderStrategy : public SpecPlaceholderStrategy
     {
     public:
@@ -11,6 +13,7 @@ namespace ai
         std::string getName() override { return "assassination"; }
     };
 
+    // 刺杀潜行者策略：定义该专精/场景下的触发器与默认行为
     class AssassinationRogueStrategy : public RogueStrategy
     {
     public:
@@ -23,6 +26,7 @@ namespace ai
         virtual void InitDeadTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 刺杀潜行者PVE策略：定义该专精/场景下的触发器与默认行为
     class AssassinationRoguePveStrategy : public AssassinationRogueStrategy
     {
     public:
@@ -36,6 +40,7 @@ namespace ai
         void InitDeadTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 刺杀潜行者PVP策略：定义该专精/场景下的触发器与默认行为
     class AssassinationRoguePvpStrategy : public AssassinationRogueStrategy
     {
     public:
@@ -49,6 +54,7 @@ namespace ai
         void InitDeadTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 刺杀潜行者团队副本策略：定义该专精/场景下的触发器与默认行为
     class AssassinationRogueRaidStrategy : public AssassinationRogueStrategy
     {
     public:
@@ -62,6 +68,7 @@ namespace ai
         void InitDeadTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 刺杀潜行者AOE群体策略：定义该专精/场景下的触发器与默认行为
     class AssassinationRogueAoeStrategy : public RogueAoeStrategy
     {
     public:
@@ -72,6 +79,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 刺杀潜行者AOE群体PVE策略：定义该专精/场景下的触发器与默认行为
     class AssassinationRogueAoePveStrategy : public AssassinationRogueAoeStrategy
     {
     public:
@@ -83,6 +91,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 刺杀潜行者AOE群体PVP策略：定义该专精/场景下的触发器与默认行为
     class AssassinationRogueAoePvpStrategy : public AssassinationRogueAoeStrategy
     {
     public:
@@ -94,6 +103,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 刺杀潜行者AOE群体团队副本策略：定义该专精/场景下的触发器与默认行为
     class AssassinationRogueAoeRaidStrategy : public AssassinationRogueAoeStrategy
     {
     public:
@@ -105,6 +115,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 刺杀潜行者增益Buff策略：定义该专精/场景下的触发器与默认行为
     class AssassinationRogueBuffStrategy : public RogueBuffStrategy
     {
     public:
@@ -115,6 +126,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 刺杀潜行者增益BuffPVE策略：定义该专精/场景下的触发器与默认行为
     class AssassinationRogueBuffPveStrategy : public AssassinationRogueBuffStrategy
     {
     public:
@@ -126,6 +138,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 刺杀潜行者增益BuffPVP策略：定义该专精/场景下的触发器与默认行为
     class AssassinationRogueBuffPvpStrategy : public AssassinationRogueBuffStrategy
     {
     public:
@@ -137,6 +150,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 刺杀潜行者增益Buff团队副本策略：定义该专精/场景下的触发器与默认行为
     class AssassinationRogueBuffRaidStrategy : public AssassinationRogueBuffStrategy
     {
     public:
@@ -148,6 +162,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 刺杀潜行者爆发增益策略：定义该专精/场景下的触发器与默认行为
     class AssassinationRogueBoostStrategy : public RogueBoostStrategy
     {
     public:
@@ -158,6 +173,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 刺杀潜行者爆发增益PVE策略：定义该专精/场景下的触发器与默认行为
     class AssassinationRogueBoostPveStrategy : public AssassinationRogueBoostStrategy
     {
     public:
@@ -169,6 +185,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 刺杀潜行者爆发增益PVP策略：定义该专精/场景下的触发器与默认行为
     class AssassinationRogueBoostPvpStrategy : public AssassinationRogueBoostStrategy
     {
     public:
@@ -180,6 +197,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 刺杀潜行者爆发增益团队副本策略：定义该专精/场景下的触发器与默认行为
     class AssassinationRogueBoostRaidStrategy : public AssassinationRogueBoostStrategy
     {
     public:
@@ -191,6 +209,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 刺杀潜行者控制(CC)策略：定义该专精/场景下的触发器与默认行为
     class AssassinationRogueCcStrategy : public RogueCcStrategy
     {
     public:
@@ -201,6 +220,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 刺杀潜行者控制(CC)PVE策略：定义该专精/场景下的触发器与默认行为
     class AssassinationRogueCcPveStrategy : public AssassinationRogueCcStrategy
     {
     public:
@@ -212,6 +232,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 刺杀潜行者控制(CC)PVP策略：定义该专精/场景下的触发器与默认行为
     class AssassinationRogueCcPvpStrategy : public AssassinationRogueCcStrategy
     {
     public:
@@ -223,6 +244,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 刺杀潜行者控制(CC)团队副本策略：定义该专精/场景下的触发器与默认行为
     class AssassinationRogueCcRaidStrategy : public AssassinationRogueCcStrategy
     {
     public:
@@ -234,6 +256,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 刺杀潜行者潜行策略：定义该专精/场景下的触发器与默认行为
     class AssassinationRogueStealthStrategy : public RogueStealthStrategy
     {
     public:
@@ -244,6 +267,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 刺杀潜行者潜行PVE策略：定义该专精/场景下的触发器与默认行为
     class AssassinationRogueStealthPveStrategy : public AssassinationRogueStealthStrategy
     {
     public:
@@ -255,6 +279,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 刺杀潜行者潜行PVP策略：定义该专精/场景下的触发器与默认行为
     class AssassinationRogueStealthPvpStrategy : public AssassinationRogueStealthStrategy
     {
     public:
@@ -266,6 +291,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 刺杀潜行者潜行团队副本策略：定义该专精/场景下的触发器与默认行为
     class AssassinationRogueStealthRaidStrategy : public AssassinationRogueStealthStrategy
     {
     public:
@@ -277,6 +303,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 刺杀潜行者毒药策略：定义该专精/场景下的触发器与默认行为
     class AssassinationRoguePoisonsStrategy : public RoguePoisonsStrategy
     {
     public:
@@ -287,6 +314,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 刺杀潜行者毒药PVE策略：定义该专精/场景下的触发器与默认行为
     class AssassinationRoguePoisonsPveStrategy : public AssassinationRoguePoisonsStrategy
     {
     public:
@@ -298,6 +326,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 刺杀潜行者毒药PVP策略：定义该专精/场景下的触发器与默认行为
     class AssassinationRoguePoisonsPvpStrategy : public AssassinationRoguePoisonsStrategy
     {
     public:
@@ -309,6 +338,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 刺杀潜行者毒药团队副本策略：定义该专精/场景下的触发器与默认行为
     class AssassinationRoguePoisonsRaidStrategy : public AssassinationRoguePoisonsStrategy
     {
     public:

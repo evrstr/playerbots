@@ -11,12 +11,14 @@
 
 typedef std::vector<std::string> PerformanceStack;
 
+/// 单项性能统计数据（最小耗时、最大耗时、总耗时与调用次数）
 struct PerformanceData
 {
     uint32 minTime, maxTime, totalTime, count;
     std::mutex lock;
 };
 
+/// 性能监控维度枚举（状态值/触发器/动作/随机机器人/总计）
 enum PerformanceMetric
 {
     PERF_MON_VALUE,
@@ -26,6 +28,7 @@ enum PerformanceMetric
     PERF_MON_TOTAL
 };
 
+/// RAII 作用域性能计时器，析构时自动累计耗时并弹出调用栈
 class PerformanceMonitorOperation
 {
 public:
@@ -43,6 +46,7 @@ private:
 #endif
 };
 
+/// 字符串调用栈向量的哈希仿函数
 struct VectorStringHash
 {
     std::size_t operator()(const std::vector<std::string>& v) const
@@ -62,6 +66,7 @@ using performanceMetricMap = std::map<PerformanceMetric, performanceMap>;
 using performanceInstanceMap = std::map<uint32, performanceMetricMap>;
 using performanceMapMap = std::map<uint32, performanceInstanceMap>;
 
+/// 机器人 AI 性能分析器，按地图与实例维度统计各模块耗时
 class PerformanceMonitor
 {
     public:

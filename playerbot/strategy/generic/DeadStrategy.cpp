@@ -1,3 +1,4 @@
+/// 死亡状态恢复（释放灵魂/跑尸/复活）策略实现
 
 #include "playerbot/playerbot.h"
 #include "playerbot/strategy/Strategy.h"
@@ -6,6 +7,7 @@
 
 using namespace ai;
 
+/// 初始化死亡状态触发器：处理自动释放、灵魂医者、跑尸、接受复活及卡死重置
 void DeadStrategy::InitDeadTriggers(std::list<TriggerNode*>& triggers)
 {
     PassTroughStrategy::InitDeadTriggers(triggers);
@@ -34,8 +36,8 @@ void DeadStrategy::InitDeadTriggers(std::list<TriggerNode*>& triggers)
         "corpse near",
         NextAction::array(0, new NextAction("revive from corpse", relevance-1.0f), NULL)));
 
-    // The bot's own recovery (auto release / spirit healer / repop, relevance 100-104) must not win
-    // the tick over an offered resurrection: the engine runs one action per tick, and a request that
+    // The bot's own recovery (auto release / spirit healer / repop, relevance 100-104) must not win | 接受他人复活请求的优先级必须高于机器人自身的自动释放/灵魂医者复活，
+    // the tick over an offered resurrection: the engine runs one action per tick, and a request that | 防止引擎每帧只执行最高优先动作导致复活请求一直得不到响应。
     // keeps losing is never answered.
     triggers.push_back(new TriggerNode(
         "resurrect request",

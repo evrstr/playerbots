@@ -1,8 +1,10 @@
+// 圣骑士 - 圣骑士策略头文件 (PaladinStrategy.h)
 #pragma once
 #include "playerbot/strategy/generic/ClassStrategy.h"
 
 namespace ai
 {
+    // 圣骑士光环专精占位策略：用于专精识别与占位的策略类
     class PaladinAuraPlaceholderStrategy : public PlaceholderStrategy
     {
     public:
@@ -10,6 +12,7 @@ namespace ai
         std::string getName() override { return "aura"; }
     };
 
+    // 圣骑士祝福专精占位策略：用于专精识别与占位的策略类
     class PaladinBlessingPlaceholderStrategy : public PlaceholderStrategy
     {
     public:
@@ -17,6 +20,7 @@ namespace ai
         std::string getName() override { return "blessing"; }
     };
 
+    // 圣骑士策略：定义该专精/场景下的触发器与默认行为
     class PaladinStrategy : public ClassStrategy
     {
     public:
@@ -29,6 +33,7 @@ namespace ai
         virtual void InitDeadTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 圣骑士PVP策略：定义该专精/场景下的触发器与默认行为
     class PaladinPvpStrategy : public ClassPvpStrategy
     {
     public:
@@ -38,6 +43,7 @@ namespace ai
         static void InitDeadTriggers(std::list<TriggerNode*>& triggers);
     };
 
+    // 圣骑士PVE策略：定义该专精/场景下的触发器与默认行为
     class PaladinPveStrategy : public ClassPveStrategy
     {
     public:
@@ -47,6 +53,7 @@ namespace ai
         static void InitDeadTriggers(std::list<TriggerNode*>& triggers);
     };
 
+    // 圣骑士团队副本策略：定义该专精/场景下的触发器与默认行为
     class PaladinRaidStrategy : public ClassRaidStrategy
     {
     public:
@@ -56,6 +63,7 @@ namespace ai
         static void InitDeadTriggers(std::list<TriggerNode*>& triggers);
     };
 
+    // 圣骑士AOE群体策略：定义该专精/场景下的触发器与默认行为
     class PaladinAoeStrategy : public AoeStrategy
     {
     public:
@@ -66,6 +74,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 圣骑士AOE群体PVP策略：定义该专精/场景下的触发器与默认行为
     class PaladinAoePvpStrategy : public AoePvpStrategy
     {
     public:
@@ -73,6 +82,7 @@ namespace ai
         static void InitNonCombatTriggers(std::list<TriggerNode*>& triggers);
     };
 
+    // 圣骑士AOE群体PVE策略：定义该专精/场景下的触发器与默认行为
     class PaladinAoePveStrategy : public AoePveStrategy
     {
     public:
@@ -80,6 +90,7 @@ namespace ai
         static void InitNonCombatTriggers(std::list<TriggerNode*>& triggers);
     };
 
+    // 圣骑士AOE群体团队副本策略：定义该专精/场景下的触发器与默认行为
     class PaladinAoeRaidStrategy : public AoeRaidStrategy
     {
     public:
@@ -87,6 +98,7 @@ namespace ai
         static void InitNonCombatTriggers(std::list<TriggerNode*>& triggers);
     };
 
+    // 圣骑士控制(CC)策略：定义该专精/场景下的触发器与默认行为
     class PaladinCcStrategy : public CcStrategy
     {
     public:
@@ -97,6 +109,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 圣骑士控制(CC)PVP策略：定义该专精/场景下的触发器与默认行为
     class PaladinCcPvpStrategy : public CcPvpStrategy
     {
     public:
@@ -104,6 +117,7 @@ namespace ai
         static void InitNonCombatTriggers(std::list<TriggerNode*>& triggers);
     };
 
+    // 圣骑士控制(CC)PVE策略：定义该专精/场景下的触发器与默认行为
     class PaladinCcPveStrategy : public CcPveStrategy
     {
     public:
@@ -111,6 +125,7 @@ namespace ai
         static void InitNonCombatTriggers(std::list<TriggerNode*>& triggers);
     };
 
+    // 圣骑士控制(CC)团队副本策略：定义该专精/场景下的触发器与默认行为
     class PaladinCcRaidStrategy : public CcRaidStrategy
     {
     public:
@@ -118,6 +133,7 @@ namespace ai
         static void InitNonCombatTriggers(std::list<TriggerNode*>& triggers);
     };
 
+    // 圣骑士增益Buff策略：定义该专精/场景下的触发器与默认行为
     class PaladinBuffStrategy : public BuffStrategy
     {
     public:
@@ -128,6 +144,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 圣骑士增益BuffPVP策略：定义该专精/场景下的触发器与默认行为
     class PaladinBuffPvpStrategy : public BuffPvpStrategy
     {
     public:
@@ -135,6 +152,7 @@ namespace ai
         static void InitNonCombatTriggers(std::list<TriggerNode*>& triggers);
     };
 
+    // 圣骑士增益BuffPVE策略：定义该专精/场景下的触发器与默认行为
     class PaladinBuffPveStrategy : public BuffPveStrategy
     {
     public:
@@ -142,6 +160,7 @@ namespace ai
         static void InitNonCombatTriggers(std::list<TriggerNode*>& triggers);
     };
 
+    // 圣骑士增益Buff团队副本策略：定义该专精/场景下的触发器与默认行为
     class PaladinBuffRaidStrategy : public BuffRaidStrategy
     {
     public:
@@ -149,6 +168,7 @@ namespace ai
         static void InitNonCombatTriggers(std::list<TriggerNode*>& triggers);
     };
 
+    // 圣骑士爆发增益策略：定义该专精/场景下的触发器与默认行为
     class PaladinBoostStrategy : public BoostStrategy
     {
     public:
@@ -159,6 +179,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 圣骑士爆发增益PVP策略：定义该专精/场景下的触发器与默认行为
     class PaladinBoostPvpStrategy : public BoostPvpStrategy
     {
     public:
@@ -166,6 +187,7 @@ namespace ai
         static void InitNonCombatTriggers(std::list<TriggerNode*>& triggers);
     };
 
+    // 圣骑士爆发增益PVE策略：定义该专精/场景下的触发器与默认行为
     class PaladinBoostPveStrategy : public BoostPveStrategy
     {
     public:
@@ -173,6 +195,7 @@ namespace ai
         static void InitNonCombatTriggers(std::list<TriggerNode*>& triggers);
     };
 
+    // 圣骑士爆发增益团队副本策略：定义该专精/场景下的触发器与默认行为
     class PaladinBoostRaidStrategy : public BoostRaidStrategy
     {
     public:
@@ -180,6 +203,7 @@ namespace ai
         static void InitNonCombatTriggers(std::list<TriggerNode*>& triggers);
     };
 
+    // 圣骑士驱散净化策略：定义该专精/场景下的触发器与默认行为
     class PaladinCureStrategy : public CureStrategy
     {
     public:
@@ -190,6 +214,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 圣骑士驱散净化PVP策略：定义该专精/场景下的触发器与默认行为
     class PaladinCurePvpStrategy : public CurePvpStrategy
     {
     public:
@@ -197,6 +222,7 @@ namespace ai
         static void InitNonCombatTriggers(std::list<TriggerNode*>& triggers);
     };
 
+    // 圣骑士驱散净化PVE策略：定义该专精/场景下的触发器与默认行为
     class PaladinCurePveStrategy : public CurePveStrategy
     {
     public:
@@ -204,6 +230,7 @@ namespace ai
         static void InitNonCombatTriggers(std::list<TriggerNode*>& triggers);
     };
 
+    // 圣骑士驱散净化团队副本策略：定义该专精/场景下的触发器与默认行为
     class PaladinCureRaidStrategy : public CureRaidStrategy
     {
     public:
@@ -211,6 +238,7 @@ namespace ai
         static void InitNonCombatTriggers(std::list<TriggerNode*>& triggers);
     };
 
+    // 圣骑士辅助治疗策略：定义该专精/场景下的触发器与默认行为
     class PaladinOffhealStrategy : public OffhealStrategy
     {
     public:
@@ -221,6 +249,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 圣骑士辅助治疗PVP策略：定义该专精/场景下的触发器与默认行为
     class PaladinOffhealPvpStrategy : public PaladinOffhealStrategy
     {
     public:
@@ -232,6 +261,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 圣骑士辅助治疗PVE策略：定义该专精/场景下的触发器与默认行为
     class PaladinOffhealPveStrategy : public PaladinOffhealStrategy
     {
     public:
@@ -243,6 +273,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 圣骑士辅助治疗团队副本策略：定义该专精/场景下的触发器与默认行为
     class PaladinOffhealRaidStrategy : public PaladinOffhealStrategy
     {
     public:
@@ -254,6 +285,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 圣骑士光环策略：定义该专精/场景下的触发器与默认行为
     class PaladinAuraStrategy : public Strategy
     {
     public:
@@ -264,6 +296,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 圣骑士光环PVP策略：定义该专精/场景下的触发器与默认行为
     class PaladinAuraPvpStrategy
     {
     public:
@@ -271,6 +304,7 @@ namespace ai
         static void InitNonCombatTriggers(std::list<TriggerNode*>& triggers);
     };
 
+    // 圣骑士光环PVE策略：定义该专精/场景下的触发器与默认行为
     class PaladinAuraPveStrategy
     {
     public:
@@ -278,6 +312,7 @@ namespace ai
         static void InitNonCombatTriggers(std::list<TriggerNode*>& triggers);
     };
 
+    // 圣骑士光环团队副本策略：定义该专精/场景下的触发器与默认行为
     class PaladinAuraRaidStrategy
     {
     public:
@@ -285,6 +320,7 @@ namespace ai
         static void InitNonCombatTriggers(std::list<TriggerNode*>& triggers);
     };
 
+    // 圣骑士祝福策略：定义该专精/场景下的触发器与默认行为
     class PaladinBlessingStrategy : public Strategy
     {
     public:
@@ -295,6 +331,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 圣骑士祝福PVP策略：定义该专精/场景下的触发器与默认行为
     class PaladinBlessingPvpStrategy
     {
     public:
@@ -302,6 +339,7 @@ namespace ai
         static void InitNonCombatTriggers(std::list<TriggerNode*>& triggers);
     };
 
+    // 圣骑士祝福PVE策略：定义该专精/场景下的触发器与默认行为
     class PaladinBlessingPveStrategy
     {
     public:
@@ -309,6 +347,7 @@ namespace ai
         static void InitNonCombatTriggers(std::list<TriggerNode*>& triggers);
     };
 
+    // 圣骑士祝福团队副本策略：定义该专精/场景下的触发器与默认行为
     class PaladinBlessingRaidStrategy
     {
     public:
@@ -316,6 +355,7 @@ namespace ai
         static void InitNonCombatTriggers(std::list<TriggerNode*>& triggers);
     };
 
+    // 圣骑士手动光环策略：定义该专精/场景下的触发器与默认行为
     class PaladinManualAuraStrategy : public Strategy
     {
     public:
@@ -336,6 +376,7 @@ namespace ai
         std::string actionName;
     };
 
+    // 圣骑士手动祝福策略：定义该专精/场景下的触发器与默认行为
     class PaladinManualBlessingStrategy : public Strategy
     {
     public:

@@ -4,6 +4,7 @@
 
 using namespace ai;
 
+/// 执行动作主逻辑（切换聊天频道指令动作）
 bool ChangeChatAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();

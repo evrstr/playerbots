@@ -1,7 +1,7 @@
 #pragma once
 #include "WorldPosition.h"
 
-//This is a location container for quicker lookup of a collection of related points.
+//This is a location container for quicker lookup of a collection of related points. | 基于世界-地图-网格-单元四级包围盒的空间索引容器，用于快速近似最近点查询
 //Locations are added and sorted into map, grid, cell containers and the bounding box of each container are calculated.
 //When determining the (distance to) the closest point or what points fall in a distance range aproximations are used based on the bounding boxes.
 //This is to replace the old system where 1000's of points were stored in a vector and such determinations required a loop and distance calculation over each point.
@@ -10,6 +10,7 @@ namespace ai
 {
     //A square defined by two points min/max which are calculated when adding points to the child container.
     //Distance calculations are aproximated outside the min/max range by calculating against the closest point on the square instead of any specific point contained inside of it.
+    /// 二维包围盒空间节点基类，支持内外距离估算与分区判定
     class WorldPointSquare
     {
     public:
@@ -110,6 +111,7 @@ namespace ai
 
     //A square that contains actual points (used for same cell storage).
     //Inside distance calcultions are done against all actual points.
+    /// 叶子节点容器（对应单个 Cell），内部存储实际 WorldPosition 点集合
     class WorldPointContainer : public WorldPointSquare
     {
     public:
@@ -242,6 +244,7 @@ namespace ai
     };
 
     //A square that contains other squares (used for grid, map and world).
+    /// 中间层级空间容器模板（用于 Grid / Map / World 层级管理子包围盒）
     template <class T>
     class WorldPointSquareContainer : public WorldPointSquare {
     public:
@@ -402,12 +405,12 @@ namespace ai
         std::unordered_map<uint32, T> subSquares;
     };
 
-    //Contains all locations in a single cell. 
+    //Contains all locations in a single cell.  | 单个 Cell 内的坐标集合
     class CellWpSquare : public WorldPointContainer
     {
     };
 
-    //Contains all cell squares in a single grid.
+    //Contains all cell squares in a single grid. | 单个 Grid 内的 Cell 容器
     class GridWpSquare : public WorldPointSquareContainer<CellWpSquare>
     {
     public:
@@ -429,7 +432,7 @@ namespace ai
         virtual uint32 GetSubSquareId(const WorldPosition& point) const override { return GetCellId(point); };
     };
 
-    //Contains all grid squares on a map.
+    //Contains all grid squares on a map. | 单张地图内的 Grid 容器（跨图使用传送门估算）
     //Distance calculations with places out of the map use area triggers and transports.
     class MapWpSquare : public WorldPointSquareContainer<GridWpSquare>
     {
@@ -457,7 +460,7 @@ namespace ai
         uint32 mapId;
     };
 
-    //Contains all map squares.
+    //Contains all map squares. | 全局所有地图的顶层空间容器
     class WorldWpSquare : public WorldPointSquareContainer<MapWpSquare>
     {
     public:

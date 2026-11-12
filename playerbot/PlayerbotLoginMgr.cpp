@@ -6,6 +6,7 @@
 
 using namespace ai;
 
+// 异步角色登录数据加载 SQL 查询容器
 class LoginQueryHolder : public SqlQueryHolder
 {
 private:
@@ -20,6 +21,7 @@ public:
     bool Initialize();
 };
 
+// 机器人专用异步登录查询容器，附加主人账号与管理器指针
 class PlayerbotLoginQueryHolder : public LoginQueryHolder
 {
 private:
@@ -40,6 +42,7 @@ PlayerLoginInfo::PlayerLoginInfo(const uint32 account, const uint32 guid, const 
 
 PlayerLoginInfo::PlayerLoginInfo(Player* player) : PlayerLoginInfo(player->GetSession()->GetAccountId(), player->GetDbGuid(), player->getRace(), player->getClass(), player->GetLevel(), player->GetTotalPlayedTime() == 0, player, player->GetGuildId()) {};
 
+// 获取机器人有效等级（未初始化新号返回随机等级区间中值）
 uint32 PlayerLoginInfo::GetLevel() const
 {
     if (!isNew || sPlayerbotAIConfig.disableRandomLevels)
@@ -54,6 +57,7 @@ uint32 PlayerLoginInfo::GetLevel() const
     return (minRandomLevel + maxRandomLevel) / 2;
 }
 
+// 检查机器人是否位于任意真实玩家附近指定距离内
 bool PlayerLoginInfo::IsNearPlayer(const LoginSpace& space) const
 {
     if (space.realPlayerInfos.empty())
@@ -141,6 +145,7 @@ bool PlayerLoginInfo::IsInInstance() const
     return !position.isOverworld() && !position.isBg() && !position.isArena();
 }
 
+// 异步发起角色登录数据库预加载请求
 bool PlayerLoginInfo::SendHolder()
 {
     if (holderState == HolderState::HOLDER_SENT)
@@ -182,6 +187,7 @@ bool PlayerLoginInfo::SendHolder()
     return true;
 }
 
+// 角色登录 SQL 异步查询完成回调
 void PlayerLoginInfo::HandlePlayerBotLoginCallback(QueryResult* /*dummy*/, SqlQueryHolder* holder)
 {
     if (!holder)
@@ -228,6 +234,7 @@ void PlayerLoginInfo::EmptyLoginSpace(LoginSpace& space, FillStep step) const
     space.levelBucket[GetLevel()]++;
 };
 
+// 根据是否期望在线切换机器人登录/登出队列状态并更新空间配额
 void PlayerLoginInfo::SetQueue(bool isWanted, LoginSpace& space)
 {
     if (isWanted)
@@ -288,6 +295,7 @@ void PlayerLoginInfo::Update(Player* player)
     guildId = player->GetGuildId();
 }
 
+// 执行机器人上线操作并记录定时下线计时
 bool PlayerLoginInfo::LoginBot()
 {
     if (loginState != LoginState::BOT_ON_LOGINQUEUE)
@@ -324,6 +332,7 @@ bool PlayerLoginInfo::LoginBot()
     return true;
 }
 
+// 执行机器人下线操作并记录定时上线冷却
 bool PlayerLoginInfo::LogoutBot()
 {
     if (loginState != LoginState::BOT_ON_LOGOUTQUEUE)
@@ -372,6 +381,7 @@ T GetFuture(Method&& method, std::future<T>& fut, bool restart, Args&&... args) 
     return result;
 }
 
+// 主调度周期：加载机器人池并异步计算上下线队列后执行登录/登出
 void PlayerBotLoginMgr::Update(RealPlayers& realPlayers)
 {
     UpdateOnlineBots();
@@ -390,6 +400,7 @@ void PlayerBotLoginMgr::Update(RealPlayers& realPlayers)
     }
 }
 
+// 从 LoginDatabase 与 CharacterDatabase 加载所有随机机器人账号角色快照
 BotPool PlayerBotLoginMgr::LoadBotsFromDb()
 {
     BotPool botPool;
@@ -504,6 +515,7 @@ std::vector<std::string> PlayerBotLoginMgr::GetVariableLoginCriteria(const uint8
     return sPlayerbotAIConfig.loginCriteria[attempt];
 }
 
+// 根据配置拼装指定轮次的机器人准入/保留判定条件链
 LoginCriteria PlayerBotLoginMgr::GetLoginCriteria(const uint8 attempt)
 {
     LoginCriteria criteria;
@@ -602,6 +614,7 @@ bool PlayerBotLoginMgr::CriteriaStillValid(const LoginCriterionFailType oldFailT
     return false;
 }
 
+// 按多轮次过滤规则与配额桶计算本周期应登录与应登出的机器人队列
 BotInfos PlayerBotLoginMgr::FillLoginLogoutQueue(BotPool* pool, const RealPlayers& realPlayers)
 {
     LoginSpace loginSpace;
@@ -700,6 +713,7 @@ BotInfos PlayerBotLoginMgr::FillLoginLogoutQueue(BotPool* pool, const RealPlayer
     return queue;
 }
 
+// 批量执行队列中的机器人上线与下线操作
 void PlayerBotLoginMgr::LoginLogoutBots(const BotInfos& queue)
 {
     for (auto& info : queue)

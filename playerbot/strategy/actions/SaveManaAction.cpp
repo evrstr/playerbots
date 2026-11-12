@@ -6,6 +6,7 @@
 
 using namespace ai;
 
+/// 执行动作主逻辑（省蓝策略指令动作）
 bool SaveManaAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -57,6 +58,7 @@ bool SaveManaAction::Execute(Event& event)
     return true;
 }
 
+/// 按格式模板拼接输出字符串
 std::string SaveManaAction::format(double value)
 {
     std::ostringstream out;

@@ -17,6 +17,7 @@ using namespace MaNGOS;
 
 using namespace ai;
 
+/// 执行动作主逻辑（添加指定拾取目标动作）
 bool AddLootAction::Execute(Event& event)
 {
     ObjectGuid guid = event.getObject();
@@ -26,6 +27,7 @@ bool AddLootAction::Execute(Event& event)
     return AI_VALUE(LootObjectStack*, "available loot")->Add(guid);
 }
 
+/// 执行动作主逻辑（添加全部拾取目标动作）
 bool AddAllLootAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -54,16 +56,19 @@ bool AddAllLootAction::Execute(Event& event)
     return added;
 }
 
+/// 判断当前状态下该动作是否可用/有效（添加指定拾取目标动作）
 bool AddLootAction::isUseful()
 {
     return true;
 }
 
+/// 判断当前状态下该动作是否可用/有效（添加全部拾取目标动作）
 bool AddAllLootAction::isUseful()
 {
     return true;
 }
 
+/// 将指定目标 GUID 加入战利品待拾取队列
 bool AddAllLootAction::AddLoot(Player* requester, ObjectGuid guid)
 {
     LootObject loot(bot, guid);
@@ -117,7 +122,7 @@ bool AddAllLootAction::AddLoot(Player* requester, ObjectGuid guid)
     if (isInGroup)
     {
         //if is not master looter (and loot is set to MASTER_LOOT)
-        //NOTE: They are !unable to loot quests items! too if so
+        // NOTE: They are !unable to loot quests items! too if so (注意：若非拾取分配者，此时也无法拾取任务物品)
         if (isInDungeon
             && group->GetLootMethod() == LootMethod::MASTER_LOOT
             && group->GetMasterLooterGuid()
@@ -158,7 +163,7 @@ bool AddAllLootAction::AddLoot(Player* requester, ObjectGuid guid)
         return false;
     }
 
-    //check hostile units after distance checks, to avoid unnecessary calculations
+    // check hostile units after distance checks, to avoid unnecessary calculations (先做距离检查再检测敌对单位，避免不必要的计算开销)
 
     if (isInGroup && !ai->IsGroupLeader())
     {
@@ -208,6 +213,7 @@ bool AddAllLootAction::AddLoot(Player* requester, ObjectGuid guid)
     return AI_VALUE(LootObjectStack*, "available loot")->Add(guid);
 }
 
+/// 将指定目标 GUID 加入战利品待拾取队列
 bool AddGatheringLootAction::AddLoot(Player* requester, ObjectGuid guid)
 {
     LootObject loot(bot, guid);
@@ -257,7 +263,7 @@ bool AddGatheringLootAction::AddLoot(Player* requester, ObjectGuid guid)
         return false;
     }
 
-    //check hostile units after distance checks, to avoid unnecessary calculations
+    // check hostile units after distance checks, to avoid unnecessary calculations (先做距离检查再检测敌对单位，避免不必要的计算开销)
 
     float MOB_AGGRO_DISTANCE = 30.0f;
     std::list<Unit*> hostiles = ai->GetAllHostileNPCNonPetUnitsAroundWO(wo, MOB_AGGRO_DISTANCE);

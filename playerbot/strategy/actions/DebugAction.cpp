@@ -34,6 +34,7 @@
 using namespace ai;
 using namespace MaNGOS;
 
+/// 执行动作主逻辑（调试指令动作）
 bool DebugAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -225,12 +226,13 @@ bool DebugAction::Execute(Event& event)
     else if (text.find("heightforlos") == 0 && isMod)
         return HandleHeightForLos(event, requester, text);
 
-    // Fallback/default behavior
+    // Fallback/default behavior (回退/默认行为)
     std::string response = ai->HandleRemoteCommand(text);
     ai->TellPlayer(requester, response);
     return true;
 }
 
+/// 调试命令：列出 debug 指令支持的所有调试子命令
 bool DebugAction::HandleDebugHelp(Event& event, Player* requester, const std::string& text, bool isMod)
 {
     std::string cmd = text;
@@ -680,7 +682,7 @@ bool DebugAction::HandleDebugHelp(Event& event, Player* requester, const std::st
         ai->TellPlayer(requester, "");
         ai->TellPlayer(requester, "Usage: debug setvalueuin32 <name> <value>");
     }
-    // MOD ONLY - avoid
+    // MOD ONLY - avoid (仅调试模式：避让区域)
     else if (cmd == "avoid scan" && isMod)
     {
         ai->TellPlayer(requester, "=== debug avoid scan ===");
@@ -695,7 +697,7 @@ bool DebugAction::HandleDebugHelp(Event& event, Player* requester, const std::st
         ai->TellPlayer(requester, "");
         ai->TellPlayer(requester, "Usage: debug avoid add <spellId>");
     }
-    // MOD ONLY - travel nodes
+    // MOD ONLY - travel nodes (仅调试模式：旅行节点)
     else if (cmd == "add node" && isMod)
     {
         ai->TellPlayer(requester, "=== debug add node ===");
@@ -773,7 +775,7 @@ bool DebugAction::HandleDebugHelp(Event& event, Player* requester, const std::st
         ai->TellPlayer(requester, "");
         ai->TellPlayer(requester, "Usage: debug print travel");
     }
-    // MOD ONLY - transport
+    // MOD ONLY - transport (仅调试模式：交通载具)
     else if (cmd == "pointontrans" && isMod)
     {
         ai->TellPlayer(requester, "=== debug pointontrans ===");
@@ -802,7 +804,7 @@ bool DebugAction::HandleDebugHelp(Event& event, Player* requester, const std::st
         ai->TellPlayer(requester, "");
         ai->TellPlayer(requester, "Usage: debug offtrans");
     }
-    // MOD ONLY - map
+    // MOD ONLY - map (仅调试模式：地图信息)
     else if (cmd == "pathable" && isMod)
     {
         ai->TellPlayer(requester, "=== debug pathable ===");
@@ -824,7 +826,7 @@ bool DebugAction::HandleDebugHelp(Event& event, Player* requester, const std::st
         ai->TellPlayer(requester, "");
         ai->TellPlayer(requester, "Usage: debug printmap");
     }
-    // MOD ONLY - spells
+    // MOD ONLY - spells (仅调试模式：法术调试)
     else if (cmd == "dspell" && isMod)
     {
         ai->TellPlayer(requester, "=== debug dspell ===");
@@ -867,7 +869,7 @@ bool DebugAction::HandleDebugHelp(Event& event, Player* requester, const std::st
         ai->TellPlayer(requester, "");
         ai->TellPlayer(requester, "Usage: debug spell <spellId>");
     }
-    // MOD ONLY - spell maps
+    // MOD ONLY - spell maps (仅调试模式：法术映射)
     else if (cmd == "tspellmap" && isMod)
     {
         ai->TellPlayer(requester, "=== debug tspellmap ===");
@@ -931,7 +933,7 @@ bool DebugAction::HandleDebugHelp(Event& event, Player* requester, const std::st
         ai->TellPlayer(requester, "");
         ai->TellPlayer(requester, "Usage: debug mspellmap");
     }
-    // MOD ONLY - sounds
+    // MOD ONLY - sounds (仅调试模式：音效测试)
     else if (cmd == "soundmap" && isMod)
     {
         ai->TellPlayer(requester, "=== debug soundmap ===");
@@ -960,7 +962,7 @@ bool DebugAction::HandleDebugHelp(Event& event, Player* requester, const std::st
         ai->TellPlayer(requester, "");
         ai->TellPlayer(requester, "Usage: debug sound <soundId>");
     }
-    // MOD ONLY - other
+    // MOD ONLY - other (仅调试模式：其他功能)
     else if (cmd == "chatreplydo" && isMod)
     {
         ai->TellPlayer(requester, "=== debug chatreplydo ===");
@@ -1024,6 +1026,7 @@ bool DebugAction::HandleDebugHelp(Event& event, Player* requester, const std::st
     return true;
 }
 
+/// 模拟执行法术施放视觉效果或占位测试
 void DebugAction::FakeSpell(uint32 spellId, Unit* truecaster, Unit* caster, ObjectGuid target, std::list<ObjectGuid> otherTargets, std::list<ObjectGuid> missTargets, WorldPosition source, WorldPosition dest, bool forceDest)
 {
     SpellEntry const* spellInfo = sServerFacade.LookupSpellInfo(spellId);
@@ -1031,11 +1034,11 @@ void DebugAction::FakeSpell(uint32 spellId, Unit* truecaster, Unit* caster, Obje
         uint32 castFlags = CAST_FLAG_UNKNOWN2;
 
         if (spellInfo && spellInfo->HasAttribute(SPELL_ATTR_USES_RANGED_SLOT))
-            castFlags |= CAST_FLAG_AMMO;                        // arrows/bullets visual
+            castFlags |= CAST_FLAG_AMMO;                        // arrows/bullets visual (箭矢/子弹外观显示 ID)
 
         WorldPacket data(SMSG_SPELL_START, (8 + 8 + 4 + 2 + 4));
 
-        data << truecaster->GetPackGUID();                      //truecaster
+        data << truecaster->GetPackGUID();                      // truecaster (真实施法者标记)
 
         if (caster)
             data << caster->GetPackGUID();                          //m_caster->GetPackGUID();     
@@ -1043,14 +1046,14 @@ void DebugAction::FakeSpell(uint32 spellId, Unit* truecaster, Unit* caster, Obje
             data << ObjectGuid();
 
         data << uint32(spellId);                                // spellId
-        data << uint16(castFlags);                              // cast flags
-        data << uint32(1000.0f);                                   // delay?
+        data << uint16(castFlags);                              // cast flags (施法标志位)
+        data << uint32(1000.0f);                                   // delay? (延迟时间)
 
         SpellCastTargets m_targets;
 
         data << m_targets;
 
-        //projectile info
+        // projectile info (投射物外观信息)
         if (castFlags & CAST_FLAG_AMMO)
         {
             data << uint32(5996);
@@ -1068,13 +1071,13 @@ void DebugAction::FakeSpell(uint32 spellId, Unit* truecaster, Unit* caster, Obje
 
 
         if (spellInfo && spellInfo->HasAttribute(SPELL_ATTR_USES_RANGED_SLOT))
-            castFlags |= CAST_FLAG_AMMO;                        // arrows/bullets visual
+            castFlags |= CAST_FLAG_AMMO;                        // arrows/bullets visual (箭矢/子弹外观显示 ID)
         if (spellInfo && HasPersistentAuraEffect(spellInfo))
             castFlags |= CAST_FLAG_PERSISTENT_AA;
 
-        WorldPacket data(SMSG_SPELL_GO, 53);                    // guess size
+        WorldPacket data(SMSG_SPELL_GO, 53);                    // guess size (估算碰撞尺寸)
 
-        data << truecaster->GetPackGUID();                      //truecaster
+        data << truecaster->GetPackGUID();                      // truecaster (真实施法者标记)
 
         if (caster)
             data << caster->GetPackGUID();                          //m_caster->GetPackGUID();     
@@ -1082,28 +1085,28 @@ void DebugAction::FakeSpell(uint32 spellId, Unit* truecaster, Unit* caster, Obje
             data << ObjectGuid();
 
         data << uint32(spellId);                                // spellId
-        data << uint16(castFlags);                              // cast flags
+        data << uint16(castFlags);                              // cast flags (施法标志位)
 
-        //WriteSpellGoTargets
+        // WriteSpellGoTargets (写入 SpellGo 封包的目标列表)
         uint32 hits = otherTargets.size() + (target ? 1 : 0);
 
-        data << uint8(hits);                                      // Hits                   
+        data << uint8(hits);                                      // Hits (命中次数)
 
         if (target)
             data << target;
 
-        //Hit targets here.                   
+        // Hit targets here. (在此位置攻击目标。)
         for (auto otherTarget : otherTargets)
             data << otherTarget;
 
-        data << (uint8)missTargets.size();                         //miss
+        data << (uint8)missTargets.size();                         // miss (未命中)
 
         for (auto missTarget : missTargets)
         {
             data << missTarget;
 
-            data << uint8(SPELL_MISS_RESIST);    //Miss condition
-            data << uint8(SPELL_MISS_NONE);    //Miss condition
+            data << uint8(SPELL_MISS_RESIST);    // Miss condition (未命中条件)
+            data << uint8(SPELL_MISS_NONE);    // Miss condition (未命中条件)
         }
 
         SpellCastTargets m_targets;
@@ -1118,7 +1121,7 @@ void DebugAction::FakeSpell(uint32 spellId, Unit* truecaster, Unit* caster, Obje
 
         data << m_targets;
 
-        //projectile info
+        // projectile info (投射物外观信息)
         if (castFlags & CAST_FLAG_AMMO)
         {
             data << uint32(5996);
@@ -1132,6 +1135,7 @@ void DebugAction::FakeSpell(uint32 spellId, Unit* truecaster, Unit* caster, Obje
     }
 }
 
+/// 在目标身上查找并确认或添加光环状态
 void DebugAction::addAura(uint32 spellId, Unit* target)
 {
     SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spellId);
@@ -1156,7 +1160,7 @@ void DebugAction::addAura(uint32 spellId, Unit* target)
             eff == SPELL_EFFECT_PERSISTENT_AREA_AURA)
         {
             int32 basePoints = spellInfo->CalculateSimpleValue(SpellEffectIndex(i));
-            int32 damage = 0; // no damage cos caster doesnt exist
+            int32 damage = 0; // no damage cos caster doesnt exist (施法者不存在，无伤害数据)
             Aura* aur = CreateAura(spellInfo, SpellEffectIndex(i), &damage, &basePoints, holder, target);
             holder->AddAura(aur, SpellEffectIndex(i));
         }
@@ -1167,8 +1171,9 @@ void DebugAction::addAura(uint32 spellId, Unit* target)
     return;
 }
 
-// Handler implementations
+// Handler implementations (具体调试处理器实现)
 
+/// 调试命令：扫描并输出周围已配置的寻路避让区域
 bool DebugAction::HandleAvoidScan(Event& event, Player* requester, const std::string& text)
 {
     PathFinder path(requester);
@@ -1188,6 +1193,7 @@ bool DebugAction::HandleAvoidScan(Event& event, Player* requester, const std::st
     return true;
 }
 
+/// 调试命令：在当前位置添加一个寻路避让危险区域
 bool DebugAction::HandleAvoidAdd(Event& event, Player* requester, const std::string& text)
 {
     PathFinder pathfinder(bot);
@@ -1206,6 +1212,7 @@ bool DebugAction::HandleAvoidAdd(Event& event, Player* requester, const std::str
     return true;
 }
 
+/// 调试命令：输出机器人坐骑列表及当前骑乘可行性检查
 bool DebugAction::HandleMount(Event& event, Player* requester, const std::string& text)
 {
     std::ostringstream out;
@@ -1219,12 +1226,14 @@ bool DebugAction::HandleMount(Event& event, Player* requester, const std::string
     return true;
 }
 
+/// 调试命令：强制测试机器人下马与清除坐骑状态
 bool DebugAction::HandleUnmount(Event& event, Player* requester, const std::string& text)
 {
     ai->Unmount();
     return true;
 }
 
+/// 调试命令：输出机器人当前所在区域与子区域信息
 bool DebugAction::HandleArea(Event& event, Player* requester, const std::string& text)
 {
     WorldPosition point(requester);
@@ -1236,6 +1245,7 @@ bool DebugAction::HandleArea(Event& event, Player* requester, const std::string&
     return true;
 }
 
+/// 调试命令：测试与大语言模型（LLM）对话接口的连通性与提示词
 bool DebugAction::HandleLLM(Event& event, Player* requester, const std::string& text)
 {
     Player* player = bot;
@@ -1253,12 +1263,15 @@ bool DebugAction::HandleLLM(Event& event, Player* requester, const std::string& 
     return true;
 }
 
+/// 处理接收到的聊天消息并触发异步或同步回复
 bool DebugAction::HandleChatReplyDo(Event& event, Player* requester, const std::string& text)
 {
+    /// 根据玩家聊天消息内容匹配并生成自动回复
     ChatReplyAction::ChatReplyDo(bot, CHAT_MSG_WHISPER, requester->GetGUIDLow(), 0, text.substr(12), "", requester->GetName());
     return true;
 }
 
+/// 调试命令：测试怪物喊话触发或文本解析
 bool DebugAction::HandleMonsterTalk(Event& event, Player* requester, const std::string& text)
 {
     GuidPosition guidP = GuidPosition(requester->GetSelectionGuid(), requester);
@@ -1276,6 +1289,7 @@ bool DebugAction::HandleMonsterTalk(Event& event, Player* requester, const std::
     return true;
 }
 
+/// 调试命令：查找并输出距离最近的墓地与灵魂医者位置
 bool DebugAction::HandleGY(Event& event, Player* requester, const std::string& text)
 {
     for (uint32 i = 0; i < sMapStore.GetNumRows(); ++i)
@@ -1326,6 +1340,7 @@ bool DebugAction::HandleGY(Event& event, Player* requester, const std::string& t
     return true;
 }
 
+/// 调试命令：检查当前所在服务端网格（Grid）与单元格加载状态
 bool DebugAction::HandleGrid(Event& event, Player* requester, const std::string& text)
 {
     WorldPosition botPos = bot;
@@ -1340,6 +1355,7 @@ bool DebugAction::HandleGrid(Event& event, Player* requester, const std::string&
     return true;
 }
 
+/// 调试命令：运行内置动作或系统自检测试例程
 bool DebugAction::HandleTest(Event& event, Player* requester, const std::string& text)
 {
     std::string param = "";
@@ -1389,6 +1405,7 @@ bool DebugAction::HandleTest(Event& event, Player* requester, const std::string&
     return true;
 }
 
+/// 调试命令：输出机器人当前地图、区域、坐标与朝向信息
 bool DebugAction::HandleGPS(Event& event, Player* requester, const std::string& text)
 {
     std::ostringstream out;
@@ -1411,6 +1428,7 @@ bool DebugAction::HandleGPS(Event& event, Player* requester, const std::string& 
     return true;
 }
 
+/// 调试命令：设置指定名称的 32 位无符号整型调试状态值
 bool DebugAction::HandleSetValueUInt32(Event& event, Player* requester, const std::string& text)
 {
     std::vector<std::string> args = Qualified::getMultiQualifiers(text.substr(14), ",");
@@ -1434,11 +1452,13 @@ bool DebugAction::HandleSetValueUInt32(Event& event, Player* requester, const st
     return false;
 }
 
+/// 调试命令：直接触发执行指定的策略动作名称
 bool DebugAction::HandleDo(Event& event, Player* requester, const std::string& text)
 {
     return ai->DoSpecificAction(text.substr(3), Event(), true);
 }
 
+/// 调试命令：检查并调试当前交易状态与背包可交易物品
 bool DebugAction::HandleTrade(Event& event, Player* requester, const std::string& text)
 {
     std::string param = "";
@@ -1455,6 +1475,7 @@ bool DebugAction::HandleTrade(Event& event, Player* requester, const std::string
     return true;
 }
 
+/// 调试命令：检查并调试机器人当前邮箱数据
 bool DebugAction::HandleMail(Event& event, Player* requester, const std::string& text)
 {
     std::string param = "";
@@ -1467,6 +1488,7 @@ bool DebugAction::HandleMail(Event& event, Player* requester, const std::string&
     return doAction;
 }
 
+/// 调试命令：测试发送地图兴趣点（POI）标记封包
 bool DebugAction::HandlePOI(Event& event, Player* requester, const std::string& text)
 {        
     WorldPosition botPos = WorldPosition(bot);
@@ -1488,7 +1510,7 @@ bool DebugAction::HandlePOI(Event& event, Player* requester, const std::string& 
 
     if (dest)
     {
-        std::list<uint8> chancesToGoFar = { 10,50,90 }; //Closest map, grid, cell.
+        std::list<uint8> chancesToGoFar = { 10,50,90 }; // Closest map, grid, cell. (最近的地图、网格与单元格。)
         WorldPosition* point = dest->GetNextPoint(botPos, chancesToGoFar);
         if (point)
         {
@@ -1515,6 +1537,7 @@ bool DebugAction::HandlePOI(Event& event, Player* requester, const std::string& 
     return true;
 }
 
+/// 调试命令：输出机器人当前 MotionMaster 移动生成器堆栈
 bool DebugAction::HandleMotion(Event& event, Player* requester, const std::string& text)
 {
     Unit* requesterTarget = nullptr;
@@ -1598,6 +1621,7 @@ bool DebugAction::HandleMotion(Event& event, Player* requester, const std::strin
     return true;
 }
 
+/// 调试命令：列出附近船只/飞艇载具及其当前路径进度
 bool DebugAction::HandleTransport(Event& event, Player* requester, const std::string& text)
 {
     std::vector<GenericTransport*> transports;
@@ -1607,7 +1631,7 @@ bool DebugAction::HandleTransport(Event& event, Player* requester, const std::st
 
     WorldPosition botPos(bot);
 
-    //Closest transport last = below in chat.
+    // Closest transport last = below in chat. (最近的交通载具最后输出（显示在聊天框最下方）。)
     std::sort(transports.begin(), transports.end(), [botPos](GenericTransport* i, GenericTransport* j) { return botPos.distance(i) > botPos.distance(j); });
 
     for (auto trans : transports)
@@ -1637,6 +1661,7 @@ bool DebugAction::HandleTransport(Event& event, Player* requester, const std::st
     return true;
 }
 
+/// 调试命令：计算并输出当前或目标点在载具局部坐标系中的坐标
 bool DebugAction::HandlePointOnTrans(Event& event, Player* requester, const std::string& text)
 {
 
@@ -1649,7 +1674,7 @@ bool DebugAction::HandlePointOnTrans(Event& event, Player* requester, const std:
         radius = stoi(param);
     }
 
-    //Get transport
+    // Get transport (获取当前所在或目标交通载具)
     std::vector<GenericTransport*> transports;
 
     for (auto trans : WorldPosition(bot).getTransports())
@@ -1670,7 +1695,7 @@ bool DebugAction::HandlePointOnTrans(Event& event, Player* requester, const std:
     out << "found: " << transportName << " (" << transport->GetEntry() << ")";
     ai->TellPlayer(requester, out);
 
-    //Get point on transport and path.
+    // Get point on transport and path. (获取载具上的坐标点与对应路径。)
     std::vector<WorldPosition> path;
 
     WorldPosition pointOnTrans = WorldPosition(bot).RandomPointOnTrans(transport, radius, bot, path);
@@ -1687,7 +1712,7 @@ bool DebugAction::HandlePointOnTrans(Event& event, Player* requester, const std:
     out << "point at offset: " << (pointOnTrans - transPos).print(1, true);
     out << " path size: " << path.size();
 
-    //Place WP at point.
+    // Place WP at point. (在坐标点放置路标点。)
     GenericTransport* botTrans = bot->GetTransport();
     bot->SetTransport(nullptr);
 
@@ -1697,7 +1722,7 @@ bool DebugAction::HandlePointOnTrans(Event& event, Player* requester, const std:
     ai->AddAura(wpCreature, 246);
     bot->SetTransport(botTrans);
 
-    //Check if we have good path.
+    // Check if we have good path. (检查是否已计算出有效的行进路径。)
     if (path.size())
     {
         WorldPosition pathEnd = path.back();
@@ -1776,6 +1801,7 @@ bool DebugAction::HandlePointOnTrans(Event& event, Player* requester, const std:
     */
 }
 
+/// 调试命令：测试交通载具上下船与路径衔接逻辑
 bool DebugAction::HandleDoTransport(Event& event, Player* requester, const std::string& text)
 {
     std::string param;
@@ -1800,11 +1826,13 @@ bool DebugAction::HandleDoTransport(Event& event, Player* requester, const std::
         }
     }
 
+    /// 处理乘坐船只、飞艇或电梯等交通载具的上下船与等待逻辑
     MovementAction::UseTransport(ai, entry, transPos, requester, param.find("tele") != std::string::npos);
 
     return true;
 }
 
+/// 调试命令：测试登上移动载具的坐标转换逻辑
 bool DebugAction::HandleOnTrans(Event& event, Player* requester, const std::string& text)
 {
     uint32 radius = 20;
@@ -1900,6 +1928,7 @@ bool DebugAction::HandleOnTrans(Event& event, Player* requester, const std::stri
     return true;
 }
 
+/// 调试命令：测试从移动载具下船的坐标转换逻辑
 bool DebugAction::HandleOffTrans(Event& event, Player* requester, const std::string& text)
 {
     if (!bot->GetTransport())
@@ -1943,6 +1972,7 @@ bool DebugAction::HandleOffTrans(Event& event, Player* requester, const std::str
     return true;
 }
 
+/// 调试命令：检测目标点是否可通过寻路网格（NavMesh）到达
 bool DebugAction::HandlePathable(Event& event, Player* requester, const std::string& text)
 {
     uint32 radius = 10;
@@ -1969,12 +1999,12 @@ bool DebugAction::HandlePathable(Event& event, Player* requester, const std::str
             GenericTransport* botTrans = bot->GetTransport();
             GenericTransport* trans = botTrans ? botTrans : transport;
 
-            if (!pos.isOnTransport(trans)) //When trying to calculate a position off the transport, act like the bot is off the transport.
+            if (!pos.isOnTransport(trans)) // When trying to calculate a position off the transport, act like the bot is off the transport. (计算下船后的坐标时，先按机器人已脱离载具状态处理。)
                 pathBot = nullptr;
             else
                 bot->SetTransport(trans);
 
-            std::vector<WorldPosition> path = pos.getPathFrom(botPos, pathBot); //Use full pathstep to get proper paths on to transports.
+            std::vector<WorldPosition> path = pos.getPathFrom(botPos, pathBot); // Use full pathstep to get proper paths on to transports. (使用完整路径步长以生成准确登上交通载具的路径。)
 
             if (path.empty())
                 continue;
@@ -1983,12 +2013,12 @@ bool DebugAction::HandlePathable(Event& event, Player* requester, const std::str
 
             bool onTrans = pos.isOnTransport(trans);
 
-            if (onTrans) //Summon creature needs to be Summoned on offset coordinates.
+            if (onTrans) // Summon creature needs to be Summoned on offset coordinates. (召唤出的辅助生物需生成在偏移坐标位置。)
             {
                 pos.CalculatePassengerOffset(trans);
                 bot->SetTransport(trans);
             }
-            else //Generate wp off transport so it doesn't spawn on transport.
+            else // Generate wp off transport so it doesn't spawn on transport. (在载具外生成路径点以免生成在船体内部。)
                 bot->SetTransport(nullptr);
 
             Creature* wpCreature = bot->SummonCreature(2334, pos.getX(), pos.getY(), pos.getZ(), 0, TEMPSPAWN_TIMED_DESPAWN, 10000.0f);
@@ -2004,6 +2034,7 @@ bool DebugAction::HandlePathable(Event& event, Player* requester, const std::str
     return false;
 }
 
+/// 调试命令：在周围随机采样并测试可达坐标点
 bool DebugAction::HandleRandomSpot(Event& event, Player* requester, const std::string& text)
 {
     uint32 radius = 10;
@@ -2041,6 +2072,7 @@ bool DebugAction::HandleRandomSpot(Event& event, Player* requester, const std::s
     return true;
 }
 
+/// 调试命令：输出当前地图及附近区块的地形/VMap 状态
 bool DebugAction::HandlePrintMap(Event& event, Player* requester, const std::string& text)
 {
     sTravelNodeMap.printMap();
@@ -2048,6 +2080,7 @@ bool DebugAction::HandlePrintMap(Event& event, Player* requester, const std::str
     return true;
 }
 
+/// 调试命令：输出尸体位置及跑尸路径诊断信息
 bool DebugAction::HandleCorpse(Event& event, Player* requester, const std::string& text)
 {
 
@@ -2080,6 +2113,7 @@ bool DebugAction::HandleCorpse(Event& event, Player* requester, const std::strin
     return true;
 }
 
+/// 调试命令：查询或调整随机机器人下线/在线时长计时器
 bool DebugAction::HandleLogoutTime(Event& event, Player* requester, const std::string& text)
 {
     int32 time = sRandomPlayerbotMgr.GetValueValidTime(bot->GetGUIDLow(), "add");
@@ -2106,6 +2140,7 @@ bool DebugAction::HandleLogoutTime(Event& event, Player* requester, const std::s
     return true;
 }
 
+/// 调试命令：查询或调整机器人等级与经验调试状态
 bool DebugAction::HandleLevel(Event& event, Player* requester, const std::string& text)
 {
     uint32 level = bot->GetLevel();
@@ -2122,16 +2157,17 @@ bool DebugAction::HandleLevel(Event& event, Player* requester, const std::string
     return true;
 }
 
+/// 调试命令：输出指定任务模板数据与机器人当前任务状态
 bool DebugAction::HandleQuest(Event& event, Player* requester, const std::string& text)
 {
-    std::string param = text.substr(5); // skip "quest"
+    std::string param = text.substr(5); // skip "quest" (跳过 "quest" 关键字)
     while (param.size() > 0 && param[0] == ' ')
         param = param.substr(1);
 
     std::string subcmd;
     std::string questParam;
 
-    // Parse subcommand
+    // Parse subcommand (解析子命令)
     size_t spacePos = param.find(' ');
     if (spacePos != std::string::npos)
     {
@@ -2145,7 +2181,7 @@ bool DebugAction::HandleQuest(Event& event, Player* requester, const std::string
         subcmd = param;
     }
 
-    // Handle 'list' subcommand
+    // Handle 'list' subcommand (处理 'list' 子命令（列出任务）)
     if (subcmd == "list")
     {
         std::ostringstream out;
@@ -2171,10 +2207,10 @@ bool DebugAction::HandleQuest(Event& event, Player* requester, const std::string
         return true;
     }
 
-    // Parse quest ID - try both subcmd and questParam
+    // Parse quest ID - try both subcmd and questParam (解析任务 ID（同时尝试 subcmd 与 questParam）)
     uint32 questId = 0;
 
-    // First try questParam (if provided with subcommand like "complete 123")
+    // First try questParam (if provided with subcommand like "complete 123") (优先尝试解析 questParam（如 "complete 123" 子命令参数）)
     if (!questParam.empty())
     {
         try
@@ -2199,7 +2235,7 @@ bool DebugAction::HandleQuest(Event& event, Player* requester, const std::string
         }
     }
 
-    // If no questId yet, try subcmd directly (for "quest 745" syntax)
+    // If no questId yet, try subcmd directly (for "quest 745" syntax) (若尚未解析出 questId，则直接尝试将子命令作为任务 ID 解析（适配 "quest 745" 语法）)
     if (!questId && !subcmd.empty())
     {
         try
@@ -2224,7 +2260,7 @@ bool DebugAction::HandleQuest(Event& event, Player* requester, const std::string
         }
     }
 
-    // Handle 'complete' subcommand
+    // Handle 'complete' subcommand (处理 'complete' 子命令（自动完成任务）)
     if (subcmd == "complete")
     {
         if (!questId)
@@ -2233,7 +2269,7 @@ bool DebugAction::HandleQuest(Event& event, Player* requester, const std::string
             return true;
         }
 
-        // Find the quest in bot's quest log
+        // Find the quest in bot's quest log (在机器人的任务日志中查找该任务)
         bool found = false;
         bool completed = false;
 
@@ -2258,7 +2294,7 @@ bool DebugAction::HandleQuest(Event& event, Player* requester, const std::string
             if (!pQuest)
                 break;
 
-            // Add required items
+            // Add required items (添加所需物品)
             for (uint8 x = 0; x < QUEST_ITEM_OBJECTIVES_COUNT; ++x)
             {
                 uint32 id = pQuest->ReqItemId[x];
@@ -2279,7 +2315,7 @@ bool DebugAction::HandleQuest(Event& event, Player* requester, const std::string
                 }
             }
 
-            // Complete kill objectives
+            // Complete kill objectives (完成任务击杀目标)
             for (uint8 i = 0; i < QUEST_OBJECTIVES_COUNT; ++i)
             {
                 int32 creature = pQuest->ReqCreatureOrGOId[i];
@@ -2303,7 +2339,7 @@ bool DebugAction::HandleQuest(Event& event, Player* requester, const std::string
                 }
             }
 
-            // Complete reputation
+            // Complete reputation (满足任务声望需求)
             if (uint32 repFaction = pQuest->GetRepObjectiveFaction())
             {
                 uint32 repValue = pQuest->GetRepObjectiveValue();
@@ -2319,7 +2355,7 @@ bool DebugAction::HandleQuest(Event& event, Player* requester, const std::string
                 }
             }
 
-            // Complete money requirement
+            // Complete money requirement (满足任务金币交付需求)
             int32 ReqOrRewMoney = pQuest->GetRewOrReqMoney();
             if (ReqOrRewMoney < 0)
                 bot->ModifyMoney(-ReqOrRewMoney);
@@ -2350,7 +2386,7 @@ bool DebugAction::HandleQuest(Event& event, Player* requester, const std::string
         return true;
     }
 
-    // Handle 'drop' subcommand (abandon quest)
+    // Handle 'drop' subcommand (abandon quest) (处理 'drop' 子命令（放弃任务）)
     if (subcmd == "drop")
     {
         if (!questId)
@@ -2380,7 +2416,7 @@ bool DebugAction::HandleQuest(Event& event, Player* requester, const std::string
         return true;
     }
 
-    // Handle 'add' subcommand (add quest to log)
+    // Handle 'add' subcommand (add quest to log) (处理 'add' 子命令（将任务添加到任务日志）)
     if (subcmd == "add")
     {
         if (!questId)
@@ -2398,7 +2434,7 @@ bool DebugAction::HandleQuest(Event& event, Player* requester, const std::string
             return true;
         }
 
-        // Find empty slot
+        // Find empty slot (查找空背包槽位)
         for (uint8 slot = 0; slot < MAX_QUEST_LOG_SIZE; ++slot)
         {
             if (bot->GetQuestSlotQuestId(slot))
@@ -2417,7 +2453,7 @@ bool DebugAction::HandleQuest(Event& event, Player* requester, const std::string
         return true;
     }
 
-    // Handle 'travel' subcommand (show travel info for quest)
+    // Handle 'travel' subcommand (show travel info for quest) (处理 'travel' 子命令（显示任务旅行导航信息）)
     if (subcmd == "travel")
     {
         if (!questId)
@@ -2439,7 +2475,7 @@ bool DebugAction::HandleQuest(Event& event, Player* requester, const std::string
         out << "=== Quest: " << questId << " ===";
         out << "\n" << pQuest->GetTitle();
         
-        // Show objectives
+        // Show objectives (显示当前目标列表)
         out << "\n--- Objectives ---";
         for (uint8 i = 0; i < QUEST_OBJECTIVES_COUNT; ++i)
         {
@@ -2465,7 +2501,7 @@ bool DebugAction::HandleQuest(Event& event, Player* requester, const std::string
         return true;
     }
 
-    // Handle 'info' or just quest ID - show info about quest
+    // Handle 'info' or just quest ID - show info about quest (处理 'info' 或纯任务 ID 参数：显示任务详情)
     if (!subcmd.empty() && questId)
     {
         Quest const* pQuest = sObjectMgr.GetQuestTemplate(questId);
@@ -2477,7 +2513,7 @@ bool DebugAction::HandleQuest(Event& event, Player* requester, const std::string
             return true;
         }
 
-        // Check if in quest log
+        // Check if in quest log (检查任务是否已在任务日志中)
         bool inLog = false;
         QuestStatus status = QUEST_STATUS_NONE;
         for (uint8 slot = 0; slot < MAX_QUEST_LOG_SIZE; ++slot)
@@ -2506,11 +2542,12 @@ bool DebugAction::HandleQuest(Event& event, Player* requester, const std::string
         return true;
     }
 
-    // No valid subcommand - show usage
+    // No valid subcommand - show usage (无效子命令：显示用法说明)
     ai->TellPlayer(requester, "Usage: quest <complete|drop|add|list|travel> [questId]");
     return true;
 }
 
+/// 从指令参数中解析地图 ID 与三维坐标
 PositionTarget DebugAction::ParseLocation(const std::string& param, Player* bot)
 {
     PositionTarget result;
@@ -2570,13 +2607,14 @@ PositionTarget DebugAction::ParseLocation(const std::string& param, Player* bot)
     return result;
 }
 
+/// 调试命令：输出或设置机器人当前调试坐标与朝向
 bool DebugAction::HandlePosition(Event& event, Player* requester, const std::string& text)
 {
-    std::string param = text.substr(8); // skip "position"
+    std::string param = text.substr(8); // skip "position" (跳过 "position" 关键字)
     while (param.size() > 0 && param[0] == ' ')
         param = param.substr(1);
 
-    // Handle subcommands
+    // Handle subcommands (分发处理子命令)
     if (param.substr(0, 4) == "zone")
     {
         std::string zoneParam = param.size() > 4 ? param.substr(4) : "";
@@ -2621,7 +2659,7 @@ bool DebugAction::HandlePosition(Event& event, Player* requester, const std::str
         return true;
     }
 
-    // Check travel nodes near bot or location
+    // Check travel nodes near bot or location (检查机器人或目标坐标附近的旅行导航节点)
     if (param.substr(0, 5) == "nodes")
     {
         std::string nodeParam = param.size() > 5 ? param.substr(5) : "";
@@ -3139,7 +3177,7 @@ bool DebugAction::HandlePosition(Event& event, Player* requester, const std::str
         return true;
     }
 
-    // Check if position is above ground or underground
+    // Check if position is above ground or underground (检查坐标位于地面以上还是地下)
     if (param.substr(0, 6) == "ground")
     {
         std::string groundParam = param.size() > 7 ? param.substr(7) : "";
@@ -3166,7 +3204,7 @@ bool DebugAction::HandlePosition(Event& event, Player* requester, const std::str
         return true;
     }
 
-    // If param is empty, show bot's position
+    // If param is empty, show bot's position (若参数为空，则显示机器人当前位置)
     if (param.empty())
     {
         std::ostringstream out;
@@ -3181,7 +3219,7 @@ bool DebugAction::HandlePosition(Event& event, Player* requester, const std::str
         return true;
     }
 
-    // Try to find player by name
+    // Try to find player by name (尝试按名称查找玩家)
     if (Player* target = sObjectMgr.GetPlayer(param.c_str()))
     {
         std::ostringstream out;
@@ -3190,7 +3228,7 @@ bool DebugAction::HandlePosition(Event& event, Player* requester, const std::str
         return true;
     }
 
-    // Try to find creature by name (search nearby)
+    // Try to find creature by name (search nearby) (尝试按名称在附近搜索生物)
     std::list<Unit*> targets;
     AnyUnitInObjectRangeCheck u_check(bot, 100000.0f);
     UnitListSearcher<AnyUnitInObjectRangeCheck> searcher(targets, u_check);
@@ -3211,7 +3249,7 @@ bool DebugAction::HandlePosition(Event& event, Player* requester, const std::str
         }
     }
 
-    // Try parsing as guid or link
+    // Try parsing as guid or link (尝试按 GUID 或物品/法术链接解析)
     uint32 guid = 0;
     try { guid = std::stoul(param); } catch (...) {}
 
@@ -3237,6 +3275,7 @@ bool DebugAction::HandlePosition(Event& event, Player* requester, const std::str
     return true;
 }
 
+/// 调试命令：查询附近或选中 NPC 的标志位、阵营与模板数据
 bool DebugAction::HandleNPC(Event& event, Player* requester, const std::string& text)
 {
     std::ostringstream out;
@@ -3373,6 +3412,7 @@ bool DebugAction::HandleNPC(Event& event, Player* requester, const std::string& 
     return true;
 }
 
+/// 调试命令：查询附近指定游戏对象详细信息
 bool DebugAction::HandleGO(Event& event, Player* requester, const std::string& text)
 {
     std::ostringstream out;
@@ -3531,6 +3571,7 @@ bool DebugAction::HandleGO(Event& event, Player* requester, const std::string& t
     return true;
 }
 
+/// 调试命令：搜索并列出符合名称的生物、物品或节点
 bool DebugAction::HandleFind(Event& event, Player* requester, const std::string& text)
 {
     std::ostringstream out;
@@ -3566,6 +3607,7 @@ bool DebugAction::HandleFind(Event& event, Player* requester, const std::string&
     return true;
 }
 
+/// 调试命令：查询背包或数据库中指定物品的详细属性
 bool DebugAction::HandleItem(Event& event, Player* requester, const std::string& text)
 {
     std::ostringstream out;
@@ -3618,7 +3660,7 @@ bool DebugAction::HandleItem(Event& event, Player* requester, const std::string&
 
     std::ostringstream out2;
 
-    // Print class and subclass string equivalents
+    // Print class and subclass string equivalents (输出物品类别与子类别的文字描述)
     static const std::unordered_map<uint32, std::string> itemClassNames = {
         { ITEM_CLASS_CONSUMABLE, "Consumable" },
         { ITEM_CLASS_CONTAINER, "Container" },
@@ -3740,7 +3782,7 @@ bool DebugAction::HandleItem(Event& event, Player* requester, const std::string&
 
     std::ostringstream out3;
 
-    //Print the items contained inside item.
+    // Print the items contained inside item. (输出该容器物品内包含的物品清单。)
 
 
     ai->TellPlayerNoFacing(requester, out3);
@@ -3748,6 +3790,7 @@ bool DebugAction::HandleItem(Event& event, Player* requester, const std::string&
     return true;
 }
 
+/// 调试命令：输出当前 RPG 目标候选列表与各交互动作相关性评分
 bool DebugAction::HandleRPG(Event& event, Player* requester, const std::string& text)
 {
     std::ostringstream out;
@@ -3786,6 +3829,7 @@ bool DebugAction::HandleRPG(Event& event, Player* requester, const std::string& 
     return true;
 }
 
+/// 调试命令：扫描并列出附近所有潜在 RPG 交互目标
 bool DebugAction::HandleRPGTargets(Event& event, Player* requester, const std::string& text)
 {
     Action* action = ai->GetAiObjectContext()->GetAction("choose rpg target");
@@ -3803,6 +3847,7 @@ bool DebugAction::HandleRPGTargets(Event& event, Player* requester, const std::s
     return true;
 }
 
+/// 调试命令：调试旅行目标选择与多段旅行路径规划
 bool DebugAction::HandleTravel(Event& event, Player* requester, const std::string& text)
 {
     WorldPosition botPos = WorldPosition(bot);
@@ -3821,7 +3866,7 @@ bool DebugAction::HandleTravel(Event& event, Player* requester, const std::strin
 
     if (dest)
     {
-        std::list<uint8> chancesToGoFar = { 10,50,90 }; //Closest map, grid, cell.
+        std::list<uint8> chancesToGoFar = { 10,50,90 }; // Closest map, grid, cell. (最近的地图、网格与单元格。)
         WorldPosition* point = dest->GetNextPoint(botPos, chancesToGoFar);
 
         if (!point)
@@ -3849,6 +3894,7 @@ bool DebugAction::HandleTravel(Event& event, Player* requester, const std::strin
     }
 }
 
+/// 调试命令：输出当前旅行目标候选评分与路径计算详情
 bool DebugAction::HandlePrintTravel(Event& event, Player* requester, const std::string& text)
 {
     if (!sPlayerbotAIConfig.isLogOpen("travel.csv"))
@@ -3874,7 +3920,7 @@ bool DebugAction::HandlePrintTravel(Event& event, Player* requester, const std::
 
                 GuidPosition* guidP = dynamic_cast<GuidPosition*>(point);
 
-                if (guidP && guidP->IsEventUnspawned()) //Skip points that are not spawned due to events.
+                if (guidP && guidP->IsEventUnspawned()) // Skip points that are not spawned due to events. (跳过因节日/事件未开启而未刷新的点位。)
                 {
                     continue;
                 }
@@ -3930,6 +3976,7 @@ bool DebugAction::HandlePrintTravel(Event& event, Player* requester, const std::
     return true;
 }
 
+/// 调试命令：导出机器人 AI 黑板中的所有当前状态值
 bool DebugAction::HandleValues(Event& event, Player* requester, const std::string& text)
 {
     //    ai->TellPlayerNoFacing(requester, ai->GetAiObjectContext()->FormatValues(text.substr(7)));
@@ -3975,6 +4022,7 @@ bool DebugAction::HandleValues(Event& event, Player* requester, const std::strin
     return true;
 }
 
+/// 调试命令：输出当前待拾取队列及尸体掉落分析
 bool DebugAction::HandleLoot(Event& event, Player* requester, const std::string& text)
 {
     std::string param = "";
@@ -4023,6 +4071,7 @@ bool DebugAction::HandleLoot(Event& event, Player* requester, const std::string&
     return true;
 }
 
+/// 调试命令：查询生物或宝箱的掉落表信息
 bool DebugAction::HandleDrops(Event& event, Player* requester, const std::string& text)
 {
     std::string textSubstr;
@@ -4068,6 +4117,7 @@ bool DebugAction::HandleDrops(Event& event, Player* requester, const std::string
     return true;
 }
 
+/// 调试命令：输出当前已解锁飞行点与飞行路线图信息
 bool DebugAction::HandleTaxi(Event& event, Player* requester, const std::string& text)
 {
     for (uint32 i = 1; i < sTaxiNodesStore.GetNumRows(); ++i)
@@ -4086,6 +4136,7 @@ bool DebugAction::HandleTaxi(Event& event, Player* requester, const std::string&
     return true;
 }
 
+/// 调试命令：查询物品的商店价格及拍卖行历史估值
 bool DebugAction::HandlePrice(Event& event, Player* requester, const std::string& text)
 {
     std::ostringstream out;
@@ -4117,6 +4168,7 @@ bool DebugAction::HandlePrice(Event& event, Player* requester, const std::string
     return true;
 }
 
+/// 调试命令：输出或测试非战斗（Non-Combat）策略执行情况
 bool DebugAction::HandleNC(Event& event, Player* requester, const std::string& text)
 {
     std::ostringstream out;
@@ -4139,7 +4191,7 @@ bool DebugAction::HandleNC(Event& event, Player* requester, const std::string& t
 
         strategy->InitTriggers(triggerNodes, BotState::BOT_STATE_NON_COMBAT);
 
-        //Loop over all triggers of this strategy.
+        // Loop over all triggers of this strategy. (遍历该策略下的所有触发器。)
         for (auto& triggerNode : triggerNodes)
         {
             Trigger* trigger = context->GetTrigger(triggerNode->getName());
@@ -4155,7 +4207,7 @@ bool DebugAction::HandleNC(Event& event, Player* requester, const std::string& t
 
                 bool isRpg = false;
 
-                //Loop over all actions triggered by this trigger and check if any is an 'rpg action'.
+                // Loop over all actions triggered by this trigger and check if any is an 'rpg action'. (遍历该触发器触发的所有动作，检查其中是否包含 RPG 动作。)
                 for (int32 i = 0; i < NextAction::size(nextActions); i++)
                 {
                     NextAction* nextAction = nextActions[i];
@@ -4208,6 +4260,7 @@ bool DebugAction::HandleNC(Event& event, Player* requester, const std::string& t
     return true;
 }
 
+/// 调试命令：在当前坐标添加一个新的旅行导航节点
 bool DebugAction::HandleAddNode(Event& event, Player* requester, const std::string& text)
 {
     WorldPosition pos(bot);
@@ -4232,6 +4285,7 @@ bool DebugAction::HandleAddNode(Event& event, Player* requester, const std::stri
     return true;
 }
 
+/// 调试命令：删除指定 ID 的旅行导航节点
 bool DebugAction::HandleRemNode(Event& event, Player* requester, const std::string& text)
 {
     WorldPosition pos(bot);
@@ -4257,6 +4311,7 @@ bool DebugAction::HandleRemNode(Event& event, Player* requester, const std::stri
     return true;
 }
 
+/// 调试命令：重置旅行导航节点及其连接路径数据
 bool DebugAction::HandleResetNode(Event& event, Player* requester, const std::string& text)
 {
     std::unique_lock<std::shared_timed_mutex> nodeLock(sTravelNodeMap.m_nMapMtx);
@@ -4265,6 +4320,7 @@ bool DebugAction::HandleResetNode(Event& event, Player* requester, const std::st
     return true;
 }
 
+/// 调试命令：清除当前调试路径显示与临时路径点
 bool DebugAction::HandleResetPath(Event& event, Player* requester, const std::string& text)
 {
     std::unique_lock<std::shared_timed_mutex> nodeLock(sTravelNodeMap.m_nMapMtx);
@@ -4279,25 +4335,29 @@ bool DebugAction::HandleResetPath(Event& event, Player* requester, const std::st
     return true;
 }
 
+/// 调试命令：根据地图数据自动生成旅行导航节点
 bool DebugAction::HandleGenNode(Event& event, Player* requester, const std::string& text)
 {
-    //Pathfinder
+    // Pathfinder (寻路器)
     sTravelNodeMap.generateNodes();
     return true;
 }
 
+/// 调试命令：生成并可视化两点之间的寻路或旅行路径
 bool DebugAction::HandleGenPath(Event& event, Player* requester, const std::string& text)
 {
     sTravelNodeMap.generatePaths(false);
     return true;
 }
 
+/// 调试命令：测试路径裁剪逻辑并可视化裁剪后的路径点
 bool DebugAction::HandleCropPath(Event& event, Player* requester, const std::string& text)
 {
     sTravelNodeMap.removeUselessPaths();
     return true;
 }
 
+/// 调试命令：将修改后的旅行导航节点数据保存至数据库
 bool DebugAction::HandleSaveNode(Event& event, Player* requester, const std::string& text)
 {
     sTravelNodeMap.printNodeStore();
@@ -4305,6 +4365,7 @@ bool DebugAction::HandleSaveNode(Event& event, Player* requester, const std::str
     return true;
 }
 
+/// 调试命令：从数据库重新加载旅行导航节点图数据
 bool DebugAction::HandleLoadNode(Event& event, Player* requester, const std::string& text)
 {
     std::thread t([] {
@@ -4322,6 +4383,7 @@ bool DebugAction::HandleLoadNode(Event& event, Player* requester, const std::str
     return true;
 }
 
+/// 调试命令：在世界中召唤路标生物以可视化显示旅行导航节点
 bool DebugAction::HandleShowNode(Event& event, Player* requester, const std::string& text)
 {
     WorldPosition pos(bot);
@@ -4361,6 +4423,7 @@ bool DebugAction::HandleShowNode(Event& event, Player* requester, const std::str
     return true;
 }
 
+/// 调试命令：测试或查询减益/防御法术状态
 bool DebugAction::HandleDSpell(Event& event, Player* requester, const std::string& text)
 {
     uint32 spellEffect = stoi(text.substr(7));
@@ -4388,6 +4451,7 @@ bool DebugAction::HandleDSpell(Event& event, Player* requester, const std::strin
     return true;
 }
 
+/// 调试命令：测试或查询特定类别法术（V类）
 bool DebugAction::HandleVSpell(Event& event, Player* requester, const std::string& text)
 {
     uint32 spellEffect = stoi(text.substr(7));
@@ -4410,15 +4474,16 @@ bool DebugAction::HandleVSpell(Event& event, Player* requester, const std::strin
 
         if (wpCreature)
         {
-            WorldPacket data(SMSG_PLAY_SPELL_VISUAL, 8 + 4);        // visual effect on guid
+            WorldPacket data(SMSG_PLAY_SPELL_VISUAL, 8 + 4);        // visual effect on guid (在目标 GUID 上显示视觉特效)
             data << wpCreature->GetObjectGuid();
-            data << uint32(spellEffect);                               // index from SpellVisualKit.dbc
+            data << uint32(spellEffect);                               // index from SpellVisualKit.dbc (SpellVisualKit.dbc 中的视觉效果索引)
             wpCreature->SendMessageToSet(data, true);                
         }
     }
     return true;
 }
 
+/// 调试命令：查询或测试奥术/指定类别法术映射
 bool DebugAction::HandleASpell(Event& event, Player* requester, const std::string& text)
 {
     uint32 spellEffect = stoi(text.substr(7));
@@ -4448,6 +4513,7 @@ bool DebugAction::HandleASpell(Event& event, Player* requester, const std::strin
     return true;
 }
 
+/// 调试命令：测试或查询施法相关状态
 bool DebugAction::HandleCSpell(Event& event, Player* requester, const std::string& text)
 {
     uint32 spellEffect = stoi(text.substr(7));
@@ -4479,6 +4545,7 @@ bool DebugAction::HandleCSpell(Event& event, Player* requester, const std::strin
     return true;
 }
 
+/// 调试命令：测试或查询火焰/友好法术状态
 bool DebugAction::HandleFSpell(Event& event, Player* requester, const std::string& text)
 {
     uint32 spellEffect = stoi(text.substr(7));
@@ -4497,12 +4564,12 @@ bool DebugAction::HandleFSpell(Event& event, Player* requester, const std::strin
     }
 
     {
-        WorldPacket data(SMSG_SPELL_GO, 53);                    // guess size
+        WorldPacket data(SMSG_SPELL_GO, 53);                    // guess size (估算碰撞尺寸)
         data << bot->GetPackGUID();
         data << bot->GetPackGUID();
         data << uint32(spellEffect);  // spellID
-        data << uint8(0) << uint8(1);   // flags
-        data << uint8(1);			   // amount of targets
+        data << uint8(0) << uint8(1);   // flags (标志位)
+        data << uint8(1);               // amount of targets (目标数量)
         data << requester->GetObjectGuid();
         data << uint8(0);
         data << uint16(2);
@@ -4513,6 +4580,7 @@ bool DebugAction::HandleFSpell(Event& event, Player* requester, const std::strin
     return true;
 }
 
+/// 调试命令：查询指定法术的法术模板、射程、消耗与施法条件
 bool DebugAction::HandleSpell(Event& event, Player* requester, const std::string& text)
 {
     uint32 spellEffect = stoi(text.substr(6));
@@ -4520,6 +4588,7 @@ bool DebugAction::HandleSpell(Event& event, Player* requester, const std::string
     return true;
 }
 
+/// 调试命令：输出法术映射表（T类）
 bool DebugAction::HandleTSpellMap(Event& event, Player* requester, const std::string& text)
 {
     for (int32 dx = 0; dx < 10; dx++)
@@ -4551,6 +4620,7 @@ bool DebugAction::HandleTSpellMap(Event& event, Player* requester, const std::st
     return true;
 }
 
+/// 调试命令：输出法术映射表（U类）
 bool DebugAction::HandleUSpellMap(Event& event, Player* requester, const std::string& text)
 {
     for (int32 dx = 0; dx < 10; dx++)
@@ -4571,6 +4641,7 @@ bool DebugAction::HandleUSpellMap(Event& event, Player* requester, const std::st
     return true;
 }
 
+/// 调试命令：输出法术映射表（D类）
 bool DebugAction::HandleDSpellMap(Event& event, Player* requester, const std::string& text)
 {
     for (int32 dx = 0; dx < 10; dx++)
@@ -4591,6 +4662,7 @@ bool DebugAction::HandleDSpellMap(Event& event, Player* requester, const std::st
     return true;
 }
 
+/// 调试命令：输出法术映射表（V类）
 bool DebugAction::HandleVSpellMap(Event& event, Player* requester, const std::string& text)
 {
     std::vector<WorldPacket> datMap;
@@ -4610,9 +4682,9 @@ bool DebugAction::HandleVSpellMap(Event& event, Player* requester, const std::st
                                    
             if (wpCreature)
             {
-                WorldPacket data(SMSG_PLAY_SPELL_VISUAL, 8 + 4);        // visual effect on guid
+                WorldPacket data(SMSG_PLAY_SPELL_VISUAL, 8 + 4);        // visual effect on guid (在目标 GUID 上显示视觉特效)
                 data << wpCreature->GetObjectGuid();
-                data << uint32(effect); ;                               // index from SpellVisualKit.dbc
+                data << uint32(effect); ;                               // index from SpellVisualKit.dbc (SpellVisualKit.dbc 中的视觉效果索引)
                 //wpCreature->SendMessageToSet(data, true);
                 datMap.push_back(data);
 
@@ -4637,6 +4709,7 @@ bool DebugAction::HandleVSpellMap(Event& event, Player* requester, const std::st
     return true;
 }
 
+/// 调试命令：输出法术映射表（I类）
 bool DebugAction::HandleISpellMap(Event& event, Player* requester, const std::string& text)
 {
     std::vector<WorldPacket> datMap;
@@ -4656,9 +4729,9 @@ bool DebugAction::HandleISpellMap(Event& event, Player* requester, const std::st
 
             if (wpCreature)
             {
-                WorldPacket data(SMSG_PLAY_SPELL_IMPACT, 8 + 4);        // visual effect on player
+                WorldPacket data(SMSG_PLAY_SPELL_IMPACT, 8 + 4);        // visual effect on player (在玩家身上显示视觉特效)
                 data << wpCreature->GetObjectGuid();
-                data << uint32(effect);                                 // index from SpellVisualKit.dbc
+                data << uint32(effect);                                 // index from SpellVisualKit.dbc (SpellVisualKit.dbc 中的视觉效果索引)
                 //wpCreature->SendMessageToSet(data, true);
                 datMap.push_back(data);
             }
@@ -4681,6 +4754,7 @@ bool DebugAction::HandleISpellMap(Event& event, Player* requester, const std::st
     return true;
 }
 
+/// 调试命令：输出法术映射表（C类）
 bool DebugAction::HandleCSpellMap(Event& event, Player* requester, const std::string& text)
 {
     Creature* wpCreature = nullptr;
@@ -4710,6 +4784,7 @@ bool DebugAction::HandleCSpellMap(Event& event, Player* requester, const std::st
     return true;
 }
 
+/// 调试命令：输出法术映射表（A类）
 bool DebugAction::HandleASpellMap(Event& event, Player* requester, const std::string& text)
 {
     Creature* wpCreature = nullptr;
@@ -4737,6 +4812,7 @@ bool DebugAction::HandleASpellMap(Event& event, Player* requester, const std::st
     return true;
 }
 
+/// 调试命令：输出法术映射表（G类）
 bool DebugAction::HandleGSpellMap(Event& event, Player* requester, const std::string& text)
 {
     std::vector<ObjectGuid> all_targets;// = { bot->GetObjectGuid(), master->GetObjectGuid() };
@@ -4824,6 +4900,7 @@ bool DebugAction::HandleGSpellMap(Event& event, Player* requester, const std::st
     return true;
 }
 
+/// 调试命令：输出法术映射表（M类）
 bool DebugAction::HandleMSpellMap(Event& event, Player* requester, const std::string& text)
 {
     std::vector<ObjectGuid> all_targets;
@@ -4902,6 +4979,7 @@ bool DebugAction::HandleMSpellMap(Event& event, Player* requester, const std::st
     return true;
 }
 
+/// 调试命令：查询或输出音效 ID 映射表
 bool DebugAction::HandleSoundMap(Event& event, Player* requester, const std::string& text)
 {
     uint32 soundEffects = stoi(text.substr(9));
@@ -4925,6 +5003,7 @@ bool DebugAction::HandleSoundMap(Event& event, Player* requester, const std::str
     return true;
 }
 
+/// 调试命令：搜索并测试多个相关音效
 bool DebugAction::HandleSounds(Event& event, Player* requester, const std::string& text)
 {
     uint32 soundEffects = stoi(text.substr(6));
@@ -4938,6 +5017,7 @@ bool DebugAction::HandleSounds(Event& event, Player* requester, const std::strin
     return true;
 }
 
+/// 调试命令：测试播放或查询指定音效
 bool DebugAction::HandleDSound(Event& event, Player* requester, const std::string& text)
 {
     uint32 soundEffect = stoi(text.substr(7));
@@ -4945,6 +5025,7 @@ bool DebugAction::HandleDSound(Event& event, Player* requester, const std::strin
     return true;
 }
 
+/// 调试命令：在机器人位置触发播放指定 ID 的音效
 bool DebugAction::HandleSound(Event& event, Player* requester, const std::string& text)
 {
     uint32 soundEffect = stoi(text.substr(6));
@@ -4954,7 +5035,7 @@ bool DebugAction::HandleSound(Event& event, Player* requester, const std::string
 
 namespace
 {
-    // Remove WoW chat markup (|cAARRGGBB, |H...|h, |h, |r, |T...|t) from a string.
+    // Remove WoW chat markup (|cAARRGGBB, |H...|h, |h, |r, |T...|t) from a string. (从字符串中清除魔兽世界聊天富文本标记（颜色/链接/图标）。)
     std::string StripWowMarkup(const std::string& s)
     {
         std::string out;
@@ -5005,6 +5086,7 @@ namespace
     }
 }
 
+/// 将旅行状态枚举值转换为可读的字符串名称
 std::string DebugAction::TravelStatusName(int status, bool lower)
 {
     std::string name;
@@ -5026,6 +5108,7 @@ std::string DebugAction::TravelStatusName(int status, bool lower)
     return name;
 }
 
+/// 采集机器人移动/战斗卡死时的位置、路径、目标与动作历史快照
 DebugAction::StuckFacts DebugAction::GatherStuckFacts()
 {
     StuckFacts f;
@@ -5079,6 +5162,7 @@ DebugAction::StuckFacts DebugAction::GatherStuckFacts()
     return f;
 }
 
+/// 将采集到的卡死诊断事实格式化为多行可读文本
 std::vector<std::string> DebugAction::FormatStuckFactsLines(const StuckFacts& f)
 {
     std::vector<std::string> lines;
@@ -5142,12 +5226,13 @@ std::vector<std::string> DebugAction::FormatStuckFactsLines(const StuckFacts& f)
     return lines;
 }
 
+/// 调试命令：分析并解释机器人刚刚为什么执行某项动作或为何停滞
 bool DebugAction::HandleWhy(Event& event, Player* requester, const std::string& text)
 {
     StuckFacts facts = GatherStuckFacts();
     BotState state = ai->GetState();
 
-    // --- gather decision data up front (the derived summary needs it) ---
+    // --- gather decision data up front (the derived summary needs it) --- (--- 提前收集决策数据（供后续推导摘要使用） ---)
     std::string lastExecuted = ai->GetLastExecutedActionName(state);
     if (lastExecuted.empty()) lastExecuted = "none";
 
@@ -5163,7 +5248,7 @@ bool DebugAction::HandleWhy(Event& event, Player* requester, const std::string& 
 
     ai->TellPlayerNoFacing(requester, std::string("=== why ") + bot->GetName() + " (" + std::to_string(bot->GetGUIDLow()) + ") ===");
 
-    // --- derived causal summary (the part that makes this a "why") ---
+    // --- derived causal summary (the part that makes this a "why") --- (--- 推导因果摘要（解释“为什么”的关键部分） ---)
     {
         std::ostringstream why;
         why << "because: ";
@@ -5261,7 +5346,7 @@ bool DebugAction::HandleWhy(Event& event, Player* requester, const std::string& 
         ai->TellPlayerNoFacing(requester, blocked.str());
     }
 
-    // identity
+    // identity (自身标识)
     std::string groupRole = "-";
     if (Group* group = bot->GetGroup())
         groupRole = group->IsLeader(bot->GetObjectGuid()) ? "leader" : "member";
@@ -5273,7 +5358,7 @@ bool DebugAction::HandleWhy(Event& event, Player* requester, const std::string& 
        << " | state: " << PlayerbotAI::BotStateToString(state);
     ai->TellPlayerNoFacing(requester, id.str());
 
-    // position / movement
+    // position / movement (位置与移动)
     std::ostringstream pos;
     pos << "pos: " << facts.pos.getX() << " " << facts.pos.getY() << " " << facts.pos.getZ()
         << " map " << facts.pos.getMapId() << " (" << (int)facts.pos.getX() << "," << (int)facts.pos.getY() << ")"
@@ -5287,7 +5372,7 @@ bool DebugAction::HandleWhy(Event& event, Player* requester, const std::string& 
          << " | last position change: " << facts.posLastChange << "s ago";
     ai->TellPlayerNoFacing(requester, move.str());
 
-    // strategies (active engine)
+    // strategies (active engine) (当前引擎启用的策略)
     {
         std::ostringstream st;
         st << "strategies: [" << PlayerbotAI::BotStateToString(state) << "] ";
@@ -5302,12 +5387,12 @@ bool DebugAction::HandleWhy(Event& event, Player* requester, const std::string& 
         ai->TellPlayerNoFacing(requester, st.str());
     }
 
-    // action
+    // action (动作)
     std::ostringstream act;
     act << "action: lastExecuted=" << lastExecuted << " | lastDecision=" << lastDecision;
     ai->TellPlayerNoFacing(requester, act.str());
 
-    // target / combat
+    // target / combat (目标与战斗)
     std::ostringstream tgt;
     if (target)
     {
@@ -5336,7 +5421,7 @@ bool DebugAction::HandleWhy(Event& event, Player* requester, const std::string& 
            << " invalid-target=" << (invalidTarget ? "yes" : "no");
     ai->TellPlayerNoFacing(requester, combat.str());
 
-    // travel
+    // travel (旅行)
     if (facts.hasTravel)
     {
         std::ostringstream tr;
@@ -5372,13 +5457,13 @@ bool DebugAction::HandleWhy(Event& event, Player* requester, const std::string& 
         ai->TellPlayerNoFacing(requester, "travel: none");
     }
 
-    // stuck
+    // stuck (卡死状态)
     std::ostringstream stuck;
     stuck << "stuck: " << (facts.isStuck ? "YES" : "no")
           << " (position changed " << facts.posLastChange << "s ago; can move around=" << (facts.canMoveAround ? "yes" : "NO") << ")";
     ai->TellPlayerNoFacing(requester, stuck.str());
 
-    // curated value shortlist
+    // curated value shortlist (精选的黑板状态值短列表)
     {
         std::vector<std::pair<std::string, std::string>> vals;
         vals.push_back(std::make_pair(std::string("can move around"), facts.canMoveAround ? std::string("1") : std::string("0")));
@@ -5406,7 +5491,7 @@ bool DebugAction::HandleWhy(Event& event, Player* requester, const std::string& 
         ai->TellPlayerNoFacing(requester, values.str());
     }
 
-    // recent history (last 3 attempted actions, if the ring buffer is enabled)
+    // recent history (last 3 attempted actions, if the ring buffer is enabled) (近期历史（若启用环形缓冲区则保留最近 3 个尝试动作）)
     {
         const std::deque<ActionHistoryEntry>& history = ai->GetActionHistory();
         std::ostringstream recent;
@@ -5434,6 +5519,7 @@ bool DebugAction::HandleWhy(Event& event, Player* requester, const std::string& 
     return true;
 }
 
+/// 调试命令：输出 AI 引擎当前执行栈与各策略权重
 bool DebugAction::HandleEngine(Event& event, Player* requester, const std::string& text)
 {
     BotState state = ai->GetState();
@@ -5443,8 +5529,8 @@ bool DebugAction::HandleEngine(Event& event, Player* requester, const std::strin
 
     std::vector<std::string> segments = Qualified::getMultiQualifiers(log, "|");
 
-    // The engine's lastAction is a rolling text log (capped at 512 chars, trimmed from the front).
-    // Parse from the most recent tick marker; if it is gone, the trace was truncated.
+    // The engine's lastAction is a rolling text log (capped at 512 chars, trimmed from the front). (AI 引擎的 lastAction 是滚动文本日志（上限 512 字符，超出从头部截断）。)
+    // Parse from the most recent tick marker; if it is gone, the trace was truncated. (从最近的帧标记开始解析；若标记缺失说明追踪记录已被截断。)
     int start = -1;
     for (int i = 0; i < (int)segments.size(); ++i)
         if (segments[i] == "--- AI Tick ---")
@@ -5455,7 +5541,7 @@ bool DebugAction::HandleEngine(Event& event, Player* requester, const std::strin
         start = 0;
 
     std::vector<std::string> triggers;                          // "name (score)"
-    std::vector<std::string> order;                             // action first-seen order
+    std::vector<std::string> order;                             // action first-seen order (动作首次出现顺序)
     std::map<std::string, std::string> pushInfo;                // action -> "PUSH <type> <rel>"
     std::map<std::string, std::vector<std::string>> results;    // action -> outcomes
     std::vector<std::string> multipliers;
@@ -5526,8 +5612,8 @@ bool DebugAction::HandleEngine(Event& event, Player* requester, const std::strin
         }
     }
 
-    // Derive what actually ran *this tick* from the trace: GetLastExecutedActionName can carry
-    // over from a previous tick when nothing ran, which would misreport the current tick.
+    // Derive what actually ran *this tick* from the trace: GetLastExecutedActionName can carry (从执行轨迹推导本帧实际运行的动作：GetLastExecutedActionName 可能残留)
+    // over from a previous tick when nothing ran, which would misreport the current tick. (来自上一帧的残留值，若本帧未运行任何动作会导致误报。)
     std::string executed = "none";
     for (auto& name : order)
     {
@@ -5591,6 +5677,7 @@ bool DebugAction::HandleEngine(Event& event, Player* requester, const std::strin
     return true;
 }
 
+/// 调试命令：输出机器人最近执行的动作与状态历史记录
 bool DebugAction::HandleHistory(Event& event, Player* requester, const std::string& text)
 {
     const std::deque<ActionHistoryEntry>& history = ai->GetActionHistory();
@@ -5637,6 +5724,7 @@ bool DebugAction::HandleHistory(Event& event, Player* requester, const std::stri
     return true;
 }
 
+/// 调试命令：输出机器人当前详细的卡死诊断报告与上下文快照
 bool DebugAction::HandleStuck(Event& event, Player* requester, const std::string& text)
 {
     bool shouldReset = (text.find("reset") != std::string::npos);
@@ -5721,6 +5809,7 @@ bool DebugAction::HandleStuck(Event& event, Player* requester, const std::string
     return true;
 }
 
+/// 调试命令：输出或切换机器人战斗调试状态与仇恨信息
 bool DebugAction::HandleCombat(Event& event, Player* requester, const std::string& text)
 {
     ai->TellPlayer(requester, "=== Combat State Diagnostic ===");
@@ -5763,6 +5852,7 @@ bool DebugAction::HandleCombat(Event& event, Player* requester, const std::strin
     return true;
 }
 
+/// 调试命令：列出并统计当前地图中的旅行导航节点
 bool DebugAction::HandleNodes(Event& event, Player* requester, const std::string& text)
 {
     WorldPosition pos(bot);
@@ -5934,6 +6024,7 @@ bool DebugAction::HandleNodes(Event& event, Player* requester, const std::string
     return true;
 }
 
+/// 调试命令：查询或设置机器人活跃度系统状态
 bool DebugAction::HandleActivity(Event& event, Player* requester, const std::string& text)
 {
     std::string action = ai->HandleRemoteCommand("action");
@@ -5989,6 +6080,7 @@ bool DebugAction::HandleActivity(Event& event, Player* requester, const std::str
     return true;
 }
 
+/// 调试命令：分析并调试跨地图交通载具航线数据
 bool DebugAction::HandleTransanal(Event& event, Player* requester, const std::string& text)
 {
     sLog.outString("Starting transport analysis...");
@@ -6290,6 +6382,7 @@ bool DebugAction::HandleTransanal(Event& event, Player* requester, const std::st
     return true;
 }
 
+/// 调试命令：检测当前位置上下的垂直空间与 VMap 高度
 bool DebugAction::HandleUpdownspace(Event& event, Player* requester, const std::string& text)
 {
     float startHeightOffset = 0.0f;
@@ -6363,6 +6456,7 @@ bool DebugAction::HandleUpdownspace(Event& event, Player* requester, const std::
     return true;
 }
 
+/// 调试命令：测试绕开障碍物生成弧形/避让路径的算法
 bool DebugAction::HandlePatharound(Event& event, Player* requester, const std::string& text)
 {
     float distance = 20.0f;
@@ -6445,6 +6539,7 @@ bool DebugAction::HandlePatharound(Event& event, Player* requester, const std::s
     return true;
 }
 
+/// 调试命令：测试指定坐标点的地面高度与视线（LOS）检测
 bool DebugAction::HandleHeightForLos(Event& event, Player* requester, const std::string& text)
 {
     Player* master = GetMaster();

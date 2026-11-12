@@ -1,3 +1,4 @@
+// 猎人 - 动作实现文件 (HunterActions.cpp)：定义猎人专用技能施放与战斗动作
 
 #include "playerbot/playerbot.h"
 #include "playerbot/strategy/actions/GenericActions.h"
@@ -5,16 +6,19 @@
 
 using namespace ai;
 
+// 检查动作当前是否有效/可用 (CastSerpentStingAction)
 bool CastSerpentStingAction::isUseful()
 {
     return CastRangedDebuffSpellAction::isUseful() && AI_VALUE2(uint8, "health", GetTargetName()) > 50 && (!(AI_VALUE2(uint8, "mana", GetTargetName()) >= 10) || (ai->HasStrategy("sting serpent", BotState::BOT_STATE_COMBAT)));
 }
 
+// 检查动作当前是否有效/可用 (CastViperStingAction)
 bool CastViperStingAction::isUseful()
 {
     return CastRangedDebuffSpellAction::isUseful() && AI_VALUE2(uint8, "mana", GetTargetName()) >= 10;
 }
 
+// 执行动作逻辑 (FeedPetAction)
 bool FeedPetAction::Execute(Event& event)
 {
     Pet* pet = bot->GetPet();
@@ -24,6 +28,7 @@ bool FeedPetAction::Execute(Event& event)
     return true;
 }
 
+// 检查动作当前是否有效/可用 (CastAutoShotAction)
 bool CastAutoShotAction::isUseful()
 {
     if (ai->IsInVehicle() && !ai->IsInVehicle(false, false, true))
@@ -32,6 +37,7 @@ bool CastAutoShotAction::isUseful()
     return ai->HasStrategy("ranged", BotState::BOT_STATE_COMBAT) && AI_VALUE(uint32, "active spell") != AI_VALUE2(uint32, "spell id", getName());
 }
 
+// 执行动作逻辑 (HunterEquipAmmoAction)
 bool HunterEquipAmmoAction::Execute(Event& event)
 {
     // Get ranged weapon
@@ -94,6 +100,7 @@ bool HunterEquipAmmoAction::Execute(Event& event)
     return false;
 }
 
+// 执行动作逻辑 (CastAutoShotAction)
 bool CastAutoShotAction::Execute(Event& event)
 {
     if (!bot->IsStopped())
@@ -104,6 +111,7 @@ bool CastAutoShotAction::Execute(Event& event)
     return CastSpellAction::Execute(event);
 }
 
+// 执行动作逻辑 (CastSteadyShotAction)
 bool CastSteadyShotAction::Execute(Event& event)
 {
     if (CastSpellAction::Execute(event))

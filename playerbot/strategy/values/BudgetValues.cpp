@@ -1,3 +1,4 @@
+// 策略值实现：BudgetValues（装备修理费用及多用途预算计算）
 #include "playerbot/playerbot.h"
 #include "BudgetValues.h"
 #include "ItemUsageValue.h"
@@ -5,6 +6,7 @@
 
 using namespace ai;
 
+// 计算单件物品的修理花费（支持按当前耐久损失或按完全损坏全额计算）
 uint32 RepairCostValue::RepairCost(const Item* item, bool fullCost)
 {
     uint32 maxDurability = item->GetUInt32Value(ITEM_FIELD_MAXDURABILITY);
@@ -39,6 +41,7 @@ uint32 RepairCostValue::RepairCost(const Item* item, bool fullCost)
     return uint32(LostDurability * dmultiplier * double(dQualitymodEntry->quality_mod));
 }
 
+// 遍历已装备及背包物品，累计总修理费用
 uint32 RepairCostValue::Calculate()
 {
     uint32 TotalCost = 0;
@@ -57,6 +60,7 @@ uint32 RepairCostValue::Calculate()
     return TotalCost;
 }
 
+// 按全额耐久损失计算全身装备和受损物品的最大修理预算
 uint32 MaxGearRepairCostValue::Calculate()
 {
     uint32 TotalCost = 0;
@@ -74,7 +78,7 @@ uint32 MaxGearRepairCostValue::Calculate()
 
         uint32 curDurability = item->GetUInt32Value(ITEM_FIELD_DURABILITY);
 
-        if (i >= EQUIPMENT_SLOT_END && curDurability >= maxDurability) //Only count items equiped or already damanged.
+        if (i >= EQUIPMENT_SLOT_END && curDurability >= maxDurability) //Only count items equiped or already damanged. | 仅统计已装备或已有耐久损耗的物品
             continue;        
 
         TotalCost += RepairCost(item, true);
@@ -83,6 +87,7 @@ uint32 MaxGearRepairCostValue::Calculate()
     return TotalCost;
 }
 
+// 优先返回主手/远程/副手最核心受损装备的修理费
 uint32 MinRepairCostValue::Calculate()
 {
     std::vector<uint8> importantSlots = { EQUIPMENT_SLOT_MAINHAND , EQUIPMENT_SLOT_RANGED, EQUIPMENT_SLOT_OFFHAND };
@@ -103,7 +108,7 @@ uint32 MinRepairCostValue::Calculate()
         if (curDurability > 0)
             continue;
 
-        return RepairCost(item); //The cost to repair the most important broken item.
+        return RepairCost(item); //The cost to repair the most important broken item. | 修理最重要受损装备所需的费用
     }
 
     return RepairCostValue::Calculate();
@@ -111,6 +116,7 @@ uint32 MinRepairCostValue::Calculate()
 
 
 
+// 按用途枚举分项估算所需铜币（如弹药、旅行、拍卖行押金、骑术及坐骑购买等）
 uint32 MoneyNeededForValue::Calculate()
 {
     NeedMoneyFor needMoneyFor = NeedMoneyFor(stoi(getQualifier()));
@@ -131,38 +137,38 @@ uint32 MoneyNeededForValue::Calculate()
         moneyWanted = AI_VALUE(uint32, "max repair cost");
         break;
     case NeedMoneyFor::ammo:
-        moneyWanted = (bot->getClass() == CLASS_HUNTER) ? (level * level * level) / 10 : 0; //Or level^3 (1s @ lvl10, 30s @ lvl30, 2g @ lvl60, 5g @ lvl80): Todo replace (should be best ammo buyable x 8 stacks cost)
+        moneyWanted = (bot->getClass() == CLASS_HUNTER) ? (level * level * level) / 10 : 0; //Or level^3 (1s @ lvl10, 30s @ lvl30, 2g @ lvl60, 5g @ lvl80): Todo replace (should be best ammo buyable x 8 stacks cost) | 暂按等级立方折算（待替换为实际可购 8 组最佳弹药花费）
         break;
     case NeedMoneyFor::spells:
         moneyWanted = AI_VALUE2(uint32, "train cost", TRAINER_TYPE_CLASS);
         break;
     case NeedMoneyFor::travel:
-        moneyWanted = bot->isTaxiCheater() ? 0 : 1500; //15s for traveling half a continent. Todo: Add better calculation (Should be ???)
+        moneyWanted = bot->isTaxiCheater() ? 0 : 1500; //15s for traveling half a continent. Todo: Add better calculation (Should be ???) | 跨半块大陆飞行预留 15 银（待完善精确计算）
         break;
     case NeedMoneyFor::gear:
-        moneyWanted = level * level * level; //Or level^3 (10s @ lvl10, 3g @ lvl30, 20g @ lvl60, 50g @ lvl80): Todo replace (Should be ~total cost of all >green gear equiped)
+        moneyWanted = level * level * level; //Or level^3 (10s @ lvl10, 3g @ lvl30, 20g @ lvl60, 50g @ lvl80): Todo replace (Should be ~total cost of all >green gear equiped) | 暂按等级立方折算（待替换为绿装以上全身装备估值）
         break;
     case NeedMoneyFor::consumables:
-        moneyWanted = (level * level * level) / 10; //Or level^3 (1s @ lvl10, 30s @ lvl30, 2g @ lvl60, 5g @ lvl80): Todo replace (Should be best food/drink x 2 stacks cost)
+        moneyWanted = (level * level * level) / 10; //Or level^3 (1s @ lvl10, 30s @ lvl30, 2g @ lvl60, 5g @ lvl80): Todo replace (Should be best food/drink x 2 stacks cost) | 暂按等级立方折算（待替换为 2 组最佳食物饮水花费）
         break;
     case NeedMoneyFor::guild:
         if (ai->HasStrategy("guild", BotState::BOT_STATE_NON_COMBAT))
         {
             if (bot->GetGuildId() && bot->GetLevel() > 20)
-                moneyWanted = AI_VALUE2(uint32, "item count", chat->formatQItem(5976)) ? 0 : 10000; //1g (tabard)
+                moneyWanted = AI_VALUE2(uint32, "item count", chat->formatQItem(5976)) ? 0 : 10000; //1g (tabard) | 公会战袍 1 金
             else if (bot->GetLevel() > 10)
-                moneyWanted = AI_VALUE2(uint32, "item count", chat->formatQItem(5863)) ? 0 : 1000; //10s (guild charter)
+                moneyWanted = AI_VALUE2(uint32, "item count", chat->formatQItem(5863)) ? 0 : 1000; //10s (guild charter) | 公会注册表 10 银
         }
         break;
     case NeedMoneyFor::skilltraining:
         moneyWanted = AI_VALUE2(uint32, "train cost", TRAINER_TYPE_TRADESKILLS);
         break;
     case NeedMoneyFor::tradeskill:
-        moneyWanted = (level * level * level); //Or level^3 (10s @ lvl10, 3g @ lvl30, 20g @ lvl60, 50g @ lvl80): Todo replace (Should be buyable reagents that combined allow crafting of usefull items)
+        moneyWanted = (level * level * level); //Or level^3 (10s @ lvl10, 3g @ lvl30, 20g @ lvl60, 50g @ lvl80): Todo replace (Should be buyable reagents that combined allow crafting of usefull items) | 暂按等级立方折算（待替换为可制作实用物品的材料成本）
         break;
     case NeedMoneyFor::ah:
     {
-        //Save deposit needed for all items the bot wants to AH.
+        //Save deposit needed for all items the bot wants to AH. | 预留待上架拍卖行物品所需的保证金
         uint32 time;
 #ifdef MANGOSBOT_ZERO
         time = 8 * HOUR;
@@ -287,7 +293,7 @@ uint32 MoneyNeededForValue::Calculate()
                 moneyWanted += basicFlyingRidingLevel;
         if(level >= epicFlyingMountCost && maxFlyMountSpeed < 279)
                 moneyWanted += EpicFlyingRidingLevel;
-        //todo Wotlk frozen weather flying.
+        //todo Wotlk frozen weather flying. | 待处理：WLK 寒冷天气飞行骑术费用
         break;
     }
     }
@@ -295,6 +301,7 @@ uint32 MoneyNeededForValue::Calculate()
     return moneyWanted;
 };
 
+// 累加预留清单中排在指定用途及之前的所有资金需求
 uint32 TotalMoneyNeededForValue::Calculate()
 {
     NeedMoneyFor needMoneyFor = NeedMoneyFor(stoi(getQualifier()));
@@ -315,6 +322,7 @@ uint32 TotalMoneyNeededForValue::Calculate()
     return moneyWanted;
 }
 
+// 判断金币作弊标记或当前金钱是否满足总资金需求
 bool HasAllMoneyForValue::Calculate()
 {
     uint32 money = bot->GetMoney();
@@ -336,6 +344,7 @@ bool HasAllMoneyForValue::Calculate()
 }
 
 
+// 计算扣除优先级更高用途的预留资金后，剩余可供消费的金额
 uint32 FreeMoneyForValue::Calculate() 
 {
     uint32 money = bot->GetMoney();

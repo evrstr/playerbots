@@ -7,6 +7,7 @@
 
 using namespace ai;
 
+/// 执行动作主逻辑（避开生物列表指令动作）
 bool AvoidCreatureListAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -57,7 +58,7 @@ bool AvoidCreatureListAction::Execute(Event& event)
                 const bool remove = creature.substr(0, 1) == "-";
                 if (remove)
                 {
-                    // Remove the -
+                    // Remove the - (移除前缀 '-' 符号)
                     creature = creature.substr(1);
                 }
                 PlayerbotChatHandler handler(bot);
@@ -115,6 +116,7 @@ bool AvoidCreatureListAction::Execute(Event& event)
     return false;
 }
 
+/// 从指令参数中解析生物名称或 Entry ID 列表
 std::vector<std::string> AvoidCreatureListAction::ParseCreatures(const std::string& text)
 {
     std::vector<std::string> creatures;

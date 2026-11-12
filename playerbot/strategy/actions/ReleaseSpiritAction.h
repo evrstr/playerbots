@@ -9,12 +9,15 @@
 
 namespace ai
 {
+    /// 释放灵魂动作：死亡后向服务端发送释放灵魂请求进入墓地跑尸状态
     class ReleaseSpiritAction : public ChatCommandAction
     {
     public:
+        /// 构造函数：初始化释放灵魂动作
         ReleaseSpiritAction(PlayerbotAI* ai, std::string name = "release") : ChatCommandAction(ai, name) {}
 
     public:
+        /// 执行动作主逻辑（释放灵魂动作）
         virtual bool Execute(Event& event) override
         {
             Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -39,10 +42,10 @@ namespace ai
             packet << uint8(0);
             bot->GetSession()->HandleRepopRequestOpcode(packet);
 
-            // add waiting for ress aura
+            // add waiting for ress aura (添加等待复活光环状态)
             if (bot->InBattleGround() && !ai->HasAura(2584, bot))
             {
-                // cast Waiting for Resurrect
+                // cast Waiting for Resurrect (施放等待复活状态)
                 bot->CastSpell(bot, 2584, TRIGGERED_OLD_TRIGGERED);
             }
 
@@ -50,11 +53,14 @@ namespace ai
         }
     };
 
+    /// 自动释放灵魂动作：在满足自动跑尸条件（如战场或野外死亡）时自动释放灵魂
     class AutoReleaseSpiritAction : public ReleaseSpiritAction 
     {
     public:
+        /// 构造函数：初始化自动释放灵魂动作
         AutoReleaseSpiritAction(PlayerbotAI* ai, std::string name = "auto release") : ReleaseSpiritAction(ai, name) {}
 
+        /// 执行动作主逻辑（自动释放灵魂动作）
         virtual bool Execute(Event& event) override
         {
             sLog.outDetail("Bot #%d %s:%d <%s> auto released", bot->GetGUIDLow(), bot->GetTeam() == ALLIANCE ? "A" : "H", bot->GetLevel(), bot->GetName());
@@ -63,10 +69,10 @@ namespace ai
             packet << uint8(0);
             bot->GetSession()->HandleRepopRequestOpcode(packet);
 
-            // add waiting for ress aura
+            // add waiting for ress aura (添加等待复活光环状态)
             if (bot->InBattleGround() && !ai->HasAura(2584, bot))
             {
-                // cast Waiting for Resurrect
+                // cast Waiting for Resurrect (施放等待复活状态)
                 bot->CastSpell(bot, 2584, TRIGGERED_OLD_TRIGGERED);
             }
 
@@ -75,6 +81,7 @@ namespace ai
             return true;
         }
 
+        /// 判断当前状态下该动作是否可用/有效（自动释放灵魂动作）
         virtual bool isUseful() override
         {
             if (!sServerFacade.UnitIsDead(bot))
@@ -119,12 +126,15 @@ namespace ai
         }
     };
 
+    /// 复活点重聚动作：引导灵魂状态下的机器人寻找灵魂医者复活
     class RepopAction : public SpiritHealerAction 
     {
     public:
+        /// 构造函数：初始化复活点重聚动作
         RepopAction(PlayerbotAI* ai, std::string name = "repop") : SpiritHealerAction(ai, name) {}
 
     public:
+        /// 执行动作主逻辑（复活点重聚动作）
         virtual bool Execute(Event& event) override
         {
             Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -168,7 +178,7 @@ namespace ai
             if (defaultPlayerInfo)
             {
                 sLog.outDetail("Repop: Teleporting bot #%d %s:%d <%s> to spawn", bot->GetGUIDLow(), bot->GetTeam() == ALLIANCE ? "A" : "H", bot->GetLevel(), bot->GetName());
-                //teleport bot to spawn
+                // teleport bot to spawn (将机器人传送回出生点)
                 bot->TeleportTo(defaultPlayerInfo->mapId, defaultPlayerInfo->positionX, defaultPlayerInfo->positionY, defaultPlayerInfo->positionZ, defaultPlayerInfo->orientation);
                 if (bot->isRealPlayer())
                     bot->SendHeartBeat();
@@ -176,7 +186,7 @@ namespace ai
             else
             {
                 sLog.outDetail("Repop: Teleporting bot #%d %s:%d <%s> to homebind", bot->GetGUIDLow(), bot->GetTeam() == ALLIANCE ? "A" : "H", bot->GetLevel(), bot->GetName());
-                //teleport bot to homebind
+                // teleport bot to homebind (将机器人传送回炉石绑定点)
                 bot->TeleportToHomebind();
                 bot->SendHeartBeat();
             }
@@ -186,6 +196,7 @@ namespace ai
             return true;
         }
 
+        /// 判断当前状态下该动作是否可用/有效（复活点重聚动作）
         virtual bool isUseful() override
         {
             if (bot->InBattleGround())
@@ -198,12 +209,15 @@ namespace ai
         }
     };
 
+    /// 自我复活动作：使用灵魂石、复生等自身技能在原地复活
     class SelfResurrectAction : public ChatCommandAction
     {
     public:
+        /// 构造函数：初始化自我复活动作
         SelfResurrectAction(PlayerbotAI* ai, std::string name = "self resurrect") : ChatCommandAction(ai, name) {}
 
     public:
+        /// 执行动作主逻辑（自我复活动作）
         bool Execute(Event& event) override
         {
             WorldPacket packet(CMSG_SELF_RES);
@@ -211,6 +225,7 @@ namespace ai
             return true;
         }
 
+        /// 判断执行该动作的前置条件是否满足（自我复活动作）
         bool isPossible() override
         {
             return ai->IsStateActive(BotState::BOT_STATE_DEAD) && bot->GetUInt32Value(PLAYER_SELF_RES_SPELL);

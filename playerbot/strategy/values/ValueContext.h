@@ -1,3 +1,4 @@
+// 策略值头文件：ValueContext（机器人单实例所有 AI 策略值的名称与工厂注册表）
 #pragma once
 
 #include "ActiveSpellValue.h"
@@ -111,6 +112,7 @@
 
 namespace ai
 {
+    // 策略值上下文注册表：为每个 PlayerbotAI 实例集中注册所有可查询和可设置的值对象工厂
     class ValueContext : public NamedObjectContext<UntypedValue>
     {
     public:
@@ -472,7 +474,7 @@ namespace ai
             creators["equiped glyphs"] = [](PlayerbotAI* ai) { return new EquipedGlyphsValue(ai); };
             creators["glyph is upgrade"] = [](PlayerbotAI* ai) { return new GlyphIsUpgradeValue(ai); };
 
-            //Travel
+            //Travel | 长途旅行与钓鱼相关策略值注册
             creators["focus travel target"] = [](PlayerbotAI* ai) { return new FocusTravelTargetValue(ai); };
             creators["has focus travel target"] = [](PlayerbotAI* ai) { return new HasFocusTravelTargetValue(ai); };
 
@@ -496,7 +498,7 @@ namespace ai
             creators["done fishing"] = [](PlayerbotAI* ai) { return new DoneFishingValue(ai); };
             creators["world buff travel step"] = [](PlayerbotAI* ai) { return new WorldBuffTravelStepValue(ai); };
 
-            //Stuck
+            //Stuck | 卡位检测与死亡骑士符文熔铸策略值注册
             creators["time since last change"] = [](PlayerbotAI* ai) { return new TimeSinceLastChangeValue(ai); };
             creators["distance moved since"] = [](PlayerbotAI* ai) { return new DistanceMovedSinceValue(ai); };
 

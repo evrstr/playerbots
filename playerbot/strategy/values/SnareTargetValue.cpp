@@ -1,3 +1,4 @@
+// 策略值实现：SnareTargetValue（减速目标筛选逻辑）
 
 #include "playerbot/playerbot.h"
 #include "SnareTargetValue.h"
@@ -7,6 +8,7 @@
 
 using namespace ai;
 
+// 遍历可能攻击目标，筛选出非当前目标或正试图脱离/逃跑且尚未受到减速法术影响的目标
 ObjectGuid SnareTargetValue::Calculate()
 {
     std::string spell = qualifier;
@@ -31,15 +33,15 @@ ObjectGuid SnareTargetValue::Calculate()
         if (sServerFacade.GetDistance2d(bot, unit) > ai->GetRange("spell"))
             continue;
 
-        // case real player or bot not moving
+        // case real player or bot not moving | 处理真人玩家或未移动机器人的追击目标检查
         if (unit->IsPlayer() && unit->GetMotionMaster()->GetCurrentMovementGeneratorType() == IDLE_MOTION_TYPE)
         {
             if (Unit* victim = unit->GetVictim())
             {
-                // check if need to snare
+                // check if need to snare | 检查是否需要对目标施加减速
                 bool shouldSnare = true;
 
-                // do not slow down if bot is melee and mob/bot attack each other
+                // do not slow down if bot is melee and mob/bot attack each other | 若己方为近战且双方正在对砍，则无需浪费技能减速
                 if (victim == bot || victim->IsPlayer())
                     shouldSnare = true;
 
@@ -61,10 +63,10 @@ ObjectGuid SnareTargetValue::Calculate()
             if (!chaseTarget) continue;
             Player* chaseTargetPlayer = sObjectMgr.GetPlayer(chaseTarget->GetObjectGuid());
             
-            // check if need to snare
+            // check if need to snare | 检查是否需要对怪物施加减速（正在逃跑或与目标拉扯）
             bool shouldSnare = true;
 
-            // do not slow down if bot is melee and mob/bot attack each other
+            // do not slow down if bot is melee and mob/bot attack each other | 若己方为近战且双方正面对战，则无需施加减速
             if (chaseTargetPlayer && !ai->IsRanged(bot) && chaseTargetPlayer == bot)
                 shouldSnare = false;
 

@@ -7,6 +7,7 @@
 
 using namespace ai;
 
+/// 执行动作主逻辑（移动风格指令动作）
 bool MoveStyleAction::Execute(Event& event)
 {
     std::string strategy = event.getParam();

@@ -7,6 +7,7 @@
 #define BOT_TEXT(name) sPlayerbotTextMgr.GetBotText(name)
 #define BOT_TEXT2(name, replace) sPlayerbotTextMgr.GetBotText(name, replace)
 
+/// 机器人多语言台词文本条目结构
 struct BotTextEntry
 {
     BotTextEntry(std::string name, std::string text, std::map<int32, std::string> text_locales, uint32 say_type, uint32 reply_type) : m_name(name), m_text(text), m_text_locales(text_locales), m_sayType(say_type), m_replyType(reply_type) {}
@@ -17,6 +18,7 @@ struct BotTextEntry
     uint32 m_replyType;
 };
 
+/// 聊天回复任务数据
 struct ChatReplyData
 {
     ChatReplyData(uint32 guid, uint32 type, std::string chat) : m_guid(guid), m_type(type), m_chat(chat) {}
@@ -24,6 +26,7 @@ struct ChatReplyData
     std::string m_chat = "";
 };
 
+/// 延迟发送的聊天队列回复条目
 struct ChatQueuedReply
 {
     ChatQueuedReply() : m_type(0), m_guid1(0), m_guid2(0), m_msg(), m_chanName(), m_name(), m_time(0) {}
@@ -37,6 +40,7 @@ struct ChatQueuedReply
     time_t m_time;
 };
 
+/// 机器人聊天回复场景类型枚举
 enum ChatReplyType
 {
     REPLY_NOT_UNDERSTAND,
@@ -48,6 +52,7 @@ enum ChatReplyType
     REPLY_ADMIN_ABUSE
 };
 
+/// 机器人台词与本地化文本管理器，负责从数据库加载多语言台词、占位符替换及语言优先级统计
 class PlayerbotTextMgr
 {
     public:
@@ -59,7 +64,7 @@ class PlayerbotTextMgr
             return instance;
         }
 
-	public:
+    public:
         static void ReplaceAll(std::string& str, const std::string& from, const std::string& to);
         static void ReplacePlaceholders(std::string& text, const std::map<std::string, std::string>& placeholders);
         static std::string GetReplacePlaceholders(const std::string& text, const std::map<std::string, std::string>& placeholders) { std::string retText = text; ReplacePlaceholders (retText, placeholders); return retText;  }

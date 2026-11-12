@@ -5,6 +5,7 @@
 
 using namespace ai;
 
+/// 执行动作主逻辑（距离设置指令动作）
 bool RangeAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -51,6 +52,7 @@ bool RangeAction::Execute(Event& event)
     return true;
 }
 
+/// 输出当前配置的各类距离参数值
 void RangeAction::PrintRange(std::string type, Player* requester)
 {
     float curVal = AI_VALUE2(float, "range", type);

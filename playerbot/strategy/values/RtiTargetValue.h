@@ -1,3 +1,4 @@
+// 策略值头文件：RtiTargetValue（根据团队标记图标 RTI 查找对应目标）
 #pragma once
 #include "playerbot/PlayerbotAIConfig.h"
 #include "playerbot/ServerFacade.h"
@@ -7,6 +8,7 @@
 
 namespace ai
 {
+    // 目标值计算器：读取队伍为指定标记类型（攻击/控场）分配的团队标记图标并返回匹配单位 GUID
     class RtiTargetValue : public TargetValue
     {
     public:
@@ -59,6 +61,7 @@ namespace ai
     std::string type;
     };
 
+    // 目标值计算器：专用于查找被团队标记为控场（rti cc）的目标 GUID
     class RtiCcTargetValue : public RtiTargetValue
     {
     public:

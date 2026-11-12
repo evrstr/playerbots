@@ -4,6 +4,7 @@
 
 using namespace ai;
 
+/// 将输入字符串转换为全小写形式
 std::string LowercaseString(const std::string& string)
 {
     std::string result = string;
@@ -18,12 +19,14 @@ std::string LowercaseString(const std::string& string)
     return result;
 }
 
+/// 将输入字符串转换为全小写形式
 std::string LowercaseString(const char* string)
 {
     std::string str = string;
     return LowercaseString(str);
 }
 
+/// 在玩家当前队伍或团队中按名称查找成员指针
 Player* FindGroupPlayerByName(Player* player, const std::string& playerName)
 {
     Player* groupPlayer = nullptr;
@@ -51,6 +54,7 @@ Player* FindGroupPlayerByName(Player* player, const std::string& playerName)
     return groupPlayer;
 }
 
+/// 执行动作主逻辑（设置重点治疗目标动作）
 bool SetFocusHealTargetsAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -61,7 +65,7 @@ bool SetFocusHealTargetsAction::Execute(Event& event)
         {
             std::list<ObjectGuid> focusHealTargets = AI_VALUE(std::list<ObjectGuid>, "focus heal targets");
 
-            // Query current focus targets
+            // Query current focus targets (查询当前重点治疗目标)
             if (param.find('?') != std::string::npos)
             {
                 std::stringstream ss;
@@ -102,7 +106,7 @@ bool SetFocusHealTargetsAction::Execute(Event& event)
             }
             else
             {
-                // Multiple focus heal targets
+                // Multiple focus heal targets (多个重点治疗目标)
                 std::vector<std::string> targetNames;
                 if (param.find(',') != std::string::npos)
                 {
@@ -135,7 +139,7 @@ bool SetFocusHealTargetsAction::Execute(Event& event)
                                     const ObjectGuid& targetGuid = target->GetObjectGuid();
                                     if (add)
                                     {
-                                        // Check if the target exists already on the list
+                                        // Check if the target exists already on the list (检查目标是否已存在于列表中)
                                         if (std::find(focusHealTargets.begin(), focusHealTargets.end(), targetGuid) == focusHealTargets.end())
                                         {
                                             focusHealTargets.push_back(targetGuid);
@@ -200,13 +204,14 @@ bool SetFocusHealTargetsAction::Execute(Event& event)
     return false;
 }
 
+/// 执行动作主逻辑（设置等待开怪时间动作）
 bool SetWaitForAttackTimeAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
     std::string newTimeStr = event.getParam();
     if (!newTimeStr.empty())
     {
-        // Check if the param is a number
+        // Check if the param is a number (检查参数是否为纯数字)
         if (newTimeStr.find_first_not_of("0123456789") == std::string::npos)
         {
             const int newTime = std::stoi(newTimeStr.c_str());
@@ -235,6 +240,7 @@ bool SetWaitForAttackTimeAction::Execute(Event& event)
     return false;
 }
 
+/// 执行动作主逻辑（设置跟随目标动作）
 bool SetFollowTargetAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -287,6 +293,7 @@ bool SetFollowTargetAction::Execute(Event& event)
     return false;
 }
 
+/// 执行动作主逻辑（设置法术目标基类动作）
 bool SetSpellTargetAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -295,7 +302,7 @@ bool SetSpellTargetAction::Execute(Event& event)
     {
         std::list<ObjectGuid> targets = AI_VALUE(std::list<ObjectGuid>, name);
 
-        // Query current boost targets
+        // Query current boost targets (查询当前激活/灌注优先目标)
         if (param.find('?') != std::string::npos)
         {
             std::stringstream ss;
@@ -336,7 +343,7 @@ bool SetSpellTargetAction::Execute(Event& event)
         }
         else
         {
-            // Multiple boost targets
+            // Multiple boost targets (多个激活/灌注目标)
             std::vector<std::string> targetNames;
             if (param.find(',') != std::string::npos)
             {
@@ -369,7 +376,7 @@ bool SetSpellTargetAction::Execute(Event& event)
                                 const ObjectGuid& targetGuid = target->GetObjectGuid();
                                 if (add)
                                 {
-                                    // Check if the target exists already on the list
+                                    // Check if the target exists already on the list (检查目标是否已存在于列表中)
                                     if (std::find(targets.begin(), targets.end(), targetGuid) == targets.end())
                                     {
                                         targets.push_back(targetGuid);

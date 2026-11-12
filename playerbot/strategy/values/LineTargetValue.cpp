@@ -1,3 +1,4 @@
+// 策略值实现：LineTargetValue（纵队链式跟随目标查找）
 
 #include "playerbot/playerbot.h"
 #include "LineTargetValue.h"
@@ -5,6 +6,7 @@
 #include "playerbot/ServerFacade.h"
 using namespace ai;
 
+// 遍历小队成员，返回队伍名单中位于自身前一位的存活队员 GUID（首位则跟随主控）
 ObjectGuid LineTargetValue::Calculate()
 {
     Player* master = GetMaster();

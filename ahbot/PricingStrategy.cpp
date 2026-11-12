@@ -8,6 +8,7 @@
 
 using namespace ahbot;
 
+// 累乘可变参数列表中的各项价格因子，可选输出调试说明字符串
 double PricingStrategy::CalculatePrice(std::ostringstream *explain, ...)
 {
     va_list vl;
@@ -34,6 +35,7 @@ double PricingStrategy::CalculatePrice(std::ostringstream *explain, ...)
     return result;
 }
 
+// 计算物品出售价格：优先采用历史市场价，否则综合基础价、稀有度、等级、品质与配置倍率计算
 uint32 PricingStrategy::GetSellPrice(ItemPrototype const* proto, uint32 auctionHouse, bool ignoreMarket, std::ostringstream *explain)
 {
     double marketPrice = GetMarketPrice(proto->ItemId, auctionHouse);
@@ -71,6 +73,7 @@ uint32 PricingStrategy::GetSellPrice(ItemPrototype const* proto, uint32 auctionH
     return RoundPrice(price);
 }
 
+// 从 ahbot_price 表查询物品在指定拍卖行的市场参考价
 double PricingStrategy::GetMarketPrice(uint32 itemId, uint32 auctionHouse)
 {
     double marketPrice = 0;
@@ -84,6 +87,7 @@ double PricingStrategy::GetMarketPrice(uint32 itemId, uint32 auctionHouse)
     return RoundPrice(marketPrice);
 }
 
+// 计算机器人收购该物品的心理价位
 uint32 PricingStrategy::GetBuyPrice(ItemPrototype const* proto, uint32 auctionHouse, std::ostringstream *explain)
 {
     uint32 untilTime = time(0) - 3600 * 12;
@@ -112,6 +116,7 @@ uint32 PricingStrategy::GetBuyPrice(ItemPrototype const* proto, uint32 auctionHo
     return RoundPrice(price);
 }
 
+// 根据物品掉落稀有度计算指数修正倍率
 double PricingStrategy::GetRarityPriceMultiplier(uint32 itemId)
 {
     float x = sRandomItemMgr.GetItemRarity(itemId);
@@ -119,12 +124,14 @@ double PricingStrategy::GetRarityPriceMultiplier(uint32 itemId)
     return 0.75 + exp((140 - x) / 50) / 6;
 }
 
+// 根据物品等级计算等级溢价倍率
 double PricingStrategy::GetLevelPriceMultiplier(ItemPrototype const* proto)
 {
     float x = 0.1f + proto->ItemLevel;
     return 0.5 + exp(x / 60) / 2;
 }
 
+// 基于近期分类成交天数统计动态需求倍率
 double PricingStrategy::GetCategoryPriceMultiplier(uint32 untilTime, uint32 auctionHouse)
 {
     double result = 1.0;
@@ -151,6 +158,7 @@ double PricingStrategy::GetMultiplier(double count, double firstBuyTime, double 
     return std::max(1.0, k1 + k2) * sAhBotConfig.priceMultiplier;
 }
 
+// 基于近期单品成交天数统计动态需求倍率
 double PricingStrategy::GetItemPriceMultiplier(ItemPrototype const* proto, uint32 untilTime, uint32 auctionHouse)
 {
     double result = 1.0;
@@ -178,6 +186,7 @@ double PricingStrategy::GetQualityMultiplier(ItemPrototype const* proto)
     return sqrt((double)proto->Quality) * sAhBotConfig.priceQualityMultiplier;
 }
 
+// 推算默认基础收购价（参考 NPC 卖价/买价或按任务/物品等级二次方估算）
 uint32 PricingStrategy::GetDefaultBuyPrice(ItemPrototype const* proto)
 {
     uint32 price = 0;
@@ -231,6 +240,7 @@ uint32 BuyOnlyRarePricingStrategy::GetSellPrice(ItemPrototype const* proto, uint
     return PricingStrategy::GetSellPrice(proto, auctionHouse, ignoreMarket, explain);
 }
 
+// 按价格区间进行整百/整千/整万取整，使拍卖价格更贴近玩家习惯
 uint32 PricingStrategy::RoundPrice(double price)
 {
     if (price < 100) {

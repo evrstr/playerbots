@@ -1,8 +1,10 @@
+// 萨满祭司 - 触发器头文件 (ShamanTriggers.h)：定义萨满祭司增益、减益、冷却及状态检查触发条件
 #pragma once
 #include "playerbot/strategy/triggers/GenericTriggers.h"
 
 namespace ai
 {
+    // 触发器：石化武器
     class ShamanWeaponTrigger : public BuffTrigger 
     {
     public:
@@ -12,6 +14,7 @@ namespace ai
         static std::list<std::string> spells;
     };
 
+    // 触发器：准备收回图腾
     class ReadyToRemoveTotemsTrigger : public Trigger
     {
     public:
@@ -52,6 +55,7 @@ namespace ai
         }
     };
 
+    // 触发器：未召唤图腾
     class TotemsAreNotSummonedTrigger : public Trigger 
     {
     public:
@@ -63,13 +67,14 @@ namespace ai
         }
     };
 
+    // 触发器：萨满图腾存在检查
     class TotemTrigger : public Trigger 
     {
     public:
         TotemTrigger(PlayerbotAI* ai, std::string spell, int attackerCount = 0) : Trigger(ai, spell), attackerCount(attackerCount) {}
 
         virtual bool IsActive() override
-		{
+        {
             return AI_VALUE(uint8, "attackers count") >= attackerCount && !AI_VALUE2(bool, "has totem", name);
         }
 
@@ -77,6 +82,7 @@ namespace ai
         int attackerCount;
     };
 
+    // 触发器：触发专精对应的火系图腾
     class FireTotemTrigger : public Trigger 
     {
     public:
@@ -124,6 +130,7 @@ namespace ai
         bool inMovement;
     };
 
+    // 触发器：触发专精对应的AOE火系图腾
     class FireTotemAoeTrigger : public Trigger 
     {
     public:
@@ -140,6 +147,7 @@ namespace ai
         }
     };
 
+    // 触发器：触发专精对应的土系图腾
     class EarthTotemTrigger : public Trigger 
     {
     public:
@@ -187,6 +195,7 @@ namespace ai
         bool inMovement;
     };
 
+    // 触发器：触发专精对应的风系图腾
     class AirTotemTrigger : public Trigger 
     {
     public:
@@ -244,6 +253,7 @@ namespace ai
         bool inMovement;
     };
 
+    // 触发器：触发专精对应的水系图腾
     class WaterTotemTrigger : public Trigger 
     {
     public:
@@ -291,24 +301,28 @@ namespace ai
         bool inMovement;
     };
 
+    // 触发器：风剪
     class WindShearInterruptSpellTrigger : public InterruptSpellTrigger
     {
     public:
         WindShearInterruptSpellTrigger(PlayerbotAI* ai) : InterruptSpellTrigger(ai, "wind shear") {}
     };
 
+    // 触发器：水之盾
     class WaterShieldTrigger : public BuffTrigger
     {
     public:
         WaterShieldTrigger(PlayerbotAI* ai) : BuffTrigger(ai, "water shield") {}
     };
 
+    // 触发器：闪电之盾
     class LightningShieldTrigger : public BuffTrigger
     {
     public:
         LightningShieldTrigger(PlayerbotAI* ai) : BuffTrigger(ai, "lightning shield") {}
     };
 
+    // 触发器：净化术
     class PurgeTrigger : public TargetAuraDispelTrigger
     {
     public:
@@ -363,6 +377,7 @@ namespace ai
         }
     };
 
+    // 触发器：水上行走
     class WaterWalkingTrigger : public BuffTrigger 
     {
     public:
@@ -374,6 +389,7 @@ namespace ai
         }
     };
 
+    // 触发器：水下呼吸
     class WaterBreathingTrigger : public BuffTrigger 
     {
     public:
@@ -385,6 +401,7 @@ namespace ai
         }
     };
 
+    // 触发器：对队友施放水上行走
     class WaterWalkingOnPartyTrigger : public BuffOnPartyTrigger 
     {
     public:
@@ -396,6 +413,7 @@ namespace ai
         }
     };
 
+    // 触发器：对队友施放水下呼吸
     class WaterBreathingOnPartyTrigger : public BuffOnPartyTrigger 
     {
     public:
@@ -407,42 +425,49 @@ namespace ai
         }
     };
 
+    // 触发器：净化灵魂
     class CleanseSpiritPoisonTrigger : public NeedCureTrigger
     {
     public:
         CleanseSpiritPoisonTrigger(PlayerbotAI* ai) : NeedCureTrigger(ai, "cleanse spirit", DISPEL_POISON) {}
     };
 
+    // 触发器：净化灵魂
     class PartyMemberCleanseSpiritPoisonTrigger : public PartyMemberNeedCureTrigger
     {
     public:
         PartyMemberCleanseSpiritPoisonTrigger(PlayerbotAI* ai) : PartyMemberNeedCureTrigger(ai, "cleanse spirit", DISPEL_POISON) {}
     };
 
+    // 触发器：净化灵魂
     class CleanseSpiritCurseTrigger : public NeedCureTrigger
     {
     public:
         CleanseSpiritCurseTrigger(PlayerbotAI* ai) : NeedCureTrigger(ai, "cleanse spirit", DISPEL_CURSE) {}
     };
 
+    // 触发器：净化灵魂
     class PartyMemberCleanseSpiritCurseTrigger : public PartyMemberNeedCureTrigger
     {
     public:
         PartyMemberCleanseSpiritCurseTrigger(PlayerbotAI* ai) : PartyMemberNeedCureTrigger(ai, "cleanse spirit", DISPEL_CURSE) {}
     };
 
+    // 触发器：净化灵魂
     class CleanseSpiritDiseaseTrigger : public NeedCureTrigger
     {
     public:
         CleanseSpiritDiseaseTrigger(PlayerbotAI* ai) : NeedCureTrigger(ai, "cleanse spirit", DISPEL_DISEASE) {}
     };
 
+    // 触发器：净化灵魂
     class PartyMemberCleanseSpiritDiseaseTrigger : public PartyMemberNeedCureTrigger
     {
     public:
         PartyMemberCleanseSpiritDiseaseTrigger(PlayerbotAI* ai) : PartyMemberNeedCureTrigger(ai, "cleanse spirit", DISPEL_DISEASE) {}
     };
 
+    // 触发器：大地震击
     class ShockTrigger : public DebuffTrigger 
     {
     public:
@@ -450,6 +475,7 @@ namespace ai
         virtual bool IsActive() override;
     };
 
+    // 触发器：烈焰震击
     class FlameShockTrigger : public DebuffTrigger 
     {
     public:
@@ -457,60 +483,70 @@ namespace ai
         virtual bool IsActive() override;
     };
 
+    // 触发器：冰霜震击
     class FrostShockSnareTrigger : public SnareTargetTrigger
     {
     public:
         FrostShockSnareTrigger(PlayerbotAI* ai) : SnareTargetTrigger(ai, "frost shock") {}
     };
 
+    // 触发器：英勇
     class HeroismTrigger : public BoostTrigger
     {
     public:
         HeroismTrigger(PlayerbotAI* ai) : BoostTrigger(ai, "heroism") {}
     };
 
+    // 触发器：嗜血
     class BloodlustTrigger : public BoostTrigger
     {
     public:
         BloodlustTrigger(PlayerbotAI* ai) : BoostTrigger(ai, "bloodlust") {}
     };
 
+    // 触发器：漩涡武器
     class MaelstromWeaponTrigger : public HasAuraTrigger
     {
     public:
         MaelstromWeaponTrigger(PlayerbotAI* ai) : HasAuraTrigger(ai, "maelstrom weapon") {}
     };
 
+    // 触发器：风剪
     class WindShearInterruptEnemyHealerSpellTrigger : public InterruptEnemyHealerTrigger
     {
     public:
         WindShearInterruptEnemyHealerSpellTrigger(PlayerbotAI* ai) : InterruptEnemyHealerTrigger(ai, "wind shear") {}
     };
 
+    // 触发器：消毒术
     class CurePoisonTrigger : public NeedCureTrigger
     {
     public:
         CurePoisonTrigger(PlayerbotAI* ai) : NeedCureTrigger(ai, "cure poison", DISPEL_POISON) {}
     };
 
+    // 触发器：消毒术
     class PartyMemberCurePoisonTrigger : public PartyMemberNeedCureTrigger
     {
     public:
         PartyMemberCurePoisonTrigger(PlayerbotAI* ai) : PartyMemberNeedCureTrigger(ai, "cure poison", DISPEL_POISON) {}
     };
 
+    // 触发器：祛病术
     class CureDiseaseTrigger : public NeedCureTrigger
     {
     public:
         CureDiseaseTrigger(PlayerbotAI* ai) : NeedCureTrigger(ai, "cure disease", DISPEL_DISEASE) {}
     };
 
+    // 触发器：祛病术
     class PartyMemberCureDiseaseTrigger : public PartyMemberNeedCureTrigger
     {
     public:
         PartyMemberCureDiseaseTrigger(PlayerbotAI* ai) : PartyMemberNeedCureTrigger(ai, "cure disease", DISPEL_DISEASE) {}
     };
 
+    // 触发器：大地之盾
     class PartyTankEarthShieldTrigger : public BuffOnTankTrigger
     {
     public:
@@ -532,7 +568,9 @@ namespace ai
         }
     };
 
+    // 可施法检查触发器：闪电链 (ChainLightningTrigger)
     CAN_CAST_TRIGGER(ChainLightningTrigger, "chain lightning");
 
+    // 可施法检查触发器：风暴打击 (StormstrikeTrigger)
     CAN_CAST_TRIGGER(StormstrikeTrigger, "stormstrike");
 }

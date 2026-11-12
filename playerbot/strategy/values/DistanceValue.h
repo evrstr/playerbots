@@ -1,3 +1,4 @@
+// 策略值头文件：DistanceValue（目标/坐标/阵型距离及目标重叠判定）
 #pragma once
 #include "playerbot/strategy/Value.h"
 #include "TargetValue.h"
@@ -8,9 +9,10 @@
 
 namespace ai
 {
+    // 浮点值计算器：根据限定符计算机器人到指定坐标、阵型点、旅行目标或单位的距离
     class DistanceValue : public FloatCalculatedValue, public Qualified
-	{
-	public:
+    {
+    public:
         DistanceValue(PlayerbotAI* ai, std::string name = "distance") : FloatCalculatedValue(ai, name), Qualified() {}
 
     public:
@@ -104,6 +106,7 @@ namespace ai
         }
     };
 
+    // 布尔值计算器：判断机器人当前是否已进入目标单位的近战接触范围内
     class InsideTargetValue : public BoolCalculatedValue, public Qualified
     {
     public:

@@ -1,11 +1,13 @@
+// 策略值头文件：SubStrategyValue（逗号分隔子策略开关基类）
 #pragma once
 #include "playerbot/strategy/Value.h"
 
 namespace ai
 {    
+    // 手动设置值基类：管理由逗号分隔的启/停子策略开关集合（支持 +/-/~/all 语法操作）
     class SubStrategyValue : public ManualSetValue<std::string>
-	{
-	public:
+    {
+    public:
         SubStrategyValue(PlayerbotAI* ai, std::string defaultValue = "", std::string name = "substrategy", std::string allowedValues = "") : ManualSetValue(ai, defaultValue, name), allowedValues(allowedValues) {};
         virtual void Set(std::string newValue) override;
 

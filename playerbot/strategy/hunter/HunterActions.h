@@ -1,12 +1,15 @@
+// 猎人 - 动作头文件 (HunterActions.h)：定义猎人专用技能施放与战斗动作
 #pragma once
 
 #include "playerbot/strategy/actions/GenericActions.h"
 
 namespace ai
 {
+    // 远程减益动作定义：猎人印记 (CastHuntersMarkAction)
     BEGIN_RANGED_DEBUFF_ACTION(CastHuntersMarkAction, "hunter's mark")
     END_SPELL_ACTION()
 
+    // 施放自动射击动作
     class CastAutoShotAction : public CastSpellAction
     {
     public:
@@ -15,6 +18,7 @@ namespace ai
         bool isUseful() override;
     };
 
+    // 施放装备弹药动作
     class HunterEquipAmmoAction : public Action
 {
 public:
@@ -22,27 +26,35 @@ public:
     virtual bool Execute(Event& event) override;
 };
 
+    // 远程法术动作定义：宁神射击 (CastTranquilizingShotAction)
     BEGIN_RANGED_SPELL_ACTION(CastTranquilizingShotAction, "tranquilizing shot")
     END_SPELL_ACTION()
 
+    // 远程法术动作定义：奥术射击 (CastArcaneShotAction)
     BEGIN_RANGED_SPELL_ACTION(CastArcaneShotAction, "arcane shot")
     END_SPELL_ACTION()
 
+    // 远程法术动作定义：爆炸射击 (CastExplosiveShotAction)
     BEGIN_RANGED_SPELL_ACTION(CastExplosiveShotAction, "explosive shot")
     END_SPELL_ACTION()
 
+    // 远程法术动作定义：瞄准射击 (CastAimedShotAction)
     BEGIN_RANGED_SPELL_ACTION(CastAimedShotAction, "aimed shot")
     END_SPELL_ACTION()
 
+    // 远程法术动作定义：奇美拉射击 (CastChimeraShotAction)
     BEGIN_RANGED_SPELL_ACTION(CastChimeraShotAction, "chimera shot")
     END_SPELL_ACTION()
 
+    // 远程减益动作定义：震荡射击 (CastConcussiveShotAction)
     BEGIN_RANGED_DEBUFF_ACTION(CastConcussiveShotAction, "concussive shot")
     END_SPELL_ACTION()
 
+    // 远程减益动作定义：驱散射击 (CastScatterShotAction)
     BEGIN_RANGED_DEBUFF_ACTION(CastScatterShotAction, "scatter shot")
     END_SPELL_ACTION()
 
+    // 施放驱散射击动作
     class CastScatterShotOnClosestAttackerTargetingMeAction : public CastRangedDebuffSpellAction
     {
     public:
@@ -50,50 +62,61 @@ public:
         std::string GetTargetName() override { return "closest attacker targeting me"; }
     };
 
+    // 远程法术动作定义：扰乱射击 (CastDistractingShotAction)
     BEGIN_RANGED_SPELL_ACTION(CastDistractingShotAction, "distracting shot")
     END_SPELL_ACTION()
 
+    // 远程法术动作定义：多重射击 (CastMultiShotAction)
     BEGIN_RANGED_SPELL_ACTION(CastMultiShotAction, "multi-shot")
     END_SPELL_ACTION()
 
+    // 远程法术动作定义：乱射 (CastVolleyAction)
     BEGIN_RANGED_SPELL_ACTION(CastVolleyAction, "volley")
     END_SPELL_ACTION()
 
+    // 远程减益动作定义：毒蛇钉刺 (CastSerpentStingAction)
     BEGIN_RANGED_DEBUFF_ACTION(CastSerpentStingAction, "serpent sting")
         virtual bool isUseful();
     END_SPELL_ACTION()
 
+    // 远程减益动作定义：蝮蛇钉刺 (CastViperStingAction)
     BEGIN_RANGED_DEBUFF_ACTION(CastViperStingAction, "viper sting")
         virtual bool isUseful();
     END_SPELL_ACTION()
 
+    // 远程法术动作定义：毒蝎钉刺 (CastScorpidStingAction)
     BEGIN_RANGED_SPELL_ACTION(CastScorpidStingAction, "scorpid sting")
     END_SPELL_ACTION()
 
+    // 施放误导动作
     class MisdirectionOnPartyTankAction : public BuffOnTankAction
     {
     public:
         MisdirectionOnPartyTankAction(PlayerbotAI* ai) : BuffOnTankAction(ai, "misdirection") {}
     };
 
+    // 施放灵猴守护动作
     class CastAspectOfTheMonkeyAction : public CastBuffSpellAction
     {
     public:
         CastAspectOfTheMonkeyAction(PlayerbotAI* ai) : CastBuffSpellAction(ai, "aspect of the monkey") {}
     };
 
+    // 施放雄鹰守护动作
     class CastAspectOfTheHawkAction : public CastBuffSpellAction
     {
     public:
         CastAspectOfTheHawkAction(PlayerbotAI* ai) : CastBuffSpellAction(ai, "aspect of the hawk") {}
     };
 
+    // 施放野性守护动作
     class CastAspectOfTheWildAction : public CastBuffSpellAction
     {
     public:
         CastAspectOfTheWildAction(PlayerbotAI* ai) : CastBuffSpellAction(ai, "aspect of the wild") {}
     };
 
+    // 施放猎豹守护动作
     class CastAspectOfTheCheetahAction : public CastBuffSpellAction
     {
     public:
@@ -105,6 +128,7 @@ public:
         }
     };
 
+    // 施放豹群守护动作
     class CastAspectOfThePackAction : public CastBuffSpellAction
     {
     public:
@@ -116,30 +140,35 @@ public:
         }
     };
 
+    // 施放蝮蛇守护动作
     class CastAspectOfTheViperAction : public CastBuffSpellAction
     {
     public:
         CastAspectOfTheViperAction(PlayerbotAI* ai) : CastBuffSpellAction(ai, "aspect of the viper") {}
     };
 
+    // 施放野兽守护动作
     class CastAspectOfTheBeastAction : public CastBuffSpellAction
     {
     public:
         CastAspectOfTheBeastAction(PlayerbotAI* ai) : CastBuffSpellAction(ai, "aspect of the beast") {}
     };
 
+    // 施放龙鹰守护动作
     class CastAspectOfTheDragonhawkAction : public CastBuffSpellAction
     {
     public:
         CastAspectOfTheDragonhawkAction(PlayerbotAI* ai) : CastBuffSpellAction(ai, "aspect of the dragonhawk") {}
     };
 
+    // 施放召唤宠物动作
     class CastCallPetAction : public CastBuffSpellAction
     {
     public:
         CastCallPetAction(PlayerbotAI* ai) : CastBuffSpellAction(ai, "call pet") {}
     };
 
+    // 施放治疗宠物动作
     class CastMendPetAction : public CastAuraSpellAction
     {
     public:
@@ -147,53 +176,67 @@ public:
         virtual std::string GetTargetName() override { return "pet target"; }
     };
 
+    // 施放复活宠物动作
     class CastRevivePetAction : public CastBuffSpellAction
     {
     public:
         CastRevivePetAction(PlayerbotAI* ai) : CastBuffSpellAction(ai, "revive pet") {}
     };
 
+    // 施放强击光环动作
     class CastTrueshotAuraAction : public CastBuffSpellAction
     {
     public:
         CastTrueshotAuraAction(PlayerbotAI* ai) : CastBuffSpellAction(ai, "trueshot aura") {}
     };
 
+    // 施放假死动作
     class CastFeignDeathAction : public CastBuffSpellAction
     {
     public:
         CastFeignDeathAction(PlayerbotAI* ai) : CastBuffSpellAction(ai, "feign death") {}
     };
 
+    // 取消增益状态动作：假死 (RemoveFeignDeathAction)
     REMOVE_BUFF_ACTION(RemoveFeignDeathAction, "feign death");
 
+    // 施放急速射击动作
     class CastRapidFireAction : public CastBuffSpellAction
     {
     public:
         CastRapidFireAction(PlayerbotAI* ai) : CastBuffSpellAction(ai, "rapid fire") {}
     };
 
+// 巫妖王之怒 (WotLK 80级) 版本逻辑
 #ifdef MANGOSBOT_TWO
+    // 施放杀戮命令动作
     class CastKillCommandAction : public CastBuffSpellAction
     {
     public:
         CastKillCommandAction(PlayerbotAI* ai) : CastBuffSpellAction(ai, "kill command") {}
     };
 #else
+    // 法术施放动作：杀戮命令 (CastKillCommandAction)
     SPELL_ACTION(CastKillCommandAction, "kill command");
 #endif
 
+    // 施放黑箭动作
     class CastBlackArrow : public CastRangedDebuffSpellAction
     {
     public:
         CastBlackArrow(PlayerbotAI* ai) : CastRangedDebuffSpellAction(ai, "black arrow") {}
     };
 
+    // 减速技能动作：黑箭 (CastBlackArrowSnareAction)
     SNARE_ACTION(CastBlackArrowSnareAction, "black arrow");
+    // 法术施放动作：沉默射击 (CastSilencingShotAction)
     SPELL_ACTION(CastSilencingShotAction, "silencing shot");
+    // 针对敌方治疗动作：沉默射击 (CastSilencingShotOnHealerAction)
     ENEMY_HEALER_ACTION(CastSilencingShotOnHealerAction, "silencing shot");
+    // 自我增益动作：准备就绪 (CastReadinessAction)
     BUFF_ACTION(CastReadinessAction, "readiness");
     ;
+    // 施放摔绊动作
     class CastWingClipAction : public CastMeleeSpellAction
     {
     public:
@@ -205,6 +248,7 @@ public:
         }
     };
 
+    // 施放猛禽一击动作
     class CastRaptorStrikeAction : public CastMeleeSpellAction
     {
     public:
@@ -217,18 +261,21 @@ public:
         }
     };
 
+    // 施放毒蛇钉刺动作
     class CastSerpentStingOnAttackerAction : public CastRangedDebuffSpellOnAttackerAction
     {
     public:
         CastSerpentStingOnAttackerAction(PlayerbotAI* ai) : CastRangedDebuffSpellOnAttackerAction(ai, "serpent sting") {}
     };
 
+    // 施放蝮蛇钉刺动作
     class CastViperStingOnAttackerAction : public CastRangedDebuffSpellOnAttackerAction
     {
     public:
         CastViperStingOnAttackerAction(PlayerbotAI* ai) : CastRangedDebuffSpellOnAttackerAction(ai, "viper sting") {}
     };
 
+    // 施放喂养宠物动作
     class FeedPetAction : public Action
     {
     public:
@@ -236,36 +283,46 @@ public:
         virtual bool Execute(Event& event);
     };
 
+    // 施放狂野怒火动作
     class CastBestialWrathAction : public CastBuffSpellAction
     {
     public:
         CastBestialWrathAction(PlayerbotAI* ai) : CastBuffSpellAction(ai, "bestial wrath") {}
     };
 
+    // 施放恐吓野兽动作
     class CastScareBeastAction : public CastSpellAction
     {
     public:
         CastScareBeastAction(PlayerbotAI* ai) : CastSpellAction(ai, "scare beast") {}
     };
 
+    // 施放恐吓野兽动作
     class CastScareBeastCcAction : public CastCrowdControlSpellAction
     {
     public:
         CastScareBeastCcAction(PlayerbotAI* ai) : CastCrowdControlSpellAction(ai, "scare beast") {}
     };
 
+    // 自我增益动作：胁迫 (IntimidationAction)
     BUFF_ACTION(IntimidationAction, "intimidation");
+    // 自我增益动作：威慑 (DeterrenceAction)
     BUFF_ACTION(DeterrenceAction, "deterrence");
+    // 近战技能动作：反击 (CastCounterattackAction)
     MELEE_ACTION(CastCounterattackAction, "counterattack");
+    // 减速技能动作：翼龙钉刺 (WyvernStingSnareAction)
     SNARE_ACTION(WyvernStingSnareAction, "wyvern sting");
+    // 近战技能动作：猫鼬撕咬 (MongooseBiteAction)
     MELEE_ACTION(MongooseBiteAction, "mongoose bite");
 
+    // 施放驯服野兽动作
     class TameBeastAction : public CastSpellAction
     {
     public:
         TameBeastAction(PlayerbotAI* ai) : CastSpellAction(ai, "tame beast") {}
     };
 
+    // 施放照明弹动作
     class CastFlareAction : public CastSpellAction
     {
     public:
@@ -273,6 +330,7 @@ public:
         virtual std::string GetTargetName() override { return "nearest stealthed unit"; }
     };
 
+    // 施放稳固射击动作
     class CastSteadyShotAction : public CastSpellAction
     {
     public:
@@ -283,9 +341,11 @@ public:
         uint32 weaponDelay;
     };
 
+    // 在目标脚下放置陷阱动作
     class TrapOnTargetAction : public CastSpellAction
     {
     public:
+// 经典旧世 (Vanilla 60级) 版本逻辑
 #ifdef MANGOSBOT_ZERO
         // For vanilla, bots need to feign death before dropping the trap
         TrapOnTargetAction(PlayerbotAI* ai, std::string spell) : CastSpellAction(ai, "feign death"), trapSpell(spell)
@@ -322,6 +382,7 @@ public:
             return NextAction::merge(NextAction::array(0, new NextAction(reachAction + "::" + qualifiersStr), NULL), Action::getPrerequisites());
         }
 
+// 经典旧世 (Vanilla 60级) 版本逻辑
 #ifdef MANGOSBOT_ZERO
         bool isPossible() override
         {
@@ -340,6 +401,7 @@ private:
         uint32 trapSpellID;
     };
 
+    // 在控制目标脚下放置陷阱动作
     class TrapOnCcTargetAction : public TrapOnTargetAction
     {
     public:
@@ -347,6 +409,7 @@ private:
         std::string GetTrapTargetName() override { return "cc target"; }
     };
 
+    // TrapInPlace
     class TrapInPlace : public TrapOnTargetAction
     {
     public:
@@ -354,6 +417,7 @@ private:
         std::string GetTrapTargetName() override { return "self target"; }
     };
 
+    // 放置猎人陷阱动作
     class CastTrapAction : public CastSpellAction
     {
     public:
@@ -362,6 +426,7 @@ private:
         // Traps don't really have target for the spell
         std::string GetTargetName() override { return "self target"; }
 
+// 经典旧世 (Vanilla 60级) 版本逻辑
 #ifdef MANGOSBOT_ZERO
         bool Execute(Event& event) override
         {
@@ -372,84 +437,98 @@ private:
 #endif
     };
 
+    // 施放献祭陷阱动作
     class CastImmolationTrapAction : public CastTrapAction
     {
     public:
         CastImmolationTrapAction(PlayerbotAI* ai) : CastTrapAction(ai, "immolation trap") {}
     };
 
+    // 施放献祭陷阱动作
     class CastImmolationTrapOnTargetAction : public TrapOnTargetAction
     {
     public:
         CastImmolationTrapOnTargetAction(PlayerbotAI* ai) : TrapOnTargetAction(ai, "immolation trap") {}
     };
 
+    // 放置猎人陷阱动作
     class CastImmolationTrapInPlaceAction : public TrapInPlace
     {
     public:
         CastImmolationTrapInPlaceAction(PlayerbotAI* ai) : TrapInPlace(ai, "immolation trap") {}
     };
 
+    // 施放冰冻陷阱动作
     class CastFreezingTrapAction : public CastTrapAction
     {
     public:
         CastFreezingTrapAction(PlayerbotAI* ai) : CastTrapAction(ai, "freezing trap") {}
     };
 
+    // 施放冰冻陷阱动作
     class CastFreezingTrapOnTargetAction : public TrapOnTargetAction
     {
     public:
         CastFreezingTrapOnTargetAction(PlayerbotAI* ai) : TrapOnTargetAction(ai, "freezing trap") {}
     };
 
+    // 放置猎人陷阱动作
     class CastFreezingTrapInPlaceAction : public TrapInPlace
     {
     public:
         CastFreezingTrapInPlaceAction(PlayerbotAI* ai) : TrapInPlace(ai, "freezing trap") {}
     };
 
+    // 施放冰冻陷阱动作
     class CastFreezingTrapOnCcAction : public TrapOnCcTargetAction
     {
     public:
         CastFreezingTrapOnCcAction(PlayerbotAI* ai) : TrapOnCcTargetAction(ai, "freezing trap") {}
     };
 
+    // 施放冰霜陷阱动作
     class CastFrostTrapAction : public CastTrapAction
     {
     public:
         CastFrostTrapAction(PlayerbotAI* ai) : CastTrapAction(ai, "frost trap") {}
     };
 
+    // 施放冰霜陷阱动作
     class CastFrostTrapOnTargetAction : public TrapOnTargetAction
     {
     public:
         CastFrostTrapOnTargetAction(PlayerbotAI* ai) : TrapOnTargetAction(ai, "frost trap") {}
     };
 
+    // 放置猎人陷阱动作
     class CastFrostTrapInPlaceAction : public TrapInPlace
     {
     public:
         CastFrostTrapInPlaceAction(PlayerbotAI* ai) : TrapInPlace(ai, "frost trap") {}
     };
 
+    // 施放爆炸陷阱动作
     class CastExplosiveTrapAction : public CastTrapAction
     {
     public:
         CastExplosiveTrapAction(PlayerbotAI* ai) : CastTrapAction(ai, "explosive trap") {}
     };
 
+    // 施放爆炸陷阱动作
     class CastExplosiveTrapOnTargetAction : public TrapOnTargetAction
     {
     public:
         CastExplosiveTrapOnTargetAction(PlayerbotAI* ai) : TrapOnTargetAction(ai, "explosive trap") {}
     };
 
+    // 放置猎人陷阱动作
     class CastExplosiveTrapInPlaceAction : public TrapInPlace
     {
     public:
         CastExplosiveTrapInPlaceAction(PlayerbotAI* ai) : TrapInPlace(ai, "explosive trap") {}
     };
 
+    // 施放解散宠物动作
     class CastDismissPetAction : public CastSpellAction
     {
     public:
@@ -463,6 +542,7 @@ private:
         }
     };
 
+    // 施放更新PVE策略动作
     class UpdateHunterPveStrategiesAction : public UpdateStrategyDependenciesAction
     {
     public:
@@ -560,6 +640,7 @@ private:
         }
     };
 
+    // 施放更新PVP策略动作
     class UpdateHunterPvpStrategiesAction : public UpdateStrategyDependenciesAction
     {
     public:
@@ -657,6 +738,7 @@ private:
         }
     };
 
+    // 施放更新团队副本策略动作
     class UpdateHunterRaidStrategiesAction : public UpdateStrategyDependenciesAction
     {
     public:

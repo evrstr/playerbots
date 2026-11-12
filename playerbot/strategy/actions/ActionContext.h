@@ -87,9 +87,11 @@
 
 namespace ai
 {
+    /// 常规动作上下文：注册机器人所有通用战斗、移动、交互、副本与战场动作
     class ActionContext : public NamedObjectContext<Action>
     {
     public:
+        /// 构造函数：初始化常规动作上下文
         ActionContext()
         {
             creators["mark rti"] = [](PlayerbotAI* ai) { return new MarkRtiAction(ai); };
@@ -98,8 +100,8 @@ namespace ai
             creators["crpg"] = [](PlayerbotAI* ai) { return new CRpgAction(ai); };
             creators["choose rpg target"] = [](PlayerbotAI* ai) { return new ChooseRpgTargetAction(ai); };
             creators["move to rpg target"] = [](PlayerbotAI* ai) { return new MoveToRpgTargetAction(ai); };
-			creators["travel"] = [](PlayerbotAI* ai) { return new TravelAction(ai); };
-			creators["choose travel target"] = [](PlayerbotAI* ai) { return new ChooseTravelTargetAction(ai); };
+            creators["travel"] = [](PlayerbotAI* ai) { return new TravelAction(ai); };
+            creators["choose travel target"] = [](PlayerbotAI* ai) { return new ChooseTravelTargetAction(ai); };
             creators["choose group travel target"] = [](PlayerbotAI* ai) { return new ChooseGroupTravelTargetAction(ai); };
             creators["refresh travel target"] = [](PlayerbotAI* ai) { return new RefreshTravelTargetAction(ai); };
             creators["request travel target"] = [](PlayerbotAI* ai) { return new RequestTravelTargetAction(ai); };
@@ -188,7 +190,7 @@ namespace ai
             creators["give water"] = [](PlayerbotAI* ai) { return new GiveWaterAction(ai); };
             creators["mount"] = [](PlayerbotAI* ai) { return new CastSpellAction(ai, "mount"); };
             creators["auto talents"] = [](PlayerbotAI* ai) { return new AutoSetTalentsAction(ai); };
-			creators["auto learn spell"] = [](PlayerbotAI* ai) { return new AutoLearnSpellAction(ai); };
+            creators["auto learn spell"] = [](PlayerbotAI* ai) { return new AutoLearnSpellAction(ai); };
             creators["auto share quest"] = [](PlayerbotAI* ai) { return new AutoShareQuestAction(ai); };
             creators["xp gain"] = [](PlayerbotAI* ai) { return new XpGainAction(ai); };
             creators["honor gain"] = [](PlayerbotAI* ai) { return new HonorGainAction(ai); };
@@ -241,7 +243,7 @@ namespace ai
             creators["interrupt current spell"] = [](PlayerbotAI* ai) { return new InterruptCurrentSpellAction(ai); };
             creators["initialize pet"] = [](PlayerbotAI* ai) { return new InitializePetAction(ai); };
 
-            // item helpers
+            // item helpers (物品辅助动作)
             creators["goblin sapper"] = [](PlayerbotAI* ai) { return new UseGoblinSapperChargeAction(ai); };
             creators["oil of immolation"] = [](PlayerbotAI* ai) { return new UseOilOfImmolationAction(ai); };
             creators["stoneshield potion"] = [](PlayerbotAI* ai) { return new UseStoneshieldPotionAction(ai); };
@@ -255,7 +257,7 @@ namespace ai
             creators["use consumable"] = [](PlayerbotAI* ai) { return new UseConsumableAction(ai); };
             creators["anti-venom"] = [](PlayerbotAI* ai) { return new UseAntiVenomAction(ai); };
 
-            // BG Tactics
+            // BG Tactics (战场战术)
             creators["bg tactics"] = [](PlayerbotAI* ai) { return new BGTactics(ai); };
             creators["bg move to start"] = [](PlayerbotAI* ai) { return new BGTactics(ai, "move to start"); };
             creators["bg move to objective"] = [](PlayerbotAI* ai) { return new BGTactics(ai, "move to objective"); };
@@ -267,10 +269,10 @@ namespace ai
             creators["attack enemy flag carrier"] = [](PlayerbotAI* ai) { return new AttackEnemyFlagCarrierAction(ai); };
             creators["bg check flag"] = [](PlayerbotAI* ai) { return new BGTactics(ai, "check flag"); };
 
-            // lightwell
+            // lightwell (圣光之泉)
             creators["use lightwell"] = [](PlayerbotAI* ai) { return new UseLightwellAction(ai); };
 
-            // Vehicles
+            // Vehicles (载具系统)
             creators["enter vehicle"] = [](PlayerbotAI* ai) { return new EnterVehicleAction(ai); };
             creators["leave vehicle"] = [](PlayerbotAI* ai) { return new LeaveVehicleAction(ai); };
             creators["hurl boulder"] = [](PlayerbotAI* ai) { return new CastHurlBoulderAction(ai); };
@@ -284,7 +286,7 @@ namespace ai
             creators["blade salvo"] = [](PlayerbotAI* ai) { return new CastBladeSalvoAction(ai); };
             creators["glaive throw"] = [](PlayerbotAI* ai) { return new CastGlaiveThrowAction(ai); };
 
-            // Quest vehicles
+            // Quest vehicles (任务载具)
             creators["deliver stolen horse"] = [](PlayerbotAI* ai) { return new CastDeliverStolenHorseAction(ai); };
             creators["horsemans call"] = [](PlayerbotAI* ai) { return new CastHorsemansCallAction(ai); };
 
@@ -296,7 +298,7 @@ namespace ai
             creators["devour humanoid"] = [](PlayerbotAI* ai) { return new CastDevourHumanoidAction(ai); };            
             
 
-            //Rpg
+            // Rpg (RPG 交互)
             creators["rpg stay"] = [](PlayerbotAI* ai) { return new RpgStayAction(ai); };
             creators["rpg work"] = [](PlayerbotAI* ai) { return new RpgWorkAction(ai); };
             creators["rpg emote"] = [](PlayerbotAI* ai) { return new RpgEmoteAction(ai); };
@@ -340,12 +342,12 @@ namespace ai
             creators["fish"] = [](PlayerbotAI* ai) { return new FishAction(ai); };
             creators["use fishing bobber"] = [](PlayerbotAI* ai) { return new UseFishingBobberAction(ai); };
 
-            // Bot States
+            // Bot States (机器人状态)
             creators["set combat state"] = [](PlayerbotAI* ai) { return new SetCombatStateAction(ai); };
             creators["set non combat state"] = [](PlayerbotAI* ai) { return new SetNonCombatStateAction(ai); };
             creators["set dead state"] = [](PlayerbotAI* ai) { return new SetDeadStateAction(ai); };
 
-            //racials
+            // racials (种族天赋动作)
             creators["war stomp"] = [](PlayerbotAI* ai) { return new CastWarStompAction(ai); };
             creators["berserking"] = [](PlayerbotAI* ai) { return new CastBerserkingAction(ai); };
             creators["blood fury"] = [](PlayerbotAI* ai) { return new CastBloodFuryAction(ai); };
@@ -367,7 +369,7 @@ namespace ai
             creators["use id"] = [](PlayerbotAI* ai) { return new UseItemIdAction(ai); };
             creators["move to"] = [](PlayerbotAI* ai) { return new MoveToAction(ai); };
 
-            // Dungeon Actions
+            // Dungeon Actions (副本专项动作)
             creators["enable onyxias lair strategy"] = [](PlayerbotAI* ai) { return new OnyxiasLairEnableDungeonStrategyAction(ai); };
             creators["disable onyxias lair strategy"] = [](PlayerbotAI* ai) { return new OnyxiasLairDisableDungeonStrategyAction(ai); };
             creators["enable molten core strategy"] = [](PlayerbotAI* ai) { return new MoltenCoreEnableDungeonStrategyAction(ai); };
@@ -381,7 +383,7 @@ namespace ai
             creators["enable mechanar strategy"] = [](PlayerbotAI* ai) { return new MechanarEnableDungeonStrategyAction(ai); };
             creators["disable mechanar strategy"] = [](PlayerbotAI* ai) { return new MechanarDisableDungeonStrategyAction(ai); };
 
-            // Dungeon Boss Actions
+            // Dungeon Boss Actions (副本首领战专项动作)
             creators["enable onyxia fight strategy"] = [](PlayerbotAI* ai) { return new OnyxiaEnableFightStrategyAction(ai); };
             creators["disable onyxia fight strategy"] = [](PlayerbotAI* ai) { return new OnyxiaDisableFightStrategyAction(ai); };
 

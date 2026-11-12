@@ -9,6 +9,7 @@ using namespace ai;
 
 BroadcastHelper::BroadcastHelper() {}
 
+// 获取配置对应的客户端语言索引
 uint8 BroadcastHelper::GetLocale()
 {
     uint8 locale = sConfig.GetIntDefault("DBC.Locale", 0 /*LocaleConstant::LOCALE_enUS*/);
@@ -18,6 +19,7 @@ uint8 BroadcastHelper::GetLocale()
     return locale;
 }
 
+// 广播系统自检测试方法
 bool BroadcastHelper::BroadcastTest(
     PlayerbotAI* ai,
     Player* bot
@@ -69,6 +71,7 @@ bool BroadcastHelper::BroadcastTest(
 
 @return true if said to the channel, false otherwise
 */
+// 按各频道全局概率抽取目标频道并让机器人发送格式化广播消息
 bool BroadcastHelper::BroadcastToChannelWithGlobalChance(PlayerbotAI* ai, std::string message, std::list<std::pair<ToChannel, uint32>> toChannels)
 {
     if (message.empty())
@@ -217,6 +220,7 @@ bool BroadcastHelper::BroadcastToChannelWithGlobalChance(PlayerbotAI* ai, std::s
     return false;
 }
 
+// 按物品品质概率广播拾取战利品消息
 bool BroadcastHelper::BroadcastLootingItem(
     PlayerbotAI* ai,
     Player* bot,
@@ -313,6 +317,7 @@ bool BroadcastHelper::BroadcastLootingItem(
     return false;
 }
 
+// 广播机器人接取任务消息
 bool BroadcastHelper::BroadcastQuestAccepted(
     PlayerbotAI* ai,
     Player* bot,
@@ -341,6 +346,7 @@ bool BroadcastHelper::BroadcastQuestAccepted(
     return false;
 }
 
+// 广播任务击杀目标进度更新
 bool BroadcastHelper::BroadcastQuestUpdateAddKill(
     PlayerbotAI* ai,
     Player* bot,
@@ -387,6 +393,7 @@ bool BroadcastHelper::BroadcastQuestUpdateAddKill(
     return false;
 }
 
+// 广播任务物品收集进度更新
 bool BroadcastHelper::BroadcastQuestUpdateAddItem(
     PlayerbotAI* ai,
     Player* bot,
@@ -491,6 +498,7 @@ bool BroadcastHelper::BroadcastQuestUpdateComplete(
     return false;
 }
 
+// 广播任务完成交付消息
 bool BroadcastHelper::BroadcastQuestTurnedIn(
     PlayerbotAI* ai,
     Player* bot,
@@ -519,6 +527,7 @@ bool BroadcastHelper::BroadcastQuestTurnedIn(
     return false;
 }
 
+// 按怪物稀有度与类型概率广播击杀生物消息
 bool BroadcastHelper::BroadcastCreatureKill(
     PlayerbotAI* ai,
     Player* bot,
@@ -624,6 +633,7 @@ bool BroadcastHelper::BroadcastCreatureKill(
     return false;
 }
 
+// 广播击杀敌对玩家消息
 bool BroadcastHelper::BroadcastPlayerKill(
     PlayerbotAI* ai,
     Player* bot,
@@ -658,6 +668,7 @@ bool BroadcastHelper::BroadcastPlayerKill(
     return false;
 }
 
+// 广播机器人升级消息（区分普通、整十及满级）
 bool BroadcastHelper::BroadcastLevelup(
     PlayerbotAI* ai,
     Player* bot
@@ -745,6 +756,7 @@ bool BroadcastHelper::BroadcastGuildMemberDemotion(
     return false;
 }
 
+// 广播公会成员发起的组队/团队邀请消息
 bool BroadcastHelper::BroadcastGuildGroupOrRaidInvite(
     PlayerbotAI* ai,
     Player* bot,
@@ -788,6 +800,7 @@ bool BroadcastHelper::BroadcastGuildGroupOrRaidInvite(
     return false;
 }
 
+// 在公会/世界频道提议前往副本
 bool BroadcastHelper::BroadcastSuggestInstance(
     PlayerbotAI* ai,
     std::vector<std::string>& allowedInstances,
@@ -1068,6 +1081,7 @@ bool BroadcastHelper::BroadcastSuggestToxicLinks(
     return false;
 }
 
+// 发送经典的雷霆之怒玩梗频道广播
 bool BroadcastHelper::BroadcastSuggestThunderfury(
     PlayerbotAI* ai,
     Player* bot

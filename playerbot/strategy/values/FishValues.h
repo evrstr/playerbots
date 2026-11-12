@@ -1,3 +1,4 @@
+// 策略值头文件：FishValues（钓鱼条件、浮漂收杆与结束钓鱼状态判断）
 #pragma once
 #include "playerbot/strategy/Value.h"
 #include "playerbot/strategy/values/LootValues.h"
@@ -5,6 +6,7 @@
 
 namespace ai
 {    
+    // 注释：保留的钓鱼区域战利品模板参考代码
     /*                uint32 zone, subzone;
     gameObject->GetZoneAndAreaId(zone, subzone);
     // if subzone loot exist use it
@@ -15,6 +17,7 @@ namespace ai
 
     //LootTemplate const* tab = LootTemplates_Fishing.GetLootFor(loot_id);
 
+    // 注释：保留的未启用钓鱼点及区域结构体设计
     /*
     class FishLocation
     public:
@@ -34,13 +37,14 @@ namespace ai
     };
 
     class FishLocationMapValue : public CalculatedValue<FishZone>
-	{
-	public:
+    {
+    public:
         FishLocationMapValue(PlayerbotAI* ai) : GuidPositionCalculatedValue(ai, "fish location map", 5) {};
         virtual GuidPosition Calculate() override;
     };   
     */
 
+    // 布尔值计算器：判断机器人是否学会钓鱼技能且背包/装备中有鱼竿
     class CanFishValue : public BoolCalculatedValue
     {
     public:
@@ -48,6 +52,7 @@ namespace ai
         virtual bool Calculate() override;
     };
 
+    // 布尔值计算器：判断当前是否正在引导“钓鱼”法术以便点击浮漂
     class CanOpenFishingDobberValue : public BoolCalculatedValue
     {
     public:
@@ -55,6 +60,7 @@ namespace ai
         virtual bool Calculate() override;
     };
 
+    // 布尔值计算器：判断机器人已装备鱼竿且不再处于钓鱼引导状态（已完成一轮钓鱼）
     class DoneFishingValue : public BoolCalculatedValue
     {
     public:

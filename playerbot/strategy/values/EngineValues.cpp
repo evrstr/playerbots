@@ -1,3 +1,4 @@
+// 策略值实现：EngineValues（AI 引擎动作、触发器与策略状态查询）
 
 #include "EngineValues.h"
 #include "playerbot/strategy/AiObjectContext.h"
@@ -5,6 +6,7 @@
 
 using namespace ai;
 
+// 获取限定符对应的 Action 并检查 isPossible()
 bool ActionPossibleValue::Calculate()
 {
     Action* action = context->GetAction(getQualifier());
@@ -15,6 +17,7 @@ bool ActionPossibleValue::Calculate()
     return action->isPossible();
 }
 
+// 获取限定符对应的 Action 并检查 isUseful()
 bool ActionUsefulValue::Calculate()
 {
     Action* action = context->GetAction(getQualifier());
@@ -25,6 +28,7 @@ bool ActionUsefulValue::Calculate()
     return action->isUseful();
 }
 
+// 获取限定符对应的 Trigger 并同时校验 Check() 与 IsActive()
 bool TriggerActiveValue::Calculate()
 {
     Trigger* trigger = context->GetTrigger(getQualifier());
@@ -38,6 +42,7 @@ bool TriggerActiveValue::Calculate()
     return true;
 }
 
+// 解析可选状态前缀（co/de/react）并检查机器人是否启用对应策略
 bool HasStrategyValue::Calculate()
 {
     std::vector<std::string> tokens = Qualified::getMultiQualifiers(getQualifier(), ",");

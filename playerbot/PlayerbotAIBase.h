@@ -7,6 +7,7 @@ class PerformanceMonitorOperation;
 
 #include <memory>
 
+/// 机器人 AI 与管理器共用基类，提供更新延迟控制与主 Tick 调度框架
 class PlayerbotAIBase
 {
 public:
@@ -27,7 +28,7 @@ protected:
     void YieldAIInternalThread(bool minimal = false);
     
 protected:
-	uint32 aiInternalUpdateDelay;
+    uint32 aiInternalUpdateDelay;
 
     std::unique_ptr<PerformanceMonitorOperation> totalPmo;
 };

@@ -1,3 +1,4 @@
+/// 公会管理触发器实现
 
 #include "playerbot/playerbot.h"
 #include "GuildTriggers.h"
@@ -5,37 +6,38 @@
 
 using namespace ai;
 
+/// 检测机器人是否满足离开人数过多随机公会的条件
 bool LeaveLargeGuildTrigger::IsActive()
 {
-	if (!bot->GetGuildId())
-		return false;
+    if (!bot->GetGuildId())
+        return false;
 
-	if (ai->HasActivePlayerMaster())
-		return false;
+    if (ai->HasActivePlayerMaster())
+        return false;
 
-	if (ai->IsAlt())
-		return false;
+    if (ai->IsAlt())
+        return false;
 
-	Guild* guild = sGuildMgr.GetGuildById(bot->GetGuildId());
+    Guild* guild = sGuildMgr.GetGuildById(bot->GetGuildId());
 
-	if (guild->GetMemberSize() >= 1000) //Try to prevent guild overflow.
-		return true;
+    if (guild->GetMemberSize() >= 1000) //Try to prevent guild overflow. | 尽量避免公会成员数量溢出
+        return true;
 
-	if (!sPlayerbotAIConfig.randomBotGuildNearby)
-		return false;
+    if (!sPlayerbotAIConfig.randomBotGuildNearby)
+        return false;
 
-	if (ai->IsInRealGuild())
-		return false;
+    if (ai->IsInRealGuild())
+        return false;
 
-	Player* leader = sObjectMgr.GetPlayer(guild->GetLeaderGuid());
+    Player* leader = sObjectMgr.GetPlayer(guild->GetLeaderGuid());
 
-	//Only leave the guild if we know the leader is not a real player.
-	if (!leader || !leader->GetPlayerbotAI() || leader->GetPlayerbotAI()->IsRealPlayer())
-		return false;
+    //Only leave the guild if we know the leader is not a real player. | 仅当确认公会会长不是真实玩家时才退会
+    if (!leader || !leader->GetPlayerbotAI() || leader->GetPlayerbotAI()->IsRealPlayer())
+        return false;
 
-	uint32 members = guild->GetMemberSize();
-	uint32 maxMembers = ai->GetMaxPreferedGuildSize();
+    uint32 members = guild->GetMemberSize();
+    uint32 maxMembers = ai->GetMaxPreferedGuildSize();
 
-	return members > maxMembers;
+    return members > maxMembers;
 }
 

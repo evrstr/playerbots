@@ -1,3 +1,4 @@
+/// 测试监听器：通用状态与行为异常断言实现
 #include "playerbot/playerbot.h"
 #include "MonitorState.h"
 #include "playerbot/WorldPosition.h"
@@ -13,6 +14,7 @@
 
 using namespace ai;
 
+/// 检查测试运行时长或观测计时是否满足时间阈值条件
 bool MonitorStateTime::IsConditionMet(const std::string& monitorStr, Player* bot, TestContext& ctx) const
 {
     uint32 elapsed = 0;
@@ -38,11 +40,13 @@ bool MonitorStateTime::IsConditionMet(const std::string& monitorStr, Player* bot
     return elapsed <= threshold;
 }
 
+/// 检查机器人当前是否已死亡
 bool MonitorStateDead::IsConditionMet(const std::string& monitorStr, Player* bot, TestContext& ctx) const
 {
     return !bot->IsAlive();
 }
 
+/// 检查机器人当前阵营归属（联盟/部落）
 bool MonitorStateFaction::IsConditionMet(const std::string& monitorStr, Player* bot, TestContext& ctx) const
 {
     size_t arrowPos = monitorStr.find("=>");
@@ -56,6 +60,7 @@ bool MonitorStateFaction::IsConditionMet(const std::string& monitorStr, Player* 
     return false;
 }
 
+/// 检查队伍成员数量是否符合条件（小于阈值时打印详尽成员掉线状态）
 bool MonitorStateGroupSize::IsConditionMet(const std::string& monitorStr, Player* bot, TestContext& ctx) const
 {
     Group* group = bot->GetGroup();
@@ -74,7 +79,7 @@ bool MonitorStateGroupSize::IsConditionMet(const std::string& monitorStr, Player
 
     const bool met = (op == ">") ? (size > threshold) : (size < threshold);
 
-    // BL-45 soak: group dissolutions were completely silent (no deaths logged, no logout lines), so
+    // BL-45 soak: group dissolutions were completely silent (no deaths logged, no logout lines), so | BL-45 压测补充：队伍静默解散时打印每个成员的在线/地图状态用于排查
     // log the full member state at fire time - who is missing, online, on which map.
     if (met && group)
     {
@@ -97,7 +102,7 @@ bool MonitorStateGroupSize::IsConditionMet(const std::string& monitorStr, Player
     return met;
 }
 
-// Every group member has been observed on the bot's map, in its instance, and settled (not
+// Every group member has been observed on the bot's map, in its instance, and settled (not | 验证队伍跨图传送后每位成员均曾出现在目标地图且非传送中（按成员锁存以兼容异步落地）
 // mid-teleport). Used to prove a cross-map group teleport actually delivered the members, rather than
 // merely not tripping an assert. "group size" cannot serve as a pass condition for that: it is already
 // satisfied the moment the group exists, so it would pass before the teleport was issued.
@@ -110,13 +115,14 @@ bool MonitorStateGroupSize::IsConditionMet(const std::string& monitorStr, Player
 // "group on map <mapId|mapName>" additionally pins the bot itself, which is what makes the
 // condition usable as a pass condition for a cross-map move: without the pin the check is already
 // true while the whole group still sits on the map it was formed on.
+/// 检查队伍成员是否均已被观测到安全抵达目标地图与副本
 bool MonitorStateGroupOnMap::IsConditionMet(const std::string& monitorStr, Player* bot, TestContext& ctx) const
 {
     Group* group = bot->GetGroup();
     if (!group)
         return false;
 
-    // GetFirstMember() walks live GroupReference links, so an offline member is invisible there while
+    // GetFirstMember() walks live GroupReference links, so an offline member is invisible there while | GetFirstMember 仅遍历在线节点而 GetMembersCount 计入离线槽位，故以槽位总数作期望
     // GetMembersCount() still counts its slot - hence the slot count rather than a live-member count.
     // BL-44: snapshot the expectation at the FIRST tick. Recomputing it from the live group every tick
     // let a mid-window member loss silently lower the bar (a member leaving reduced the threshold),
@@ -125,12 +131,12 @@ bool MonitorStateGroupOnMap::IsConditionMet(const std::string& monitorStr, Playe
         ctx.groupOnMapExpected = group->GetMembersCount() > 0 ? group->GetMembersCount() - 1 : 0;
     const uint32 expectedMembers = ctx.groupOnMapExpected;
 
-    // BL-44: causal mode. When the "teleport group" helper recorded deliveries, only THOSE members
+    // BL-44: causal mode. When the "teleport group" helper recorded deliveries, only THOSE members | BL-44 因果模式：当存在实际传送记录时，仅统计真正由辅助函数传送到位的成员
     // count - a member that roams to the host's map by coincidence can no longer satisfy the pass.
     const std::set<ObjectGuid> delivered = ctx.GetDeliveredGroupMembers();
     const bool causal = !delivered.empty();
 
-    // Already complete: sticky. Non-causal: all expected member slots latched. Causal: every member
+    // Already complete: sticky. Non-causal: all expected member slots latched. Causal: every member | 已完成状态保持粘性；分别支持非因果全员槽位锁存与因果已投递成员校验
     // the helper actually delivered has been observed on the host's map at least once.
     if (causal)
     {
@@ -144,7 +150,7 @@ bool MonitorStateGroupOnMap::IsConditionMet(const std::string& monitorStr, Playe
     else if (expectedMembers > 0 && ctx.groupMembersSeenOnMap.size() >= expectedMembers)
         return true;
 
-    // Optional map gate, e.g. "1" in "monitor group on map 1 => pass ...". The framework hands this
+    // Optional map gate, e.g. "1" in "monitor group on map 1 => pass ...". The framework hands this | 可选地图过滤参数（框架已剥离监听器名称前缀，直接解析 "=>" 之前文本）
     // function the monitor line with the monitor name **already removed** (TestAction::CheckMonitors
     // does monitorStr.substr(GetNameSize())), so the gate is simply the text before "=>". Searching
     // for the name in here can never match and would make the condition permanently false.
@@ -170,7 +176,7 @@ bool MonitorStateGroupOnMap::IsConditionMet(const std::string& monitorStr, Playe
         }
         else
         {
-            // Compares the *map* name (e.g. "kalimdor"), not the zone or area name - "orgrimmar" is an
+            // Compares the *map* name (e.g. "kalimdor"), not the zone or area name - "orgrimmar" is an | 比较的是大地图名（如 kalimdor），而非主城或子区域名；建议优先使用数字地图 ID
             // area inside Kalimdor and would simply never match. Prefer the numeric map id when writing
             // a test; a typo here degrades to a condition that is never true, not to a false pass.
             WorldPosition botPos(bot);
@@ -192,16 +198,16 @@ bool MonitorStateGroupOnMap::IsConditionMet(const std::string& monitorStr, Playe
         if (!member || member == bot)
             continue;
 
-        // Skip rather than fail when the member is not there yet: a staggered landing is still a
+        // Skip rather than fail when the member is not there yet: a staggered landing is still a | 成员尚未落地时跳过而非判错，待其分批落地时锁存记录
         // delivery, and it is recorded on the tick the member finally settles.
         if (!member->IsInWorld() || member->IsBeingTeleported())
             continue;
 
-        // GetMapId()/GetInstanceId() read cached members, so unlike GetMap() they cannot assert.
+        // GetMapId()/GetInstanceId() read cached members, so unlike GetMap() they cannot assert. | 读取缓存的 GetMapId/GetInstanceId 避免空地图指针断言
         if (member->GetMapId() != mapId || member->GetInstanceId() != instanceId)
             continue;
 
-        // BL-44: in causal mode a member that was NOT delivered by the helper is ignored - it may be
+        // BL-44: in causal mode a member that was NOT delivered by the helper is ignored - it may be | BL-44：因果模式下忽略未被传送函数投递的成员，防止漫游路过造成假阳性
         // a roamed random bot that happens to be on this map, and latching it would fake a delivery.
         if (causal && delivered.find(member->GetObjectGuid()) == delivered.end())
             continue;
@@ -212,6 +218,7 @@ bool MonitorStateGroupOnMap::IsConditionMet(const std::string& monitorStr, Playe
     return expectedMembers > 0 && ctx.groupMembersSeenOnMap.size() >= expectedMembers;
 }
 
+/// 检查机器人当前选中的拾取目标 GUID 是否为空
 bool MonitorStateLootGuid::IsConditionMet(const std::string& monitorStr, Player* bot, TestContext& ctx) const
 {
     uint64 lootGuid = bot->GetLootGuid().GetRawValue();
@@ -233,6 +240,7 @@ bool MonitorStateLootGuid::IsConditionMet(const std::string& monitorStr, Player*
     return lootGuid < threshold;
 }
 
+/// 检查新创建机器人身上的初始新手装备数量
 bool MonitorStateStarterGearCount::IsConditionMet(const std::string& monitorStr, Player* bot, TestContext& ctx) const
 {
     std::string leftSide;
@@ -288,6 +296,7 @@ bool MonitorStateStarterGearCount::IsConditionMet(const std::string& monitorStr,
     return count < threshold;
 }
 
+/// 检查机器人当前已穿戴装备槽位总数
 bool MonitorStateEquippedCount::IsConditionMet(const std::string& monitorStr, Player* bot, TestContext& ctx) const
 {
     std::string leftSide;
@@ -319,6 +328,7 @@ bool MonitorStateEquippedCount::IsConditionMet(const std::string& monitorStr, Pl
     return count < threshold;
 }
 
+/// 检查机器人已穿戴指定品质及以上装备的数量
 bool MonitorStateEquipQuality::IsConditionMet(const std::string& monitorStr, Player* bot, TestContext& ctx) const
 {
     std::string leftSide;
@@ -386,6 +396,7 @@ bool MonitorStateEquipQuality::IsConditionMet(const std::string& monitorStr, Pla
     return count < threshold;
 }
 
+/// 检查机器人等级与所在区域等级的差距是否超出阈值
 bool MonitorStateAreaLevelDiff::IsConditionMet(const std::string& monitorStr, Player* bot, TestContext& ctx) const
 {
     std::string op;
@@ -412,9 +423,10 @@ bool MonitorStateAreaLevelDiff::IsConditionMet(const std::string& monitorStr, Pl
     return diff < threshold;
 }
 
+/// 查询指定 AI Value（uint32 / bool）并与表达式预期值比较
 bool MonitorAiValue::IsConditionMet(const std::string& monitorStr, Player* bot, TestContext& ctx) const
 {
-    //monitor value uint32 item count::2313 > 0 => pass \"Item withdrawn to inventory\"
+    //monitor value uint32 item count::2313 > 0 => pass \"Item withdrawn to inventory\" | 示例：monitor value uint32 item count::2313 > 0 => pass
     AiObjectContext* context = bot->GetPlayerbotAI()->GetAiObjectContext();
     std::string valueStr;
     std::string valueToCompareTo;
@@ -471,6 +483,7 @@ bool MonitorAiValue::IsConditionMet(const std::string& monitorStr, Player* bot, 
     return false;
 }
 
+/// 持续监控拾取堆栈（Loot Stack）是否长时间未清空且无新战利品进展
 bool MonitorStateLootStackNever::IsConditionMet(const std::string& monitorStr, Player* bot, TestContext& ctx) const
 {
     PlayerbotAI* ai = bot->GetPlayerbotAI();
@@ -530,6 +543,7 @@ bool MonitorStateLootStackNever::IsConditionMet(const std::string& monitorStr, P
     return failing;
 }
 
+/// 监控机器人是否在短时间内高频重复执行同一动作（Action Spam）
 bool MonitorStateActionSpam::IsConditionMet(const std::string& monitorStr, Player* bot, TestContext& ctx) const
 {
     PlayerbotAI* ai = bot->GetPlayerbotAI();
@@ -568,6 +582,7 @@ bool MonitorStateActionSpam::IsConditionMet(const std::string& monitorStr, Playe
     return count > threshold;
 }
 
+/// 监控测试期间记录的外发消息列表是否包含目标文本
 bool MonitorOutgoingMessage::IsConditionMet(const std::string& monitorStr, Player* bot, TestContext& ctx) const
 {
     std::string leftSide, rightSide, parseMessage;

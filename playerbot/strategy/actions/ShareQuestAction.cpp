@@ -4,6 +4,7 @@
 
 using namespace ai;
 
+/// 执行动作主逻辑（共享任务指令动作）
 bool ShareQuestAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -21,7 +22,7 @@ bool ShareQuestAction::Execute(Event& event)
     if (!quest)
         return false;
 
-    // remove all quest entries for 'entry' from quest log
+    // remove all quest entries for 'entry' from quest log (从任务日志中移除指定任务的所有条目)
     for (uint8 slot = 0; slot < MAX_QUEST_LOG_SIZE; ++slot)
     {
         uint32 logQuest = bot->GetQuestSlotQuestId(slot);
@@ -38,6 +39,7 @@ bool ShareQuestAction::Execute(Event& event)
     return false;
 }
 
+/// 执行动作主逻辑（自动共享任务动作）
 bool AutoShareQuestAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -57,7 +59,7 @@ bool AutoShareQuestAction::Execute(Event& event)
         {
             Player* player = itr->getSource();
 
-            if (!player || player == bot || !player->IsInWorld() || !ai->IsSafe(player))         // skip self
+            if (!player || player == bot || !player->IsInWorld() || !ai->IsSafe(player))         // skip self (跳过自身)
                 continue;
 
             if (bot->GetDistance(player) > 10)

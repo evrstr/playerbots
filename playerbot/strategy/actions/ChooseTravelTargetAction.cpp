@@ -16,6 +16,7 @@
 
 using namespace ai;
 
+/// 根据旅行目的限定符返回可读的目的名称
 inline std::string GetTravelPurposeName(std::string purpose)
 {
     if (Qualified::isValidNumberString(purpose) && TravelDestinationPurposeName.find(TravelDestinationPurpose(stoi(purpose))) != TravelDestinationPurposeName.end())
@@ -27,6 +28,7 @@ inline std::string GetTravelPurposeName(std::string purpose)
     return purpose;
 }
 
+/// 执行动作主逻辑（选择旅行目标动作）
 bool ChooseTravelTargetAction::Execute(Event& event)
 {
     TravelTarget* travelTarget = AI_VALUE(TravelTarget*, "travel target");
@@ -88,6 +90,7 @@ bool ChooseTravelTargetAction::Execute(Event& event)
     return true;
 }
 
+/// 判断当前状态下该动作是否可用/有效（选择旅行目标动作）
 bool ChooseTravelTargetAction::isUseful()
 {
     if (!ai->AllowActivity(TRAVEL_ACTIVITY))
@@ -102,12 +105,13 @@ bool ChooseTravelTargetAction::isUseful()
     return true;
 }
 
+/// 更新并设定新的目标 GUID
 void ChooseTravelTargetAction::setNewTarget(Player* requester, TravelTarget* newTarget, TravelTarget* oldTarget)
 {
     if (CanFreeMoveValue::CanFreeMoveTo(ai, newTarget->GetPosStr()))
         ReportTravelTarget(bot, requester, newTarget, oldTarget);
 
-    //If we are heading to a creature/npc clear it from the ignore list. 
+    // If we are heading to a creature/npc clear it from the ignore list. (若决定前往某生物/NPC，将其从忽略列表中清除。)
     if (oldTarget && oldTarget == newTarget && newTarget->GetEntry())
     {
         std::set<ObjectGuid>& ignoreList = context->GetValue<std::set<ObjectGuid>&>("ignore rpg target")->Get();
@@ -123,10 +127,10 @@ void ChooseTravelTargetAction::setNewTarget(Player* requester, TravelTarget* new
         context->GetValue<std::set<ObjectGuid>&>("ignore rpg target")->Set(ignoreList);
     }
 
-    //Actually apply the new target to the travel target used by the bot.
+    // Actually apply the new target to the travel target used by the bot. (正式将新目标应用为机器人当前使用的旅行目标。)
     oldTarget->CopyTarget(newTarget);
 
-    if (oldTarget->IsForced()) //Make sure travel goes into cooldown after getting to the destination.
+    if (oldTarget->IsForced()) // Make sure travel goes into cooldown after getting to the destination. (到达目的地后确保旅行系统进入冷却。)
         oldTarget->SetExpireIn(HOUR * IN_MILLISECONDS);
 
     if(!AI_VALUE2(std::string, "manual string", "future travel condition").empty())
@@ -151,7 +155,7 @@ void ChooseTravelTargetAction::setNewTarget(Player* requester, TravelTarget* new
 
     oldTarget->SetStatus(TravelStatus::TRAVEL_STATUS_READY);
 
-    //Clear rpg and attack/grind target. We want to travel, not hang around some more.
+    // Clear rpg and attack/grind target. We want to travel, not hang around some more. (清除 RPG 与攻击/刷怪目标，准备立即出发长途旅行而非逗留。)
     RESET_AI_VALUE(GuidPosition,"rpg target");
     RESET_AI_VALUE(std::set<ObjectGuid>&, "ignore rpg target");
     RESET_AI_VALUE(ObjectGuid,"attack target");
@@ -160,8 +164,8 @@ void ChooseTravelTargetAction::setNewTarget(Player* requester, TravelTarget* new
     SET_AI_VALUE2(std::string, "manual string", "future travel detail", std::string());
 };
 
-//Tell the master what travel target we are moving towards.
-//This should at some point be rewritten to be denser or perhaps logic moved to ->getTitle()
+// Tell the master what travel target we are moving towards. (告知主人机器人当前正在前往的旅行目标。)
+// This should at some point be rewritten to be denser or perhaps logic moved to ->getTitle() (后续可重写得更紧凑或将逻辑移至 ->getTitle())
 void ChooseTravelTargetAction::ReportTravelTarget(Player* bot, Player* requester, TravelTarget* newTarget, TravelTarget* oldTarget)
 {
 #ifdef GenerateBotTests
@@ -308,6 +312,7 @@ void ChooseTravelTargetAction::ReportTravelTarget(Player* bot, Player* requester
     }
 }
 
+/// 格式化并打印旅行目标或节点分区调试信息
 inline std::string PrintPartion(uint32 sqPartition)
 {
     uint32 prevPartition = 0;
@@ -322,7 +327,7 @@ inline std::string PrintPartion(uint32 sqPartition)
     return "> " + std::to_string(prevPartition);
 }
 
-//Sets the target to the best destination.
+// Sets the target to the best destination. (将目标设定为评估最优的目的地。)
 bool ChooseTravelTargetAction::SetBestTarget(Player* requester, TravelTarget* target, PartitionedTravelList& partitionedList, bool onlyActive)
 {
     TravelPoint picked = PickBestTarget(bot, requester, ai, target->IsForced(), PlayerTravelInfo(bot), partitionedList);
@@ -337,6 +342,7 @@ bool ChooseTravelTargetAction::SetBestTarget(Player* requester, TravelTarget* ta
     return true;
 }
 
+/// 从附近潜在敌对目标列表中选出最佳攻击目标
 TravelPoint ChooseTravelTargetAction::PickBestTarget(Player* bot, Player* requester, PlayerbotAI* botAi, bool forced, const PlayerTravelInfo& info, PartitionedTravelList& partitionedList)
 {
     bool distanceCheck = true;
@@ -351,7 +357,7 @@ TravelPoint ChooseTravelTargetAction::PickBestTarget(Player* bot, Player* reques
             if (!forced && isActive.find(destination) != isActive.end() && !isActive[destination])
                 continue;
 
-            if (distanceCheck) //Check if we have moved significantly after getting the destinations.
+            if (distanceCheck) // Check if we have moved significantly after getting the destinations. (检查获取目的地后自身位置是否已发生明显移动。)
             {
                 WorldPosition center(requester ? requester : bot);
                 if (position->distance(center) > distance * 2 && position->distance(center) > 100)
@@ -365,7 +371,7 @@ TravelPoint ChooseTravelTargetAction::PickBestTarget(Player* bot, Player* reques
 
             if (forced || (isActive[destination] = destination->IsActive(bot, info)))
             {
-                if (partition != std::prev(partitionedList.end())->first && !urand(0, 10)) //10% chance to skip to a longer partition.
+                if (partition != std::prev(partitionedList.end())->first && !urand(0, 10)) // 10% chance to skip to a longer partition. (10% 概率跳过到更长的分区。)
                 {
                     botAi->TellDebug(requester, "Skipping range " + PrintPartion(partition), "debug travel");
                     break;
@@ -398,12 +404,12 @@ TravelPoint ChooseTravelTargetAction::PickBestTarget(Player* bot, Player* reques
 std::vector<std::string> split(const std::string& s, char delim);
 char* strstri(const char* haystack, const char* needle);
 
-//Find a destination based on (part of) it's name. Includes zones, ncps and mobs. Picks the closest one that matches.
+// Find a destination based on (part of) it's name. Includes zones, ncps and mobs. Picks the closest one that matches. (根据名称（或部分名称）在区域、NPC 与怪物中查找最近的匹配目的地。)
 DestinationList ChooseTravelTargetAction::FindDestination(PlayerTravelInfo info, std::string name, bool zones, bool npcs, bool quests, bool mobs, bool bosses, bool gather)
 {
     DestinationList dests;
 
-    //Quests
+    // Quests (任务列表)
     if (quests)
     {
         for (auto& d : sTravelMgr.GetDestinations(info, (uint32)TravelDestinationPurpose::QuestGiver, {}, false, 1000000.0f))
@@ -413,7 +419,7 @@ DestinationList ChooseTravelTargetAction::FindDestination(PlayerTravelInfo info,
         }
     }
 
-    //Zones
+    // Zones (区域列表)
     if (zones)
     {
         for (auto& d : sTravelMgr.GetDestinations(info, (uint32)TravelDestinationPurpose::Explore, {}, false, 1000000.0f))
@@ -423,7 +429,7 @@ DestinationList ChooseTravelTargetAction::FindDestination(PlayerTravelInfo info,
         }
     }
 
-    //Npcs
+    // Npcs (NPC 列表)
     if (npcs)
     {
         for (auto& d : sTravelMgr.GetDestinations(info, (uint32)TravelDestinationPurpose::GenericRpg, {}, false, 1000000.0f))
@@ -433,7 +439,7 @@ DestinationList ChooseTravelTargetAction::FindDestination(PlayerTravelInfo info,
         }
     }
 
-    //Mobs
+    // Mobs (怪物)
     if (mobs)
     {
         for (auto& d : sTravelMgr.GetDestinations(info, (uint32)TravelDestinationPurpose::Grind, {}, false, 1000000.0f))
@@ -443,7 +449,7 @@ DestinationList ChooseTravelTargetAction::FindDestination(PlayerTravelInfo info,
         }
     }
 
-    //Bosses
+    // Bosses (首领列表)
     if (bosses)
     {
         for (auto& d : sTravelMgr.GetDestinations(info, (uint32)TravelDestinationPurpose::Boss, {}, false, 1000000.0f))
@@ -453,7 +459,7 @@ DestinationList ChooseTravelTargetAction::FindDestination(PlayerTravelInfo info,
         }
     }
 
-    //Gather
+    // Gather (采集)
     if (gather)
     {
         for (auto& d : sTravelMgr.GetDestinations(info, (uint32)TravelDestinationPurpose::GatherSkinning, {}, false, 1000000.0f))
@@ -481,6 +487,7 @@ DestinationList ChooseTravelTargetAction::FindDestination(PlayerTravelInfo info,
     return dests;
 };
 
+/// 执行动作主逻辑（选择队伍旅行目标动作）
 bool ChooseGroupTravelTargetAction::Execute(Event& event)
 {
     std::vector<ObjectGuid> groupPlayers;
@@ -510,7 +517,7 @@ bool ChooseGroupTravelTargetAction::Execute(Event& event)
 
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
 
-    //Find targets of the group.
+    // Find targets of the group. (查找队伍成员的目标。)
     for (auto& member : groupPlayers)
     {
         Player* player = sObjectMgr.GetPlayer(member);
@@ -580,6 +587,7 @@ bool ChooseGroupTravelTargetAction::Execute(Event& event)
     return true;
 }
 
+/// 判断当前状态下该动作是否可用/有效（选择队伍旅行目标动作）
 bool ChooseGroupTravelTargetAction::isUseful()
 {
     if (bot->InBattleGround())
@@ -600,6 +608,7 @@ bool ChooseGroupTravelTargetAction::isUseful()
     return true;
 }
 
+/// 执行动作主逻辑（刷新旅行目标动作）
 bool RefreshTravelTargetAction::Execute(Event& event)
 {
     TravelTarget* target = AI_VALUE(TravelTarget*, "travel target");
@@ -614,10 +623,10 @@ bool RefreshTravelTargetAction::Execute(Event& event)
         return false;
     }
 
-    if (!oldDestination) //Does this target have a destination?
+    if (!oldDestination) // Does this target have a destination? (检查该目标是否拥有有效的移动目的地)
         return false;
 
-    if (!target->IsDestinationActive()) //Is the destination still valid?
+    if (!target->IsDestinationActive()) // Is the destination still valid? (检查目的地是否依然有效)
     {
         ai->TellDebug(requester, "Old destination was no longer valid.", "debug travel");
         return false;
@@ -629,7 +638,7 @@ bool RefreshTravelTargetAction::Execute(Event& event)
 
     for (uint8 i = 0; i < 5; i++)
     {
-        std::list<uint8> chancesToGoFar = { 10,20,90 }; //Closest map, grid, cell.
+        std::list<uint8> chancesToGoFar = { 10,20,90 }; // Closest map, grid, cell. (最近的地图、网格与单元格。)
         newPosition = oldDestination->GetNextPoint(*target->GetPosition(), chancesToGoFar);
         if (newPosition && sTravelMgr.IsLocationLevelValid(*newPosition, info))
             break;        
@@ -663,6 +672,7 @@ bool RefreshTravelTargetAction::Execute(Event& event)
     return false;
 }
 
+/// 判断当前状态下该动作是否可用/有效（刷新旅行目标动作）
 bool RefreshTravelTargetAction::isUseful()
 {
     if (bot->InBattleGround())
@@ -686,6 +696,7 @@ bool RefreshTravelTargetAction::isUseful()
     return true;
 }
 
+/// 执行动作主逻辑（重置旅行目标动作）
 bool ResetTargetAction::Execute(Event& event)
 {
     TravelTarget* oldTarget = AI_VALUE(TravelTarget*, "travel target");
@@ -697,13 +708,14 @@ bool ResetTargetAction::Execute(Event& event)
     setNewTarget(requester, &newTarget, oldTarget);
 
     oldTarget->SetStatus(TravelStatus::TRAVEL_STATUS_COOLDOWN);
-    oldTarget->SetExpireIn(60000); //1 minute;
+    oldTarget->SetExpireIn(60000); // 1 minute; (1 分钟)
 
     ai->TellDebug(requester, "Cleared travel target fetches", "debug travel");
 
     return true;
 }
 
+/// 判断当前状态下该动作是否可用/有效（重置旅行目标动作）
 bool ResetTargetAction::isUseful()
 {
     if (bot->InBattleGround())
@@ -718,6 +730,7 @@ bool ResetTargetAction::isUseful()
     return true;
 }
 
+/// 执行动作主逻辑（请求旅行目标基类动作）
 bool RequestTravelTargetAction::Execute(Event& event)
 {
     TravelDestinationPurpose actionPurpose = TravelDestinationPurpose(stoi(getQualifier()));
@@ -736,6 +749,7 @@ bool RequestTravelTargetAction::Execute(Event& event)
     return true;
 }
 
+/// 判断当前状态下该动作是否可用/有效（请求旅行目标基类动作）
 bool RequestTravelTargetAction::isUseful() {
     if (bot->InBattleGround())
         return false;
@@ -783,6 +797,7 @@ bool RequestTravelTargetAction::isUseful() {
     return true;
 }
 
+/// 检查当前物品、技能或动作是否被策略或配置允许使用
 bool RequestTravelTargetAction::isAllowed() const
 {
     TravelDestinationPurpose actionPurpose = TravelDestinationPurpose(stoi(getQualifier()));
@@ -819,6 +834,7 @@ bool RequestTravelTargetAction::isAllowed() const
     }
 }
 
+/// 执行动作主逻辑（按名称请求旅行目标动作）
 bool RequestNamedTravelTargetAction::Execute(Event& event)
 {
     std::string travelName = getQualifier();
@@ -831,18 +847,18 @@ bool RequestNamedTravelTargetAction::Execute(Event& event)
     {
         std::string WorldPvpLocation;
 
-        //Number between 0 and 100 synced for all bots that shifts 1 every 10 minutes.
+        // Number between 0 and 100 synced for all bots that shifts 1 every 10 minutes. (所有机器人同步的 0~100 周期数值，每 10 分钟递增 1。)
         uint32 pvpLocationNumber = ai->GetFixedBotNumber(BotTypeNumber::WORLD_PVP_LOCATION, 100, 0.1f, true);
 
-        if (pvpLocationNumber < 20) //First 200 minutes
+        if (pvpLocationNumber < 20) // First 200 minutes (前 200 分钟)
             WorldPvpLocation = "Tarren Mill";
-        else if (pvpLocationNumber >= 20 && pvpLocationNumber < 40) //Second 200 minutes
+        else if (pvpLocationNumber >= 20 && pvpLocationNumber < 40) // Second 200 minutes (第二个 200 分钟)
             WorldPvpLocation = "The Barrens";
-        else if (pvpLocationNumber >= 40 && pvpLocationNumber < 60) //Third 200 minutes
+        else if (pvpLocationNumber >= 40 && pvpLocationNumber < 60) // Third 200 minutes (第三个 200 分钟)
             WorldPvpLocation = "Silithus";
-        else if (pvpLocationNumber >= 60 && pvpLocationNumber < 80) //Fourth 200 minutes
+        else if (pvpLocationNumber >= 60 && pvpLocationNumber < 80) // Fourth 200 minutes (第四个 200 分钟)
             WorldPvpLocation = "Eastern Plaguelands";
-        else                                                        //Last 200 minutes
+        else                                                        // Last 200 minutes (最后 200 分钟)
             WorldPvpLocation = "Strangletorn Vale";
 
         *AI_VALUE(FutureDestinations*, "future travel destinations") = std::async(std::launch::async, [travelInfo = PlayerTravelInfo(bot), center, WorldPvpLocation]()
@@ -850,7 +866,7 @@ bool RequestNamedTravelTargetAction::Execute(Event& event)
                 PartitionedTravelList list;
                 for (auto& destination : ChooseTravelTargetAction::FindDestination(travelInfo, WorldPvpLocation, true, false, false, false, false, false))
                 {
-                    std::list<uint8> chancesToGoFar = { 10,50,90 }; //Closest map, grid, cell.
+                    std::list<uint8> chancesToGoFar = { 10,50,90 }; // Closest map, grid, cell. (最近的地图、网格与单元格。)
                     WorldPosition* point = destination->GetNextPoint(center, chancesToGoFar);
 
                     if (!point)
@@ -865,8 +881,8 @@ bool RequestNamedTravelTargetAction::Execute(Event& event)
     }
     else if (travelName == "guild meeting")
     {
-        // Parse guild MOTD for the meeting time.
-        // Meeting: <location> <start time> <end time>
+        // Parse guild MOTD for the meeting time. (从公会今日信息（MOTD）中解析集会时间。)
+        // Meeting: <location> <start time> <end time> (集会格式：<地点> <开始时间> <结束时间>)
         std::string meetingLocation;
         if (bot->GetGuildId())
         {
@@ -883,8 +899,8 @@ bool RequestNamedTravelTargetAction::Execute(Event& event)
                     { std::istringstream iss(body); std::string t; while (iss >> t) tokens.push_back(t); }
                     if (tokens.size() >= 3)
                     {
-                        tokens.pop_back(); // end time
-                        tokens.pop_back(); // start time
+                        tokens.pop_back(); // end time (结束时间)
+                        tokens.pop_back(); // start time (开始时间)
                         std::ostringstream loc;
                         for (size_t i = 0; i < tokens.size(); ++i) { if (i) loc << " "; loc << tokens[i]; }
                         meetingLocation = loc.str();
@@ -1072,16 +1088,16 @@ bool RequestNamedTravelTargetAction::Execute(Event& event)
                                     mobEntries.push_back(entry);
                             }
 
-                            // Check which gathering skills the bot actually has.
+                            // Check which gathering skills the bot actually has. (检查机器人实际掌握了哪些采集专业技能。)
                             bool hasHerbalism = travelInfo.GetCurrentSkill(SKILL_HERBALISM) > 0;
                             bool hasMining = travelInfo.GetCurrentSkill(SKILL_MINING) > 0;
                             bool hasSkinning = travelInfo.GetCurrentSkill(SKILL_SKINNING) > 0;
                             bool hasAnyGathering = hasHerbalism || hasMining || hasSkinning;
 
-                            // Bot has a gathering skill: prioritize gather nodes.
+                            // Bot has a gathering skill: prioritize gather nodes. (机器人拥有采集技能：优先选择采集点。)
                             if (!gatherEntries.empty() && hasAnyGathering)
                             {
-                                // Only query gather purposes the bot can actually use.
+                                // Only query gather purposes the bot can actually use. (仅查询机器人实际具备对应采集技能的采集点。)
                                 if (hasHerbalism)
                                 {
                                     PartitionedTravelList gatherList = sTravelMgr.GetPartitions(center, partitions, travelInfo, (uint32)TravelDestinationPurpose::GatherHerbalism, gatherEntries, true);
@@ -1102,8 +1118,8 @@ bool RequestNamedTravelTargetAction::Execute(Event& event)
                                 }
                             }
 
-                            // If entry-based gather lookup failed, try unfiltered gather by purpose
-                            // (the travel manager may index nodes by their own entry, not drop-source entry).
+                            // If entry-based gather lookup failed, try unfiltered gather by purpose (若按 Entry 查找采集点失败，则尝试按采集用途无过滤搜索)
+                            // (the travel manager may index nodes by their own entry, not drop-source entry). (（旅行管理器可能按节点自身 Entry 而非掉落源 Entry 建立索引）。)
                             if (list.empty() && hasAnyGathering && !gatherEntries.empty())
                             {
                                 if (hasHerbalism)
@@ -1126,7 +1142,7 @@ bool RequestNamedTravelTargetAction::Execute(Event& event)
                                 }
                             }
 
-                            // Fall back to mob drops only if no gather nodes were found or bot has no gathering skill.
+                            // Fall back to mob drops only if no gather nodes were found or bot has no gathering skill. (仅在未找到采集点或无采集技能时回退至怪物掉落。)
                             if (list.empty() && !mobEntries.empty() && !hasAnyGathering)
                             {
                                 uint32 mobPurpose = (uint32)TravelDestinationPurpose::Grind;
@@ -1136,7 +1152,7 @@ bool RequestNamedTravelTargetAction::Execute(Event& event)
                         }
                     }
 
-                    // Fall back by name: if bot has gathering skills, try gather-only first.
+                    // Fall back by name: if bot has gathering skills, try gather-only first. (按名称回退搜索：若机器人拥有采集技能，优先尝试纯采集点。)
                     if (list.empty())
                     {
                         bool hasHerbalism = travelInfo.GetCurrentSkill(SKILL_HERBALISM) > 0;
@@ -1144,7 +1160,7 @@ bool RequestNamedTravelTargetAction::Execute(Event& event)
                         bool hasSkinning = travelInfo.GetCurrentSkill(SKILL_SKINNING) > 0;
                         bool hasAnyGathering = hasHerbalism || hasMining || hasSkinning;
 
-                        // Try gather nodes by name first if bot can gather.
+                        // Try gather nodes by name first if bot can gather. (若机器人会采集，优先按名称查找采集点。)
                         if (hasAnyGathering)
                         {
                             for (auto& destination : ChooseTravelTargetAction::FindDestination(travelInfo, orderTarget, false, false, false, false, false, true))
@@ -1156,7 +1172,7 @@ bool RequestNamedTravelTargetAction::Execute(Event& event)
                             }
                         }
 
-                        // If still empty, fall back to mobs, bosses and gather nodes.
+                        // If still empty, fall back to mobs, bosses and gather nodes. (若仍为空，则回退搜索普通怪物、首领和采集点。)
                         if (list.empty())
                         {
                             bool includeMobs = !hasAnyGathering;
@@ -1329,32 +1345,34 @@ bool RequestNamedTravelTargetAction::Execute(Event& event)
     return true;
 }
 
+/// 判断当前状态下该动作是否可用/有效（按名称请求旅行目标动作）
 bool RequestNamedTravelTargetAction::isUseful()
 {
-	if (!RequestTravelTargetAction::isUseful())
-		return false;
+    if (!RequestTravelTargetAction::isUseful())
+        return false;
 
-	std::string travelName = getQualifier();
-	bool objectivePending = NeedQuestObjectiveValue::HasIncompleteObjective(ai);
+    std::string travelName = getQualifier();
+    bool objectivePending = NeedQuestObjectiveValue::HasIncompleteObjective(ai);
 
-	if (objectivePending && (travelName == "city" || travelName == "pvp"))
-	{
-		ai->TellDebug(ai->GetMaster(), "Skipped " + GetTravelPurposeName(qualifier) + " (a quest objective still needs work)", "debug travel");
-		return false;
-	}
+    if (objectivePending && (travelName == "city" || travelName == "pvp"))
+    {
+        ai->TellDebug(ai->GetMaster(), "Skipped " + GetTravelPurposeName(qualifier) + " (a quest objective still needs work)", "debug travel");
+        return false;
+    }
 
-	if (objectivePending && (travelName.find("trainer") == 0 || travelName == "mount"))
-	{
-		if (sTravelMgr.GetDestinations(PlayerTravelInfo(bot), (uint32)TravelDestinationPurpose::GenericRpg, {}, true, sPlayerbotAIConfig.choreTravelBudget).empty())
-		{
-			ai->TellDebug(ai->GetMaster(), "Skipped " + GetTravelPurposeName(qualifier) + " (no trainer or mount vendor within the chore travel budget)", "debug travel");
-			return false;
-		}
-	}
+    if (objectivePending && (travelName.find("trainer") == 0 || travelName == "mount"))
+    {
+        if (sTravelMgr.GetDestinations(PlayerTravelInfo(bot), (uint32)TravelDestinationPurpose::GenericRpg, {}, true, sPlayerbotAIConfig.choreTravelBudget).empty())
+        {
+            ai->TellDebug(ai->GetMaster(), "Skipped " + GetTravelPurposeName(qualifier) + " (no trainer or mount vendor within the chore travel budget)", "debug travel");
+            return false;
+        }
+    }
 
-	return true;
+    return true;
 }
 
+/// 检查当前物品、技能或动作是否被策略或配置允许使用
 bool RequestNamedTravelTargetAction::isAllowed() const
 {
     std::string name = getQualifier();
@@ -1396,6 +1414,7 @@ bool RequestNamedTravelTargetAction::isAllowed() const
     return false;
 }
 
+/// 执行动作主逻辑（请求任务旅行目标动作）
 bool RequestQuestTravelTargetAction::Execute(Event& event)
 {
     WorldPosition center = event.getOwner() ? event.getOwner() : (GetMaster() ? GetMaster() : bot);
@@ -1421,7 +1440,7 @@ bool RequestQuestTravelTargetAction::Execute(Event& event)
 
         bool onlyClassQuest = bot == player && !urand(0, 10);
 
-        //Find destinations related to the active quests.
+        // Find destinations related to the active quests. (查找与当前活跃任务相关的目的地。)
         for (auto& [questId, questStatus] : questMap)
         {
             uint32 flag = 0;
@@ -1443,7 +1462,7 @@ bool RequestQuestTravelTargetAction::Execute(Event& event)
 
                     std::vector<std::string> qualifier = { std::to_string(questId), std::to_string(objective) };
 
-                    if (AI_VALUE2(bool, "group or", "following party,need quest objective::" + Qualified::MultiQualify(qualifier, ","))) //Noone needs the quest objective.
+                    if (AI_VALUE2(bool, "group or", "following party,need quest objective::" + Qualified::MultiQualify(qualifier, ","))) // Noone needs the quest objective. (无人需要该任务目标。)
                         flag = flag | (uint32)purposeFlag;
                 }
             }
@@ -1453,7 +1472,7 @@ bool RequestQuestTravelTargetAction::Execute(Event& event)
 
             destinationFetches.push_back({ flag, questId, 1000 + (bot->GetLevel() * bot->GetLevel()) * 75 });
 
-            if (onlyClassQuest && destinationFetches.size() > 1) //Only do class quests if we have any.
+            if (onlyClassQuest && destinationFetches.size() > 1) // Only do class quests if we have any. (仅在有可用职业任务时执行。)
             {
                 Quest const* firstQuest = sObjectMgr.GetQuestTemplate(std::get<1>(destinationFetches[1]));
 
@@ -1492,6 +1511,7 @@ bool RequestQuestTravelTargetAction::Execute(Event& event)
     return true;
 }
 
+/// 检查当前物品、技能或动作是否被策略或配置允许使用
 bool RequestQuestTravelTargetAction::isAllowed() const
 {
 #ifdef GenerateBotTests
@@ -1509,6 +1529,7 @@ bool RequestQuestTravelTargetAction::isAllowed() const
     return false;
 }
 
+/// 执行动作主逻辑（聚焦旅行目标指令动作）
 bool FocusTravelTargetAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();

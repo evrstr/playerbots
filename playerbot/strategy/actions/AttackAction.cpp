@@ -9,6 +9,7 @@
 
 using namespace ai;
 
+/// 执行动作主逻辑（攻击动作基类）
 bool AttackAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -22,6 +23,7 @@ bool AttackAction::Execute(Event& event)
     return false;
 }
 
+/// 执行动作主逻辑（攻击主人目标动作）
 bool AttackMyTargetAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -45,6 +47,7 @@ bool AttackMyTargetAction::Execute(Event& event)
     return false;
 }
 
+/// 执行动作主逻辑（攻击团队标记目标动作）
 bool AttackRTITargetAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -66,20 +69,23 @@ bool AttackRTITargetAction::Execute(Event& event)
     return false;
 }
 
+/// 判断当前状态下该动作是否可用/有效（攻击主人目标动作）
 bool AttackMyTargetAction::isUseful()
 {
     return !ai->ContainsStrategy(STRATEGY_TYPE_HEAL) || ai->HasStrategy("offdps", BotState::BOT_STATE_COMBAT);
 }
 
+/// 判断当前状态下该动作是否可用/有效（攻击团队标记目标动作）
 bool AttackRTITargetAction::isUseful()
 {
     return !ai->ContainsStrategy(STRATEGY_TYPE_HEAL) || ai->HasStrategy("offdps", BotState::BOT_STATE_COMBAT);
 }
 
+/// 启动或切换至指定目标的近战/远程攻击流程
 bool AttackAction::Attack(Player* requester, Unit* target)
 {
     MotionMaster &mm = *bot->GetMotionMaster();
-	if (mm.GetCurrentMovementGeneratorType() == TAXI_MOTION_TYPE || (bot->IsFlying() && WorldPosition(bot).currentHeight() > 10.0f))
+    if (mm.GetCurrentMovementGeneratorType() == TAXI_MOTION_TYPE || (bot->IsFlying() && WorldPosition(bot).currentHeight() > 10.0f))
     {
         if (verbose)
         {
@@ -124,10 +130,10 @@ bool AttackAction::Attack(Player* requester, Unit* target)
                 UnitAI* creatureAI = ((Creature*)pet)->AI();
                 if (creatureAI)
                 {
-                    // Don't send the pet to attack if the bot is waiting for attack
+                    // Don't send the pet to attack if the bot is waiting for attack (机器人等待开怪期间不要派宠物提前攻击)
                     if (!isWaitingForAttack && (!ai->HasStrategy("stay", BotState::BOT_STATE_COMBAT) || AI_VALUE2(float, "distance", "current target") < ai->GetRange("spell")))
                     {
-                        // Reset the pet state if no master
+                        // Reset the pet state if no master (若无主人则重置宠物状态)
                         if (creatureAI->GetReactState() == REACT_PASSIVE && !ai->GetMaster())
                             creatureAI->SetReactState(REACT_DEFENSIVE);
                         else 
@@ -142,7 +148,7 @@ bool AttackAction::Attack(Player* requester, Unit* target)
                             strategy->SetPetReactState(creatureAI->GetReactState() != REACT_PASSIVE ? creatureAI->GetReactState() : REACT_PASSIVE);
                             creatureAI->SetReactState(REACT_PASSIVE);
 
-                            // Send pet action packet
+                            // Send pet action packet (发送宠物动作控制封包)
                             const ObjectGuid& petGuid = pet->GetObjectGuid();
                             const uint8 flag = ACT_REACTION;
                             const uint32 spellId = REACT_PASSIVE;
@@ -169,10 +175,10 @@ bool AttackAction::Attack(Player* requester, Unit* target)
 
         bool result = true;
 
-        // Don't attack target if it is waiting for attack or in stealth
+        // Don't attack target if it is waiting for attack or in stealth (若目标正处于等待开怪或潜行状态，暂不发起攻击)
         if (!ai->HasStrategy("stealthed", BotState::BOT_STATE_COMBAT) && !isWaitingForAttack)
         {
-            // Don't attack a target that has a high damage shield in melee
+            // Don't attack a target that has a high damage shield in melee (不要近战攻击带有高额伤害反射护盾的目标)
             if (!ai->IsRanged(bot) || (sServerFacade.GetDistance2d(bot, target) < 5.0f))
             {
                 std::set<Aura*> alreadyDone;
@@ -184,7 +190,7 @@ bool AttackAction::Attack(Player* requester, Unit* target)
                         alreadyDone.insert(*i);
                         uint32 damage = (*i)->GetModifier()->m_amount;
 
-                        // If the damage shield does at least 10% of our max hp on each hit we do, we shouldn't attack
+                        // If the damage shield does at least 10% of our max hp on each hit we do, we shouldn't attack (若反伤护盾每次攻击反弹超过自身最大生命值的 10%，则停止攻击)
                         if (damage >= bot->GetMaxHealth() * 0.10f)
                         {
                             bot->AttackStop();
@@ -204,7 +210,7 @@ bool AttackAction::Attack(Player* requester, Unit* target)
 
         if (result)
         {
-            // Force change combat state to have a faster reaction time
+            // Force change combat state to have a faster reaction time (强制切换至战斗状态以提高反应速度)
             ai->OnCombatStarted();
         }
 
@@ -214,12 +220,13 @@ bool AttackAction::Attack(Player* requester, Unit* target)
     return false;
 }
 
+/// 命令机器人召唤的宠物主动攻击指定目标
 bool AttackAction::PetAttack(Player* requester, Unit* target)
 {
-    // If we're done waiting to attack and there's mobs to cc, we can't use defensive/aggressive
-    // because non passive pets will ignore our cc
-    // Therefore, we'll keep passive so we can only attack the current target specifically
-    // In other words, pet only attacks what owner can attack
+    // If we're done waiting to attack and there's mobs to cc, we can't use defensive/aggressive (若等待开怪结束且存在需控场怪物，则不能使用防御/主动宠物姿态)
+    // because non passive pets will ignore our cc (因为非被动姿态的宠物会攻击并打破我方控场)
+    // Therefore, we'll keep passive so we can only attack the current target specifically (因此保持宠物被动姿态，使其仅攻击指定的当前目标)
+    // In other words, pet only attacks what owner can attack (换言之，宠物只攻击主人能够攻击的目标)
     Pet* pet = bot->GetPet();
     Unit* ccTarget = ai->GetUnit(AI_VALUE(ObjectGuid, "rti cc target"));
     if (pet && (!ccTarget || (ccTarget && target->GetObjectGuid() != ccTarget->GetObjectGuid())))
@@ -230,7 +237,7 @@ bool AttackAction::PetAttack(Player* requester, Unit* target)
             pet->AI() && pet->AI()->HasReactState(REACT_PASSIVE) &&
             pet->GetEntry() == PET_IMP && pet->HasAura(PHASE_SHIFT)))
         {
-            // Send pet action packet
+            // Send pet action packet (发送宠物动作控制封包)
             const ObjectGuid& petGuid = pet->GetObjectGuid();
             const ObjectGuid& targetGuid = target->GetObjectGuid();
             const uint8 flag = ACT_COMMAND;
@@ -251,6 +258,7 @@ bool AttackAction::PetAttack(Player* requester, Unit* target)
     
 }
 
+/// 检查目标单位是否存活、在视野内且满足攻击/施法合法性
 bool AttackAction::IsTargetValid(Player* requester, Unit* target)
 {
     if (!target)
@@ -302,11 +310,13 @@ bool AttackAction::IsTargetValid(Player* requester, Unit* target)
     return true;
 }
 
+/// 判断当前状态下该动作是否可用/有效（攻击决斗对手动作）
 bool AttackDuelOpponentAction::isUseful()
 {
     return ai->GetUnit(AI_VALUE(ObjectGuid, "duel target"));
 }
 
+/// 执行动作主逻辑（攻击决斗对手动作）
 bool AttackDuelOpponentAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();

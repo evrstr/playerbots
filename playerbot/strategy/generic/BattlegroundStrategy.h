@@ -1,8 +1,10 @@
+/// 战场（BG）与竞技场策略定义头文件
 #pragma once
 #include "PassTroughStrategy.h"
 
 namespace ai
 {
+    /// 策略：自动远程排队加入战场并响应入场邀请
     class BGStrategy : public PassTroughStrategy
     {
     public:
@@ -10,7 +12,7 @@ namespace ai
         int GetType() override { return STRATEGY_TYPE_NONCOMBAT; }
         std::string getName() override { return "bg"; }
 #ifdef GenerateBotHelp
-        virtual std::string GetHelpName() { return "bg"; } //Must equal iternal name
+        virtual std::string GetHelpName() { return "bg"; } //Must equal iternal name | 必须与内部策略名一致
         virtual std::string GetHelpDescription() {
             return "This strategy will make bots queue up for battle grounds remotely and join them when they get an invite.";
         }
@@ -22,6 +24,7 @@ namespace ai
         void InitDeadTriggers(std::list<TriggerNode*>& triggers) override {}
     };
 
+    /// 策略：战场通用基础行为（开局就位、目标点检查与战场结束离开）
     class BattlegroundStrategy : public Strategy
     {
     public:
@@ -29,7 +32,7 @@ namespace ai
         int GetType() override { return STRATEGY_TYPE_NONCOMBAT; }
         std::string getName() override { return "battleground"; }
 #ifdef GenerateBotHelp
-        virtual std::string GetHelpName() { return "battleground"; } //Must equal iternal name
+        virtual std::string GetHelpName() { return "battleground"; } //Must equal iternal name | 必须与内部策略名一致
         virtual std::string GetHelpDescription() {
             return "This strategy gives bots basic behavior inside battle grounds like checking and moving to objectives and getting ready at the start gates.";
         }
@@ -39,6 +42,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    /// 策略：战歌峡谷（WSG）夺旗与护旗专用策略
     class WarsongStrategy : public Strategy
     {
     public:
@@ -46,7 +50,7 @@ namespace ai
         int GetType() override { return STRATEGY_TYPE_GENERIC; }
         std::string getName() override { return "warsong"; }
 #ifdef GenerateBotHelp
-        virtual std::string GetHelpName() { return "warsong"; } //Must equal iternal name
+        virtual std::string GetHelpName() { return "warsong"; } //Must equal iternal name | 必须与内部策略名一致
         virtual std::string GetHelpDescription() {
             return "This strategy controls the behavior during a warsong gluch battleground like capturing/retaking flags and picking up buffs.";
         }
@@ -57,6 +61,7 @@ namespace ai
         void InitCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    /// 策略：奥特兰克山谷（AV）战场专用策略
     class AlteracStrategy : public Strategy
     {
     public:
@@ -64,7 +69,7 @@ namespace ai
         int GetType() override { return STRATEGY_TYPE_GENERIC; }
         std::string getName() override { return "alterac"; }
 #ifdef GenerateBotHelp
-        virtual std::string GetHelpName() { return "alterac"; } //Must equal iternal name
+        virtual std::string GetHelpName() { return "alterac"; } //Must equal iternal name | 必须与内部策略名一致
         virtual std::string GetHelpDescription() {
             return "This strategy controls the behavior during an alertac valley battleground.";
         }
@@ -75,6 +80,7 @@ namespace ai
         void InitCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    /// 策略：阿拉希盆地（AB）资源点争夺专用策略
     class ArathiStrategy : public Strategy
     {
     public:
@@ -82,7 +88,7 @@ namespace ai
         int GetType() override { return STRATEGY_TYPE_GENERIC; }
         std::string getName() override { return "arathi"; }
 #ifdef GenerateBotHelp
-        virtual std::string GetHelpName() { return "arathi"; } //Must equal iternal name
+        virtual std::string GetHelpName() { return "arathi"; } //Must equal iternal name | 必须与内部策略名一致
         virtual std::string GetHelpDescription() {
             return "This strategy controls the behavior during an arathi basin battleground.";
         }
@@ -93,6 +99,7 @@ namespace ai
         void InitCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    /// 策略：风暴之眼（EotS）抢点与夺旗专用策略
     class EyeStrategy : public Strategy
     {
     public:
@@ -100,7 +107,7 @@ namespace ai
         int GetType() override { return STRATEGY_TYPE_GENERIC; }
         std::string getName() override { return "eye"; }
 #ifdef GenerateBotHelp
-        virtual std::string GetHelpName() { return "eye"; } //Must equal iternal name
+        virtual std::string GetHelpName() { return "eye"; } //Must equal iternal name | 必须与内部策略名一致
         virtual std::string GetHelpDescription() {
             return "This strategy controls the behavior during an eye of the storm basin battleground.";
         }
@@ -111,6 +118,7 @@ namespace ai
         void InitCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    /// 策略：征服之岛（IoC）攻城载具与战车操作专用策略
     class IsleStrategy : public Strategy
     {
     public:
@@ -118,7 +126,7 @@ namespace ai
         int GetType() override { return STRATEGY_TYPE_GENERIC; }
         std::string getName() override { return "isle"; }
 #ifdef GenerateBotHelp
-        virtual std::string GetHelpName() { return "isle"; } //Must equal iternal name
+        virtual std::string GetHelpName() { return "isle"; } //Must equal iternal name | 必须与内部策略名一致
         virtual std::string GetHelpDescription() {
             return "This strategy controls the behavior during an isle of conquest battleground.";
         }
@@ -129,6 +137,7 @@ namespace ai
         void InitCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    /// 策略：竞技场（Arena）战术走位与对抗策略
     class ArenaStrategy : public Strategy
     {
     public:
@@ -136,7 +145,7 @@ namespace ai
         int GetType() override { return STRATEGY_TYPE_GENERIC; }
         std::string getName() override { return "arena"; }
 #ifdef GenerateBotHelp
-        virtual std::string GetHelpName() { return "arena"; } //Must equal iternal name
+        virtual std::string GetHelpName() { return "arena"; } //Must equal iternal name | 必须与内部策略名一致
         virtual std::string GetHelpDescription() {
             return "This strategy controls the behavior arena fight.";
         }

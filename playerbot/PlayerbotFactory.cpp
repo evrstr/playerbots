@@ -45,8 +45,8 @@ uint32 PlayerbotFactory::tradeSkills[] =
     SKILL_FIRST_AID,
     SKILL_FISHING
 #ifndef MANGOSBOT_ZERO
-	,
-	SKILL_JEWELCRAFTING
+    ,
+    SKILL_JEWELCRAFTING
 #endif
 #ifdef MANGOSBOT_TWO
     , SKILL_INSCRIPTION
@@ -59,6 +59,7 @@ std::list<uint32> PlayerbotFactory::specialQuestIds;
 TaxiNodeLevelContainer PlayerbotFactory::overworldTaxiNodeLevelsA;
 TaxiNodeLevelContainer PlayerbotFactory::overworldTaxiNodeLevelsH;
 
+// 初始化职业专属任务、特殊任务及各职业商业技能静态列表
 void PlayerbotFactory::Init()
 {
     if (sPlayerbotAIConfig.randomBotPreQuests) {
@@ -113,6 +114,7 @@ void PlayerbotFactory::Init()
     }
 }
 
+// 养成前置准备：清理冷却、脱战复活、清除旧光环并补充基础金币
 void PlayerbotFactory::Prepare()
 {
     /*if (!itemQuality)
@@ -124,15 +126,15 @@ void PlayerbotFactory::Prepare()
         else if (level < 60)
 #ifdef MANGOSBOT_ZERO
             itemQuality = urand(ITEM_QUALITY_UNCOMMON, ITEM_QUALITY_EPIC);
-		else if (level < 70)
-			itemQuality = urand(ITEM_QUALITY_RARE, ITEM_QUALITY_EPIC);
+        else if (level < 70)
+            itemQuality = urand(ITEM_QUALITY_RARE, ITEM_QUALITY_EPIC);
 #else
-			itemQuality = urand(ITEM_QUALITY_UNCOMMON, ITEM_QUALITY_EPIC);
-		else if (level < 70)
-			itemQuality = urand(ITEM_QUALITY_UNCOMMON, ITEM_QUALITY_EPIC);
+            itemQuality = urand(ITEM_QUALITY_UNCOMMON, ITEM_QUALITY_EPIC);
+        else if (level < 70)
+            itemQuality = urand(ITEM_QUALITY_UNCOMMON, ITEM_QUALITY_EPIC);
 #endif
-		else if (level < 80)
-			itemQuality = urand(ITEM_QUALITY_RARE, ITEM_QUALITY_EPIC);
+        else if (level < 80)
+            itemQuality = urand(ITEM_QUALITY_RARE, ITEM_QUALITY_EPIC);
         else
             itemQuality = urand(ITEM_QUALITY_RARE, ITEM_QUALITY_EPIC);
     }*/
@@ -171,6 +173,7 @@ void PlayerbotFactory::Prepare()
     }
 }
 
+// 机器人全量/增量养成主流程：设置等级、天赋、法术、装备、附魔、宝石、技能、坐骑与背包消耗品
 void PlayerbotFactory::Randomize(bool incremental, bool syncWithMaster)
 {
     sLog.outDetail("Preparing to %s randomize...", (incremental ? "incremental" : "full"));
@@ -375,6 +378,7 @@ void PlayerbotFactory::Refresh()
         bot->SaveToDB();
 }
 
+// 为机器人补充对应等级的磨刀石/平衡石、绷带、法力/巫师之油及盗贼毒药
 void PlayerbotFactory::AddConsumables()
 {
     auto pmo = sPerformanceMonitor.start(PERF_MON_RNDBOT, "PlayerbotFactory_Consumables");
@@ -599,6 +603,7 @@ static bool HasWorldSpawn(uint32 entry)
     return spawnedEntries.empty() || spawnedEntries.count(entry);
 }
 
+// 为猎人机器人驯服或生成对应等级的可用野外宠物
 void PlayerbotFactory::InitPet()
 {
     // Randomize a new pet (only for hunters)
@@ -616,8 +621,8 @@ void PlayerbotFactory::InitPet()
         for (uint32 id = 0; id < sCreatureStorage.GetMaxEntry(); ++id)
         {
             CreatureInfo const* co = sCreatureStorage.LookupEntry<CreatureInfo>(id);
-			if (!co)
-				continue;
+            if (!co)
+                continue;
 
 #ifdef MANGOSBOT_TWO
             if (!co->isTameable(bot->CanTameExoticPets()))
@@ -632,8 +637,8 @@ void PlayerbotFactory::InitPet()
             if (!HasWorldSpawn(id))
                 continue;
 
-			ids.push_back(id);
-		}
+            ids.push_back(id);
+        }
 
         if (ids.empty())
         {
@@ -641,9 +646,9 @@ void PlayerbotFactory::InitPet()
             return;
         }
 
-		for (int i = 0; i < 100; i++)
-		{
-			int index = urand(0, ids.size() - 1);
+        for (int i = 0; i < 100; i++)
+        {
+            int index = urand(0, ids.size() - 1);
             CreatureInfo const* co = sCreatureStorage.LookupEntry<CreatureInfo>(ids[index]);
             if (!co)
                 continue;
@@ -732,6 +737,7 @@ void PlayerbotFactory::InitPet()
     }
 }
 
+// 为猎人宠物学习当前等级匹配的宠物技能
 void PlayerbotFactory::InitPetSpells()
 {
     Map* map = bot->GetMap();
@@ -2414,8 +2420,8 @@ void PlayerbotFactory::ClearSpells()
     for(PlayerSpellMap::iterator itr = bot->GetSpellMap().begin(); itr != bot->GetSpellMap().end(); ++itr)
     {
         uint32 spellId = itr->first;
-		if (itr->second.state == PLAYERSPELL_REMOVED || itr->second.disabled || IsPassiveSpell(spellId))
-			continue;
+        if (itr->second.state == PLAYERSPELL_REMOVED || itr->second.disabled || IsPassiveSpell(spellId))
+            continue;
 
         spells.push_back(spellId);
     }
@@ -2544,9 +2550,9 @@ void PlayerbotFactory::InitTalentsTree(bool incremental)
 {
     uint32 specNo = sRandomPlayerbotMgr.GetValue(bot->GetGUIDLow(), "specNo");
     if (incremental && specNo)
-	{
+    {
         specNo -= 1;
-	}
+    }
     else
     {
         uint32 point = urand(0, 100);
@@ -3004,6 +3010,7 @@ void PlayerbotFactory::Shuffle(std::vector<uint32>& items)
     }
 }
 
+// 按职业专精与装等策略为机器人筛选并穿戴主手、副手、远程及防具装备
 void PlayerbotFactory::InitEquipment(bool incremental, bool syncWithMaster, bool progressive, bool partialUpgrade)
 {
     uint32 oldGS = ai->GetEquipGearScore(bot, false, false);
@@ -3660,6 +3667,7 @@ bool PlayerbotFactory::IsDesiredReplacement(uint32 itemId)
     return (int)bot->GetLevel() - (int)requiredLevel > delta;
 }
 
+// 为具备双修/副职责的职业准备第二套备用装备放入背包
 void PlayerbotFactory::InitSecondEquipmentSet()
 {
     if (bot->getClass() == CLASS_MAGE || bot->getClass() == CLASS_WARLOCK || bot->getClass() == CLASS_PRIEST)
@@ -3937,6 +3945,7 @@ void PlayerbotFactory::InitAllSkills()
     InitTradeSkills();
 }
 
+// 学习并提升机器人主副商业技能（采矿/草药/剥皮/裁缝/锻造/炼金/附魔/工程/珠宝）
 void PlayerbotFactory::InitTradeSkills()
 {
     uint16 firstSkill = sRandomPlayerbotMgr.GetValue(bot, "firstSkill");
@@ -4267,6 +4276,7 @@ bool PlayerbotFactory::IsAssignedProfession(uint16 id) const
         id == sRandomPlayerbotMgr.GetValue(bot, "secondSkill");
 }
 
+// 初始化武器熟练度、护甲专精与骑术技能等级
 void PlayerbotFactory::InitSkills()
 {
     bot->UpdateSkillsForLevel(true);
@@ -4492,6 +4502,7 @@ void PlayerbotFactory::SetRandomSkill(uint16 id)
         bot->SetSkill(id, value, maxValue);
 }
 
+// 学习当前等级训练师、任务与职业专属的所有可用法术
 void PlayerbotFactory::InitAvailableSpells()
 {
     auto pmo = sPerformanceMonitor.start(PERF_MON_RNDBOT, "PlayerbotFactory_Spells1");
@@ -4605,6 +4616,7 @@ void PlayerbotFactory::InitSpecialSpells()
     }
 }
 
+// 根据选定天赋路线应用并校验机器人当前等级对应的天赋加点
 void PlayerbotFactory::InitTalents(uint32 specNo)
 {
     uint32 classMask = bot->getClassMask();
@@ -4794,6 +4806,7 @@ void PlayerbotFactory::InitAmmo()
         bot->SetAmmo(entry);
 }
 
+// 为达到骑乘等级的机器人发放并学习陆地或飞行坐骑
 void PlayerbotFactory::InitMounts()
 {
     auto pmo = sPerformanceMonitor.start(PERF_MON_RNDBOT, "PlayerbotFactory_Mounts");
@@ -5449,6 +5462,7 @@ void PlayerbotFactory::InitArenaTeam()
 }
 #endif
 
+// 按职业专精模板为机器人已装备物品施加附魔效果
 void PlayerbotFactory::EnchantEquipment()
 {
     if (bot->GetLevel() >= sPlayerbotAIConfig.minEnchantingBotLevel)
@@ -5679,6 +5693,7 @@ void PlayerbotFactory::LoadEnchantContainer()
     }
 #endif
 }*/
+// 为带插槽的装备自动镶嵌适配属性的高品质宝石
 void PlayerbotFactory::InitGems() //WIP
 {
 #ifndef MANGOSBOT_ZERO
@@ -5835,6 +5850,7 @@ void PlayerbotFactory::InitGems() //WIP
 #endif
 }
 
+// 解锁机器人当前等级与阵营可到达的飞行点网络
 void PlayerbotFactory::InitTaxiNodes()
 {
     auto pmo = sPerformanceMonitor.start(PERF_MON_RNDBOT, "PlayerbotFactory_TaxiNodes");

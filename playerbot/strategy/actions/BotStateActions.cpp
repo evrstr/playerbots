@@ -5,6 +5,7 @@
 
 using namespace ai;
 
+/// 执行动作主逻辑（设置战斗状态动作）
 bool SetCombatStateAction::Execute(Event& event)
 {
     SetDuration(sPlayerbotAIConfig.reactDelay);
@@ -12,6 +13,7 @@ bool SetCombatStateAction::Execute(Event& event)
     return true;
 }
 
+/// 执行动作主逻辑（设置非战斗状态动作）
 bool SetNonCombatStateAction::Execute(Event& event)
 {
     SetDuration(sPlayerbotAIConfig.reactDelay);
@@ -27,6 +29,7 @@ bool SetNonCombatStateAction::Execute(Event& event)
     return true;
 }
 
+/// 执行动作主逻辑（设置死亡状态动作）
 bool SetDeadStateAction::Execute(Event& event)
 {
     SetDuration(sPlayerbotAIConfig.reactDelay);

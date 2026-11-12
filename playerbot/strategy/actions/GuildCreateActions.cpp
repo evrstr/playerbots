@@ -17,6 +17,7 @@
 
 using namespace ai;
 
+/// 执行动作主逻辑（购买公会创建登记表动作）
 bool BuyPetitionAction::Execute(Event& event)
 {
     std::list<ObjectGuid> vendors = ai->GetAiObjectContext()->GetValue<std::list<ObjectGuid> >("nearest npcs")->Get();
@@ -61,7 +62,7 @@ bool BuyPetitionAction::Execute(Event& event)
             data << std::string("");
 #endif
 
-        data << uint32(0); // index
+        data << uint32(0); // index (索引)
         data << uint32(0);
 
         bot->GetSession()->HandlePetitionBuyOpcode(data);
@@ -72,11 +73,13 @@ bool BuyPetitionAction::Execute(Event& event)
     return false;
 }
 
+/// 判断当前状态下该动作是否可用/有效（购买公会创建登记表动作）
 bool BuyPetitionAction::isUseful()
 {
     return canBuyPetition(bot);
 };
 
+/// 检查是否满足购买公会创建登记表的金币与身份条件
 bool BuyPetitionAction::canBuyPetition(Player* bot)
 {
     if (!sPlayerbotAIConfig.randomBotFormGuild)
@@ -111,9 +114,10 @@ bool BuyPetitionAction::canBuyPetition(Player* bot)
     return true;
 }
 
+/// 执行动作主逻辑（征集公会签名动作）
 bool PetitionOfferAction::Execute(Event& event)
 {
-    uint32 petitionEntry = 5863; //GUILD_CHARTER
+    uint32 petitionEntry = 5863; // GUILD_CHARTER (公会创建登记表)
     std::list<Item*> petitions = AI_VALUE2(std::list<Item*>, "inventory items", chat->formatQItem(5863));
 
     if (petitions.empty())
@@ -165,6 +169,7 @@ bool PetitionOfferAction::Execute(Event& event)
     return true;
 };
 
+/// 执行动作主逻辑（向附近玩家征集签名动作）
 bool PetitionOfferNearbyAction::Execute(Event& event)
 {
     uint32 found = 0;
@@ -190,7 +195,7 @@ bool PetitionOfferNearbyAction::Execute(Event& event)
 
         if (botAi)
         {
-            if (botAi->HasActivePlayerMaster()) //Do not invite alts of active players. 
+            if (botAi->HasActivePlayerMaster()) // Do not invite alts of active players. (不要邀请活跃玩家的小号。)
                 continue;
         }
 
@@ -208,7 +213,7 @@ bool PetitionOfferNearbyAction::Execute(Event& event)
                 bot->Say(BOT_TEXT2("Hey do you want to form a guild?", placeholders), (bot->GetTeam() == ALLIANCE ? LANG_COMMON : LANG_ORCISH));
         }
 
-        //Parse rpg target to quest action.
+        // Parse rpg target to quest action. (将当前 RPG 目标解析传递至任务动作。)
         WorldPacket p(CMSG_QUESTGIVER_ACCEPT_QUEST);
         p << i;
         p.rpos(0);
@@ -221,6 +226,7 @@ bool PetitionOfferNearbyAction::Execute(Event& event)
     return found > 0;
 };
 
+/// 执行动作主逻辑（提交公会登记表动作）
 bool PetitionTurnInAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -261,7 +267,7 @@ bool PetitionTurnInAction::Execute(Event& event)
             st = urand(0, 180);
             guild->SetEmblem(st, cl, br, bc, bg);           
 
-            //LANG_GUILD_VETERAN -> can invite, private and initiate -> personal note.
+            // LANG_GUILD_VETERAN -> can invite, private and initiate -> personal note. (老兵会阶允许邀请成员，新兵及以下会阶仅保留个人备注权限。)
             guild->SetRankRights(2, GR_RIGHT_GCHATLISTEN | GR_RIGHT_GCHATSPEAK | GR_RIGHT_INVITE | GR_RIGHT_EPNOTE);
             guild->SetRankRights(3, GR_RIGHT_GCHATLISTEN | GR_RIGHT_GCHATSPEAK | GR_RIGHT_EPNOTE);
             guild->SetRankRights(4, GR_RIGHT_GCHATLISTEN | GR_RIGHT_GCHATSPEAK | GR_RIGHT_EPNOTE);
@@ -270,7 +276,7 @@ bool PetitionTurnInAction::Execute(Event& event)
         return true;
     }
 
-    //Select a new target to travel to. 
+    // Select a new target to travel to. (挑选一个新的长途旅行目的地。)
     TravelTarget newTarget = TravelTarget(ai);
 
     ai->TellDebug(requester, "Handing in guild petition", "debug travel");
@@ -295,6 +301,7 @@ bool PetitionTurnInAction::Execute(Event& event)
     return ai->DoSpecificAction("request named travel target::petition", Event("can hand in petition"), true);
 };
 
+/// 判断当前状态下该动作是否可用/有效（提交公会登记表动作）
 bool PetitionTurnInAction::isUseful()
 {
     if (!sPlayerbotAIConfig.randomBotFormGuild)
@@ -320,6 +327,7 @@ bool PetitionTurnInAction::isUseful()
     return inCity && !bot->GetGuildId() && AI_VALUE2(uint32, "item count", chat->formatQItem(5863)) && AI_VALUE(uint8, "petition signs") >= sWorld.getConfig(CONFIG_UINT32_MIN_PETITION_SIGNS) && !AI_VALUE(bool, "travel target traveling");
 };
 
+/// 执行动作主逻辑（购买公会战袍动作）
 bool BuyTabardAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -346,6 +354,7 @@ bool BuyTabardAction::Execute(Event& event)
     return ai->DoSpecificAction("request named travel target::tabard", Event("can buy tabard"), true);  
 };
 
+/// 判断当前状态下该动作是否可用/有效（购买公会战袍动作）
 bool BuyTabardAction::isUseful()
 {
     if (!ai->HasStrategy("travel", BotState::BOT_STATE_NON_COMBAT))

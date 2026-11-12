@@ -5,7 +5,7 @@
 
 static std::tuple<uint32, uint32, std::string> AV_HordeAttackObjectives[] =
 {
-    // Attack
+    // Attack (攻击)
 #ifndef MANGOSBOT_TWO  
     { BG_AV_NODES_STONEHEART_BUNKER, BG_AV_NODE_STATUS_ALLY_OCCUPIED, "AV_STONEHEART_BUNKER"},
     { BG_AV_NODES_STONEHEART_GRAVE, BG_AV_NODE_STATUS_ALLY_CONTESTED, "AV_STONEHEART_GRAVEYARD" },
@@ -33,7 +33,7 @@ static std::tuple<uint32, uint32, std::string> AV_HordeAttackObjectives[] =
 
 static std::tuple<uint32, uint32, std::string> AV_HordeDefendObjectives[] =
 {
-    // Defend
+    // Defend (防守)
 #ifndef MANGOSBOT_TWO
     { BG_AV_NODES_FROSTWOLF_GRAVE, BG_AV_NODE_STATUS_ALLY_CONTESTED, "AV_FROSTWOLF_GRAVEYARD" },
     { BG_AV_NODES_FROSTWOLF_GRAVE, BG_AV_NODE_STATUS_ALLY_OCCUPIED, "AV_FROSTWOLF_GRAVEYARD" },
@@ -53,7 +53,7 @@ static std::tuple<uint32, uint32, std::string> AV_HordeDefendObjectives[] =
 
 static std::tuple<uint32, uint32, std::string> AV_AllianceAttackObjectives[] =
 {
-    // Attack
+    // Attack (攻击)
 #ifndef MANGOSBOT_TWO  
     { BG_AV_NODES_ICEBLOOD_TOWER, BG_AV_NODE_STATUS_HORDE_OCCUPIED, "AV_ICEBLOOD_TOWER" },
     { BG_AV_NODES_ICEBLOOD_GRAVE, BG_AV_NODE_STATUS_HORDE_CONTESTED, "AV_ICEBLOOD_GRAVEYARD" },
@@ -81,7 +81,7 @@ static std::tuple<uint32, uint32, std::string> AV_AllianceAttackObjectives[] =
 
 static std::tuple<uint32, uint32, std::string> AV_AllianceDefendObjectives[] =
 {
-    // Defend
+    // Defend (防守)
 #ifndef MANGOSBOT_TWO
     { BG_AV_NODES_STORMPIKE_GRAVE, BG_AV_NODE_STATUS_HORDE_CONTESTED, "AV_STORMPIKE_GRAVEYARD" },
     { BG_AV_NODES_STORMPIKE_GRAVE, BG_AV_NODE_STATUS_HORDE_OCCUPIED, "AV_STORMPIKE_GRAVEYARD" },
@@ -99,6 +99,7 @@ static std::tuple<uint32, uint32, std::string> AV_AllianceDefendObjectives[] =
 #endif
 };
 
+/// 为联盟方机器人挑选奥特兰克山谷当前最优先的战术目标
 bool BGTactics::SelectAvObjectiveAlliance(WorldLocation& objectiveLocation)
 {
     BattleGround* bg = bot->GetBattleGround();
@@ -107,7 +108,7 @@ bool BGTactics::SelectAvObjectiveAlliance(WorldLocation& objectiveLocation)
         return false;
     }
 
-    // End boss
+    // End boss (最终首领)
 #ifndef MANGOSBOT_TWO  
     if (!bg->IsActiveEvent(BG_AV_NODES_ICEBLOOD_TOWER, BG_AV_NODE_STATUS_HORDE_OCCUPIED) &&
         !bg->IsActiveEvent(BG_AV_NODES_TOWER_POINT, BG_AV_NODE_STATUS_HORDE_OCCUPIED) &&
@@ -133,7 +134,7 @@ bool BGTactics::SelectAvObjectiveAlliance(WorldLocation& objectiveLocation)
     uint32 role = context->GetValue<uint32>("bg role")->Get();
     bool supporter = role < (uint32)(strifeTime ? 4 : 2);
 
-    // Only go to Snowfall Graveyard if already close to it.
+    // Only go to Snowfall Graveyard if already close to it. (仅当已靠近雪落墓地时才前往争夺。)
 #ifndef MANGOSBOT_TWO  
     if (supporter && (bg->IsActiveEvent(BG_AV_NODES_SNOWFALL_GRAVE, BG_AV_NODE_STATUS_HORDE_CONTESTED) || bg->IsActiveEvent(BG_AV_NODES_SNOWFALL_GRAVE, BG_AV_NODE_STATUS_HORDE_OCCUPIED) || bg->IsActiveEvent(BG_AV_NODES_SNOWFALL_GRAVE, BG_AV_NODE_STATUS_NEUTRAL_OCCUPIED)))
     {
@@ -151,7 +152,7 @@ bool BGTactics::SelectAvObjectiveAlliance(WorldLocation& objectiveLocation)
         }
     }
 
-    // Galv
+    // Galv (加尔范上尉（部落队长）)
     if (!supporter && !bg->IsActiveEvent(BG_AV_NODE_CAPTAIN_DEAD_H, 0))
     {
         if (Creature* pGalvangar = bot->GetMap()->GetCreature(bg->GetSingleCreatureGuid(BG_AV_CAPTAIN_H, 0)))
@@ -162,7 +163,7 @@ bool BGTactics::SelectAvObjectiveAlliance(WorldLocation& objectiveLocation)
                 {
                     uint32 attackCount = getDefendersCount(Position(icebloodGarrison.coord_x, icebloodGarrison.coord_y, icebloodGarrison.coord_z, icebloodGarrison.orientation), 10.0f, false);
 
-                    // Prepare to attack Captain
+                    // Prepare to attack Captain (准备攻击敌方上尉/队长)
                     if (attackCount < 5 && !sServerFacade.IsInCombat(pGalvangar))
                     {
                         objectiveLocation = icebloodGarrison;
@@ -178,7 +179,7 @@ bool BGTactics::SelectAvObjectiveAlliance(WorldLocation& objectiveLocation)
         }
     }
 
-    // Chance to defend
+    // Chance to defend (参与防守的概率)
     if (supporter)
     {
         std::vector<WorldLocation> objectiveLocations;
@@ -203,7 +204,7 @@ bool BGTactics::SelectAvObjectiveAlliance(WorldLocation& objectiveLocation)
         }
     }
 
-    // Mine capture
+    // Mine capture (占领矿洞)
     if (!supporter && (bg->IsActiveEvent(BG_AV_MINE_BOSSES_SOUTH, TEAM_INDEX_HORDE) || bg->IsActiveEvent(BG_AV_MINE_BOSSES_SOUTH, TEAM_INDEX_NEUTRAL)))
     {
         if (Creature* neutralMineBoss = bot->GetMap()->GetCreature(bg->GetSingleCreatureGuid(BG_AV_MINE_BOSSES_SOUTH, TEAM_INDEX_NEUTRAL)))
@@ -225,7 +226,7 @@ bool BGTactics::SelectAvObjectiveAlliance(WorldLocation& objectiveLocation)
         }
     }
 
-    // Block without condition
+    // Block without condition (无条件阻断)
     {
         std::vector<WorldLocation> objectiveLocations;
 
@@ -236,7 +237,7 @@ bool BGTactics::SelectAvObjectiveAlliance(WorldLocation& objectiveLocation)
                 continue;
             }
 
-            // Split team to capture 2 towers at same time
+            // Split team to capture 2 towers at same time (分兵同时进攻占领两座哨塔)
 #ifndef MANGOSBOT_TWO  
             if (urand(0, 1) && nodeId == BG_AV_NODES_FROSTWOLF_ETOWER && bg->IsActiveEvent(BG_AV_NODES_FROSTWOLF_WTOWER, BG_AV_NODE_STATUS_HORDE_OCCUPIED))
 #else
@@ -260,6 +261,7 @@ bool BGTactics::SelectAvObjectiveAlliance(WorldLocation& objectiveLocation)
     return false;
 }
 
+/// 为部落方机器人挑选奥特兰克山谷当前最优先的战术目标
 bool BGTactics::SelectAvObjectiveHorde(WorldLocation& objectiveLocation)
 {
     BattleGround* bg = bot->GetBattleGround();
@@ -268,7 +270,7 @@ bool BGTactics::SelectAvObjectiveHorde(WorldLocation& objectiveLocation)
         return false;
     }
 
-    // End Boss
+    // End Boss (最终首领)
 #ifndef MANGOSBOT_TWO  
     if (!bg->IsActiveEvent(BG_AV_NODES_DUNBALDAR_SOUTH, BG_AV_NODE_STATUS_ALLY_OCCUPIED) &&
         !bg->IsActiveEvent(BG_AV_NODES_DUNBALDAR_NORTH, BG_AV_NODE_STATUS_ALLY_OCCUPIED) &&
@@ -292,9 +294,9 @@ bool BGTactics::SelectAvObjectiveHorde(WorldLocation& objectiveLocation)
 
     bool strifeTime = bg->GetStartTime() < (uint32)(10 * MINUTE * IN_MILLISECONDS);
     uint32 role = context->GetValue<uint32>("bg role")->Get();
-    bool supporter = role < (uint32)(strifeTime ? 4 : 2); // first bunker strike team
+    bool supporter = role < (uint32)(strifeTime ? 4 : 2); // first bunker strike team (第一碉堡突击小队)
 
-    // Only go to Snowfall Graveyard if already close to it.
+    // Only go to Snowfall Graveyard if already close to it. (仅当已靠近雪落墓地时才前往争夺。)
 #ifndef MANGOSBOT_TWO  
     if (supporter && (bg->IsActiveEvent(BG_AV_NODES_SNOWFALL_GRAVE, BG_AV_NODE_STATUS_ALLY_CONTESTED) || bg->IsActiveEvent(BG_AV_NODES_SNOWFALL_GRAVE, BG_AV_NODE_STATUS_ALLY_OCCUPIED) || bg->IsActiveEvent(BG_AV_NODES_SNOWFALL_GRAVE, BG_AV_NODE_STATUS_NEUTRAL_OCCUPIED)))
     {
@@ -312,7 +314,7 @@ bool BGTactics::SelectAvObjectiveHorde(WorldLocation& objectiveLocation)
         }
     }
 
-    // Balinda
+    // Balinda (巴琳达（联盟队长）)
     if (!supporter && !bg->IsActiveEvent(BG_AV_NODE_CAPTAIN_DEAD_A, 0))
     {
         if (Creature* pBalinda = bot->GetMap()->GetCreature(bg->GetSingleCreatureGuid(BG_AV_CAPTAIN_A, 0)))
@@ -323,7 +325,7 @@ bool BGTactics::SelectAvObjectiveHorde(WorldLocation& objectiveLocation)
                 {
                     uint32 attackCount = getDefendersCount(Position(stoneheartOutpost.coord_x, stoneheartOutpost.coord_y, stoneheartOutpost.coord_z, stoneheartOutpost.orientation), 10.0f, false);
 
-                    // Prepare to attack Captain
+                    // Prepare to attack Captain (准备攻击敌方上尉/队长)
                     if (attackCount < 5 && !sServerFacade.IsInCombat(pBalinda))
                     {
                         objectiveLocation = stoneheartOutpost;
@@ -339,7 +341,7 @@ bool BGTactics::SelectAvObjectiveHorde(WorldLocation& objectiveLocation)
         }
     }
 
-    // Chance to defend
+    // Chance to defend (参与防守的概率)
     if (supporter)
     {
         std::vector<WorldLocation> objectiveLocations;
@@ -364,7 +366,7 @@ bool BGTactics::SelectAvObjectiveHorde(WorldLocation& objectiveLocation)
         }
     }
 
-    // Mine capture (need paths & script fix)
+    // Mine capture (need paths & script fix) (占领矿洞（需补充路径与脚本修复）)
 #ifndef MANGOSBOT_TWO  
     if (!supporter && (bg->IsActiveEvent(BG_AV_MINE_BOSSES_NORTH, TEAM_INDEX_ALLIANCE) || bg->IsActiveEvent(BG_AV_MINE_BOSSES_NORTH, TEAM_INDEX_NEUTRAL)) &&
         !bg->IsActiveEvent(BG_AV_NODES_STORMPIKE_GRAVE, BG_AV_NODE_STATUS_ALLY_OCCUPIED))
@@ -392,7 +394,7 @@ bool BGTactics::SelectAvObjectiveHorde(WorldLocation& objectiveLocation)
         }
     }
 
-    // Block without condition
+    // Block without condition (无条件阻断)
     {
         std::vector<WorldLocation> objectiveLocations;
 
@@ -403,7 +405,7 @@ bool BGTactics::SelectAvObjectiveHorde(WorldLocation& objectiveLocation)
                 continue;
             }
 
-            // Split team to capture 2 towers at same time
+            // Split team to capture 2 towers at same time (分兵同时进攻占领两座哨塔)
 #ifndef MANGOSBOT_TWO  
             if (urand(0, 1) && nodeId == BG_AV_NODES_DUNBALDAR_SOUTH && bg->IsActiveEvent(BG_AV_NODES_DUNBALDAR_NORTH, BG_AV_NODE_STATUS_ALLY_OCCUPIED))
 #else
@@ -440,6 +442,7 @@ std::vector<uint32> const FlagEntries =
     BG_AV_GO_GY_BANNER_SNOWFALL,
 };
 
+/// 处理奥特兰克山谷战场中的墓地与哨塔旗帜夺取/防守逻辑
 bool BGTactics::CheckFlagAv()
 {
     BattleGround* bg = bot->GetBattleGround();
@@ -484,7 +487,7 @@ bool BGTactics::CheckFlagAv()
         if (bot->IsInDisallowedMountForm())
             bot->RemoveSpellsCausingAura(SPELL_AURA_MOD_SHAPESHIFT);
 
-        // cast banner spell
+        // cast banner spell (施放插旗/战旗法术)
         ai->StopMoving();
 
         SpellEntry const* spellInfo = sServerFacade.LookupSpellInfo(SPELL_CAPTURE_BANNER);

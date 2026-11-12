@@ -5,6 +5,7 @@
 #include "PlayerbotAIBase.h"
 #include "PlayerbotMgr.h"
 
+/// 机器人 AI 策略与状态值数据库持久化管理器（支持按预设名存取）
 class PlayerbotDbStore
 {
 public:

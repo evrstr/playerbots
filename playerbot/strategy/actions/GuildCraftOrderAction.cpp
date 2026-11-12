@@ -6,6 +6,7 @@
 
 using namespace ai;
 
+/// 查找能够制作指定目标物品的专业技能法术
 uint32 GuildCraftOrderAction::FindCraftSpell(uint32 itemId)
 {
     for (auto& [spellId, spellState] : bot->GetSpellMap())
@@ -27,6 +28,7 @@ uint32 GuildCraftOrderAction::FindCraftSpell(uint32 itemId)
     return 0;
 }
 
+/// 执行动作主逻辑（公会制造委托动作）
 bool GuildCraftOrderAction::Execute(Event& event)
 {
     GuildOrder order = AI_VALUE(GuildOrder, "guild order");
@@ -60,7 +62,7 @@ bool GuildCraftOrderAction::Execute(Event& event)
         return false;
     }
 
-    // Calculate the amount to craft
+    // Calculate the amount to craft (计算需要制造的数量)
     uint32 remaining = order.amount - currentCount;
 
     const SpellEntry* pSpellInfo = sServerFacade.LookupSpellInfo(craftSpellId);
@@ -88,6 +90,7 @@ bool GuildCraftOrderAction::Execute(Event& event)
     return true;
 }
 
+/// 判断当前状态下该动作是否可用/有效（公会制造委托动作）
 bool GuildCraftOrderAction::isUseful()
 {
     if (!bot->GetGuildId())

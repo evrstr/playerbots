@@ -9,6 +9,7 @@
 
 using namespace ai;
 
+/// 执行动作主逻辑（拾取策略指令动作）
 bool LootStrategyAction::Execute(Event& event)
 {
     std::string strategy = event.getParam();
@@ -134,6 +135,7 @@ bool LootStrategyAction::Execute(Event& event)
     return true;
 }
 
+/// 向主人汇报当前待拾取队列中的战利品清单
 void LootStrategyAction::TellLootList(Player* requester, const std::string& name)
 {
     std::set<uint32>& alwaysLootItems = AI_VALUE(std::set<uint32>&, name);
@@ -154,6 +156,7 @@ void LootStrategyAction::TellLootList(Player* requester, const std::string& name
     ai->TellPlayer(requester, out);
 }
 
+/// 输出 go 命令支持前往的目标或预设点清单
 void LootStrategyAction::TellGoList(Player* requester, const std::string& name)
 {
     std::set<uint32>& skipGoItems = AI_VALUE(std::set<uint32>&, name);
@@ -174,6 +177,7 @@ void LootStrategyAction::TellGoList(Player* requester, const std::string& name)
 
 static const char* const kAllLootTokens = "equip,quest,skill,disenchant,use,vendor,trash";
 
+/// 为分词列表中的每个词条统一添加指定前缀符号
 static std::string PrefixTokens(const std::string& tokens, char operation)
 {
     std::string out;
@@ -186,6 +190,7 @@ static std::string PrefixTokens(const std::string& tokens, char operation)
     return out;
 }
 
+/// 执行动作主逻辑（收集物品指令动作）
 bool CollectAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -300,6 +305,7 @@ bool CollectAction::Execute(Event& event)
     return true;
 }
 
+/// 汇报当前自动收集物品的配置状态
 void CollectAction::TellCollectState(Player* requester)
 {
     std::vector<std::string> tokens = StrSplit(AI_VALUE(std::string, "loot strategy"), ",");
@@ -339,6 +345,7 @@ void CollectAction::TellCollectState(Player* requester)
     ai->TellPlayer(requester, out);
 }
 
+/// 在附近搜寻与聊天链接匹配的游戏对象
 static GameObject* FindLinkedGameObject(PlayerbotAI* ai, Player* bot, const std::string& text)
 {
     for (ObjectGuid const& guid : ChatHelper::parseGameobjects(text))
@@ -351,6 +358,7 @@ static GameObject* FindLinkedGameObject(PlayerbotAI* ai, Player* bot, const std:
     return nullptr;
 }
 
+/// 从命令参数或附近对象中解析目标游戏对象指针
 static GameObject* ResolveLinkedGameObject(PlayerbotAI* ai, Player* bot, Player* requester, const std::string& verb, const std::string& text)
 {
     if (ChatHelper::parseGameobjects(text).empty())
@@ -367,6 +375,7 @@ static GameObject* ResolveLinkedGameObject(PlayerbotAI* ai, Player* bot, Player*
     return go;
 }
 
+/// 执行动作主逻辑（勘测采集物指令动作）
 bool SurveyAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -418,6 +427,7 @@ bool SurveyAction::Execute(Event& event)
     return true;
 }
 
+/// 执行动作主逻辑（查找对象动作）
 bool FindObjectAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -449,6 +459,7 @@ bool FindObjectAction::Execute(Event& event)
     return true;
 }
 
+/// 执行动作主逻辑（获取对象动作）
 bool GetObjectAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();

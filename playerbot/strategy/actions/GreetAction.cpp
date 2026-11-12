@@ -6,10 +6,12 @@
 #include "playerbot/ServerFacade.h"
 using namespace ai;
 
+/// 构造函数：初始化问候动作
 GreetAction::GreetAction(PlayerbotAI* ai) : Action(ai, "greet")
 {
 }
 
+/// 执行动作主逻辑（问候动作）
 bool GreetAction::Execute(Event& event)
 {
     ObjectGuid guid = AI_VALUE(ObjectGuid, "new player nearby");

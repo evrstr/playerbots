@@ -1,3 +1,4 @@
+// 潜行者 - AI对象上下文实现文件 (RogueAiObjectContext.cpp)：定义并注册该职业的策略、动作、触发器与乘数
 
 #include "playerbot/playerbot.h"
 #include "RogueActions.h"
@@ -13,6 +14,7 @@ namespace ai
 {
     namespace rogue
     {
+        // 策略工厂：注册非战斗、反应、拉怪与AOE等通用策略
         class StrategyFactoryInternal : public NamedObjectContext<Strategy>
         {
         public:
@@ -28,6 +30,7 @@ namespace ai
             }
         };
 
+        // AoeSituationStrategyFactoryInternal
         class AoeSituationStrategyFactoryInternal : public NamedObjectContext<Strategy>
         {
         public:
@@ -45,6 +48,7 @@ namespace ai
             }
         };
 
+        // BuffSituationStrategyFactoryInternal
         class BuffSituationStrategyFactoryInternal : public NamedObjectContext<Strategy>
         {
         public:
@@ -62,6 +66,7 @@ namespace ai
             }
         };
 
+        // BoostSituationStrategyFactoryInternal
         class BoostSituationStrategyFactoryInternal : public NamedObjectContext<Strategy>
         {
         public:
@@ -79,6 +84,7 @@ namespace ai
             }
         };
 
+        // CcSituationStrategyFactoryInternal
         class CcSituationStrategyFactoryInternal : public NamedObjectContext<Strategy>
         {
         public:
@@ -96,6 +102,7 @@ namespace ai
             }
         };
 
+        // StealthSituationStrategyFactoryInternal
         class StealthSituationStrategyFactoryInternal : public NamedObjectContext<Strategy>
         {
         public:
@@ -113,6 +120,7 @@ namespace ai
             }
         };
 
+        // PoisonsSituationStrategyFactoryInternal
         class PoisonsSituationStrategyFactoryInternal : public NamedObjectContext<Strategy>
         {
         public:
@@ -130,6 +138,7 @@ namespace ai
             }
         };
 
+        // PoisonMainStrategyFactoryInternal
         class PoisonMainStrategyFactoryInternal : public NamedObjectContext<Strategy>
         {
         public:
@@ -145,6 +154,7 @@ namespace ai
             }
         };
 
+        // PoisonOffStrategyFactoryInternal
         class PoisonOffStrategyFactoryInternal : public NamedObjectContext<Strategy>
         {
         public:
@@ -160,6 +170,7 @@ namespace ai
             }
         };
 
+        // ClassStrategyFactoryInternal
         class ClassStrategyFactoryInternal : public NamedObjectContext<Strategy>
         {
         public:
@@ -171,6 +182,7 @@ namespace ai
             }
         };
 
+        // ClassSituationStrategyFactoryInternal
         class ClassSituationStrategyFactoryInternal : public NamedObjectContext<Strategy>
         {
         public:
@@ -188,6 +200,7 @@ namespace ai
             }
         };
 
+        // 触发器工厂：注册职业专属条件触发器
         class TriggerFactoryInternal : public NamedObjectContext<Trigger>
         {
         public:
@@ -232,6 +245,7 @@ namespace ai
             }
         };
 
+        // 内部 AI 对象上下文容器：组合并管理各类对象工厂
         class AiObjectContextInternal : public NamedObjectContext<Action>
         {
         public:
@@ -293,6 +307,7 @@ namespace ai
     };
 };
 
+// 构造函数：注册潜行者的所有内部工厂到上下文
 RogueAiObjectContext::RogueAiObjectContext(PlayerbotAI* ai) : AiObjectContext(ai)
 {
     strategyContexts.Add(new ai::rogue::StrategyFactoryInternal());

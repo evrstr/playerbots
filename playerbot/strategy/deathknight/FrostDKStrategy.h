@@ -1,8 +1,10 @@
+// 死亡骑士 - 冰霜死亡骑士策略头文件 (FrostDKStrategy.h)
 #pragma once
 #include "GenericDKStrategy.h"
 
 namespace ai
 {
+    // 冰霜死亡骑士策略：定义该专精/场景下的触发器与默认行为
     class FrostDKStrategy : public GenericDKStrategy
     {
     public:
@@ -15,6 +17,7 @@ namespace ai
         NextAction** GetDefaultCombatActions() override;
     };
 
+    // 冰霜死亡骑士AOE群体策略：定义该专精/场景下的触发器与默认行为
     class FrostDKAoeStrategy : public CombatStrategy
     {
     public:

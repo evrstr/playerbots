@@ -5,6 +5,7 @@
 
 using namespace ai;
 
+/// 执行动作主逻辑（汇报物品数量动作）
 bool TellItemCountAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();

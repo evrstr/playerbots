@@ -1,6 +1,7 @@
 #ifndef _PlayerbotSecurity_H
 #define _PlayerbotSecurity_H
 
+/// 机器人交互安全权限等级枚举（拒绝/仅聊天/允许公会邀请/允许组队邀请/完全允许）
 enum class PlayerbotSecurityLevel : uint8
 {
     PLAYERBOT_SECURITY_DENY_ALL = 0,
@@ -10,6 +11,7 @@ enum class PlayerbotSecurityLevel : uint8
     PLAYERBOT_SECURITY_ALLOW_ALL = 4
 };
 
+/// 拒绝外部玩家请求的具体原因枚举
 enum class DenyReason : uint8
 {
     PLAYERBOT_DENY_NONE,
@@ -28,12 +30,13 @@ enum class DenyReason : uint8
     PLAYERBOT_DENY_LFG
 };
 
+/// 机器人安全权限校验器，判定其他玩家是否有权对机器人发指令或组队
 class PlayerbotSecurity
 {
     public:
         PlayerbotSecurity(Player* const bot);
 
-	public:
+    public:
         PlayerbotSecurityLevel LevelFor(Player* from, DenyReason* reason = NULL, bool ignoreGroup = false);
         bool CheckLevelFor(PlayerbotSecurityLevel level, bool silent, Player* from, bool ignoreGroup = false);
 

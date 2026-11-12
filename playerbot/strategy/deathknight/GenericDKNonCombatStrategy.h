@@ -1,8 +1,10 @@
+// 死亡骑士 - 通用死亡骑士非战斗策略头文件 (GenericDKNonCombatStrategy.h)
 #pragma once
 #include "playerbot/strategy/generic/NonCombatStrategy.h"
 
 namespace ai
 {
+    // 通用死亡骑士非战斗策略：定义该专精/场景下的触发器与默认行为
     class GenericDKNonCombatStrategy : public NonCombatStrategy
     {
     public:
@@ -13,6 +15,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*> &triggers) override;
     };
 
+    // 死亡骑士增益Buff输出策略：定义该专精/场景下的触发器与默认行为
     class DKBuffDpsStrategy : public Strategy
     {
     public:
@@ -24,6 +27,7 @@ namespace ai
         void InitCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+// 死亡骑士新手起始任务策略：定义该专精/场景下的触发器与默认行为
 class DKStartQuestStrategy : public Strategy
     {
     public:

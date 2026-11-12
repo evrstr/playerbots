@@ -11,6 +11,7 @@
 ServerFacade::ServerFacade() {}
 ServerFacade::~ServerFacade() {}
 
+// 计算单位到世界对象精确保留一位小数的三维距离
 float ServerFacade::GetDistance(Unit *unit, WorldObject* wo)
 {
     if (!unit || !wo)
@@ -38,6 +39,7 @@ float ServerFacade::GetDistance(Unit *unit, float x, float y, float z)
     return round(dist * 10.0f) / 10.0f;
 }
 
+// 计算单位到世界对象精确保留一位小数的二维平面距离
 float ServerFacade::GetDistance2d(Unit *unit, WorldObject* wo)
 {
     if (!unit || !wo)
@@ -85,6 +87,7 @@ bool ServerFacade::IsDistanceLessOrEqualThan(float dist1, float dist2)
     return !IsDistanceGreaterThan(dist1, dist2);
 }
 
+// 调整单位朝向并在静止状态下发送心跳包同步朝向
 void ServerFacade::SetFacingTo(Unit* unit, float angle, bool force)
 {
     MotionMaster &mm = *unit->GetMotionMaster();
@@ -138,6 +141,7 @@ bool ServerFacade::IsHostileTo(WorldObject* bot, Unit* to)
 }
 
 
+// 检查机器人指定法术（或附带物品）是否冷却就绪
 bool ServerFacade::IsSpellReady(Player* bot, uint32 spell, uint32 itemId)
 {
 #ifdef MANGOS

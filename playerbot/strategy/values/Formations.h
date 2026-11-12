@@ -1,3 +1,4 @@
+// 策略值头文件：Formations（队伍阵型基类、阵型位置计算值与设置指令）
 #pragma once
 #include "playerbot/strategy/Value.h"
 #include "playerbot/PlayerbotAIConfig.h"
@@ -5,6 +6,7 @@
 
 namespace ai
 {
+    // 队伍阵型抽象基类，提供朝向角度、跟随偏移及空位置判定等通用接口
     class Formation : public AiNamedObject
     {
     public:
@@ -17,12 +19,13 @@ namespace ai
         virtual float GetOffset();
         virtual float GetMaxDistance();
         static WorldLocation NullLocation;
-		static bool IsNullLocation(WorldLocation const& loc);
+        static bool IsNullLocation(WorldLocation const& loc);
 
     protected:
         float GetFollowAngle();
     };
 
+    // 跟随型阵型基类，基于参考目标方向计算自身偏移坐标
     class FollowFormation : public Formation
     {
     public:
@@ -30,6 +33,7 @@ namespace ai
         virtual WorldLocation GetLocation();
     };
 
+    // 移动排布型阵型基类，提供多排与单排队伍落点计算工具方法
     class MoveFormation : public Formation
     {
     public:
@@ -40,6 +44,7 @@ namespace ai
         WorldLocation MoveSingleLine(std::vector<Player*> line, float diff, float cx, float cy, float cz, float orientation, float range);
     };
 
+    // 前置移动型阵型基类，使队员保持在引导者前方或特定相对方位
     class MoveAheadFormation : public MoveFormation
     {
     public:
@@ -48,9 +53,10 @@ namespace ai
         virtual WorldLocation GetLocationInternal() { return NullLocation; }
     };
 
+    // 手动设置值：管理机器人当前使用的阵型实例，支持保存与切换
     class FormationValue : public ManualSetValue<Formation*>
-	{
-	public:
+    {
+    public:
         FormationValue(PlayerbotAI* ai);
         ~FormationValue() override { if (value) { delete value; value = NULL; } }
         virtual void Reset() override;
@@ -58,6 +64,7 @@ namespace ai
         virtual bool Load(std::string value) override;
     };
 
+    // 位置计算器：将当前阵型返回的 WorldLocation 转换为 WorldPosition
     class FormationPositionValue : public CalculatedValue<WorldPosition>
     {
     public:
@@ -74,6 +81,7 @@ namespace ai
         }
     };
 
+    // 聊天命令动作：允许玩家通过指令查询或切换机器人的队伍阵型
     class SetFormationAction : public ChatCommandAction
     {
     public:

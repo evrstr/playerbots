@@ -8,6 +8,7 @@
 
 namespace ahbot
 {
+    /// 所有受支持拍卖物品分类的全局注册列表
     class CategoryList
     {
     public:
@@ -25,6 +26,7 @@ namespace ahbot
         std::vector<Category*> categories;
     };
 
+    /// 对物品 ID 容器执行随机洗牌
     template<class T>
     void Shuffle(std::vector<T>& items) 
     {
@@ -40,6 +42,7 @@ namespace ahbot
         }
     }
 
+    /// 按分类组织的物品集合容器基类
     class ItemBag 
     {
     public:
@@ -60,6 +63,7 @@ namespace ahbot
         std::map<Category*, std::vector<uint32> > content;
     };
 
+    /// 可由机器人上架拍卖的物品集合（排除普通无限量NPC商人出售物品等）
     class AvailableItemsBag : public ItemBag
     {
     public:
@@ -70,6 +74,7 @@ namespace ahbot
         virtual std::string GetName() override { return "available"; }
     };
 
+    /// 统计指定拍卖行当前已在架物品的容器
     class InAuctionItemsBag : public ItemBag
     {
     public:

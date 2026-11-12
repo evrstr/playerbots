@@ -1,3 +1,4 @@
+/// 测试套件：跨地图召唤与复活（BL-14 ~ BL-25）测试实现
 #include "playerbot/playerbot.h"
 #include "TeleportTests.h"
 #include "TestRegistry.h"
@@ -7,7 +8,7 @@ using namespace ai;
 
 namespace
 {
-    // The bot created by the "spawn" command (ctx.spawnedBots is filled by CommandPartySpawnBot).
+    // The bot created by the "spawn" command (ctx.spawnedBots is filled by CommandPartySpawnBot). | 获取由 spawn 命令生成的测试机器人，若尚未完全进入世界则返回空指针
     // Returns nullptr while it is still entering the world.
     Player* GetSpawnedBot(TestContext& ctx)
     {
@@ -21,12 +22,14 @@ namespace
         return spawned;
     }
 
+/// 检查命令参数是否包含“预期被拒绝（expect rejected）”标记
     bool ExpectsRejection(const std::string& params)
     {
         return params.find("expect rejected") != std::string::npos;
     }
 
-    // State of the spawned bot, so a refused request says *why* it was refused.
+    // State of the spawned bot, so a refused request says *why* it was refused. | 描述生成机器人当前状态，以便被拒绝时明确输出原因
+/// 格式化目标机器人的存活、战斗、地图及位置摘要用于错误提示
     std::string DescribeTarget(Player* target)
     {
         std::ostringstream out;
@@ -45,10 +48,11 @@ namespace
         return out.str();
     }
 
-    // Summons a durable creature on the target and flags both into combat. Returns false if the
+    // Summons a durable creature on the target and flags both into combat. Returns false if the | 生成高血量生物并双向置入战斗（同一 tick 内强制保活进战）
     // creature could not be summoned or the target refused to enter combat. Used where the callers
     // need the target in combat *in the same tick* - a separate command cannot hold the state across
     // an AI tick, because the bot's own AI drops it again.
+/// 在目标位置生成耐久生物并强行令双方进入战斗状态（防止 AI 脱战）
     bool ForceCombat(Player* target, uint32 entry)
     {
         Creature* creature = target->SummonCreature(entry,
@@ -58,7 +62,7 @@ namespace
         if (!creature)
             return false;
 
-        // SetLevel() alone does not recompute a spawned creature's stats (a level-60 entry still
+        // SetLevel() alone does not recompute a spawned creature's stats (a level-60 entry still | 仅 SetLevel 不会重算生物属性，需显式提高最大生命值防止被秒杀
         // reported hp 42 and was one-shot), so raise max health explicitly.
         creature->SetLevel(target->GetLevel());
         creature->SetMaxHealth(200000);
@@ -75,7 +79,8 @@ namespace
         return target->IsInCombat();
     }
 
-    // Shared body for the two request commands: send, then compare against the expectation.
+    // Shared body for the two request commands: send, then compare against the expectation. | 两个请求命令的共用逻辑：比对实际发送结果与预期是否一致
+/// 校验召唤/复活请求的发送结果是否符合测试预期（接受或拒绝）
     TestResult RunRequest(const std::string& params, const char* what, bool sent, const std::string& details, std::string& message)
     {
         if (ExpectsRejection(params))
@@ -99,13 +104,14 @@ namespace
     }
 }
 
+/// 执行 summon request 命令：模拟发送跨图/同图召唤请求并校验结果
 TestResult CommandSummonRequest::Execute(const std::string& params, Player* bot, PlayerbotAI* ai, TestContext& ctx, std::string& message)
 {
     Player* target = GetSpawnedBot(ctx);
     if (!target)
         return TestResult::PENDING; // still logging in
 
-    // The core summon response path refuses an in-combat target, and a freshly spawned bot can drift
+    // The core summon response path refuses an in-combat target, and a freshly spawned bot can drift | 正常路径下清理刚生成机器人误触的战斗；预期拒绝分支则保留或强行制造战斗条件
     // into combat on its own - so clear it for the normal (expect-accepted) case. When the test
     // explicitly expects a rejection, combat IS the precondition, so leave it alone.
     if (!ExpectsRejection(params) && target->IsInCombat())
@@ -113,7 +119,7 @@ TestResult CommandSummonRequest::Execute(const std::string& params, Player* bot,
         target->CombatStopWithPets(true, true);
     }
 
-    // Expecting a rejection: the in-combat precondition must be forced in THIS tick. A separate
+    // Expecting a rejection: the in-combat precondition must be forced in THIS tick. A separate | 预期拒绝分支须在本帧立即强制置入战斗；死亡目标自身即触发拒绝
     // "engage spawn" command cannot hold combat across an AI tick - the bot's own AI drops it, so by
     // the time this command runs the target is out of combat again and the request is accepted.
     // A DEAD target is its own rejection precondition (SendSummonRequest refuses corpses outright),
@@ -140,6 +146,7 @@ TestResult CommandSummonRequest::Execute(const std::string& params, Player* bot,
     return RunRequest(params, "summon request", sent, DescribeTarget(target), message);
 }
 
+/// 执行 resurrect request 命令：向死亡生成机器人发送跨图/同图复活请求
 TestResult CommandResurrectRequest::Execute(const std::string& params, Player* bot, PlayerbotAI* ai, TestContext& ctx, std::string& message)
 {
     Player* target = GetSpawnedBot(ctx);
@@ -151,7 +158,7 @@ TestResult CommandResurrectRequest::Execute(const std::string& params, Player* b
 
     const bool sent = PlayerbotAI::SendResurrectRequest(bot, target, bot->GetMapId(), x, y, z);
 
-    // Remember where we told the corpse to land: the monitor must measure against this, not against
+    // Remember where we told the corpse to land: the monitor must measure against this, not against | 记录复活请求的目标落点坐标供监听器比对，避免主控随机传走造成误判
     // the acting bot, which may random-teleport away long before the resurrect completes.
     if (sent)
     {
@@ -165,6 +172,7 @@ TestResult CommandResurrectRequest::Execute(const std::string& params, Player* b
     return RunRequest(params, "resurrect request", sent, DescribeTarget(target), message);
 }
 
+/// 执行 kill spawn 命令：立即击杀已生成的测试机器人
 TestResult CommandKillSpawn::Execute(const std::string& params, Player* bot, PlayerbotAI* ai, TestContext& ctx, std::string& message)
 {
     Player* target = GetSpawnedBot(ctx);
@@ -174,7 +182,7 @@ TestResult CommandKillSpawn::Execute(const std::string& params, Player* bot, Pla
     if (target->IsAlive())
         target->KillPlayer();
 
-    // Deliberately decisive: returning PENDING here would hang the test, because monitors are only
+    // Deliberately decisive: returning PENDING here would hang the test, because monitors are only | 故意直接返回确定结果：若返回 PENDING 会导致脚本卡死在观察阶段之前
     // evaluated once the script reaches "observe".
     if (target->IsAlive())
     {
@@ -185,6 +193,7 @@ TestResult CommandKillSpawn::Execute(const std::string& params, Player* bot, Pla
     return TestResult::PASS;
 }
 
+/// 执行 move spawn 命令：通过所属线程安全将生成机器人移至指定点
 TestResult CommandMoveSpawn::Execute(const std::string& params, Player* bot, PlayerbotAI* ai, TestContext& ctx, std::string& message)
 {
     Player* target = GetSpawnedBot(ctx);
@@ -203,7 +212,7 @@ TestResult CommandMoveSpawn::Execute(const std::string& params, Player* bot, Pla
     const float y = loc.coord_y;
     const float z = loc.coord_z;
 
-    // Route through RunOnOwningThread: it runs inline when the spawned bot is already on our map,
+    // Route through RunOnOwningThread: it runs inline when the spawned bot is already on our map, | 经由 RunOnOwningThread 跨图调度，避免从当前线程直接操作其他地图
     // and queues to the world messager otherwise - so a cross-map move never touches another map
     // from this thread.
     ai->RunOnOwningThread(target, [mapId, x, y, z](Player* p)
@@ -211,7 +220,7 @@ TestResult CommandMoveSpawn::Execute(const std::string& params, Player* bot, Pla
         p->TeleportTo(mapId, x, y, z, p->GetOrientation());
     });
 
-    // Log the state right after the call: RunOnOwningThread runs inline when the bot shares our map,
+    // Log the state right after the call: RunOnOwningThread runs inline when the bot shares our map, | 立即记录调用后的传送状态用于诊断
     // so this reflects the teleport having been issued (beingTeleported=1) or silently refused.
     sLog.outString("[SUMMON] move spawn: %s -> %s (resolved map %u @ %.1f, %.1f, %.1f); now map=%u inWorld=%d beingTeleported=%d",
         target->GetName(), params.c_str(), mapId, x, y, z,
@@ -219,19 +228,21 @@ TestResult CommandMoveSpawn::Execute(const std::string& params, Player* bot, Pla
     return TestResult::PASS;
 }
 
+/// 执行 hide spawn 命令：为生成机器人设置 GM 不可见模式并清空仇恨
 TestResult CommandHideSpawn::Execute(const std::string& params, Player* bot, PlayerbotAI* ai, TestContext& ctx, std::string& message)
 {
     Player* target = GetSpawnedBot(ctx);
     if (!target)
         return TestResult::PENDING; // still entering the world
 
-    // GM mode is what stops the guards engaging; the combat stop clears anything that already
+    // GM mode is what stops the guards engaging; the combat stop clears anything that already | 开启 GM 隐身以防卫兵攻击，并清除此前已触发的战斗
     // landed in the tick before this ran.
     target->SetGMVisible(false);
     target->CombatStopWithPets(true, true);
     return TestResult::PASS;
 }
 
+/// 执行 engage spawn 命令：刷出高血量测试怪使生成机器人保持交战
 TestResult CommandEngageSpawn::Execute(const std::string& params, Player* bot, PlayerbotAI* ai, TestContext& ctx, std::string& message)
 {
     Player* target = GetSpawnedBot(ctx);
@@ -245,7 +256,7 @@ TestResult CommandEngageSpawn::Execute(const std::string& params, Player* bot, P
         return TestResult::IMPOSSIBLE;
     }
 
-    // Deliberately NO early return when already in combat: a freshly spawned bot is often briefly
+    // Deliberately NO early return when already in combat: a freshly spawned bot is often briefly | 不因已进战就提前返回，始终附加高耐久攻击怪以防意外脱战
     // in combat with something that dies immediately, so combat drops a tick later. Always add a
     // durable attacker instead.
     Creature* creature = target->SummonCreature(entry,
@@ -258,7 +269,7 @@ TestResult CommandEngageSpawn::Execute(const std::string& params, Player* bot, P
         return TestResult::IMPOSSIBLE;
     }
 
-    // Make the prey survive. SetLevel() alone does NOT recompute a spawned creature's stats - a
+    // Make the prey survive. SetLevel() alone does NOT recompute a spawned creature's stats - a | 显式抬高血量防止猎物瞬间阵亡导致下一帧脱战
     // level-60 entry still reported hp 42 and was one-shot, which drops combat the next tick and
     // lets the summon request through. Raise max health explicitly.
     creature->SetLevel(target->GetLevel());
@@ -270,7 +281,7 @@ TestResult CommandEngageSpawn::Execute(const std::string& params, Player* bot, P
     if (creature->AI())
         creature->AI()->AttackStart(target);
 
-    // Belt and braces: flag the pair in combat both ways, so it holds even if neither AI lands a hit
+    // Belt and braces: flag the pair in combat both ways, so it holds even if neither AI lands a hit | 双向置入战斗标志，确保即使未出手攻击也能维持战斗状态
     // on this tick.
     target->SetInCombatWith(creature);
     creature->SetInCombatWith(target);
@@ -286,6 +297,7 @@ TestResult CommandEngageSpawn::Execute(const std::string& params, Player* bot, P
     return TestResult::PASS;
 }
 
+/// 监听器：判断第一个生成机器人是否已进入主控机器人所在地图与副本
 bool MonitorSpawnOnMap::IsConditionMet(const std::string& monitorStr, Player* bot, TestContext& ctx) const
 {
     Player* spawned = GetSpawnedBot(ctx);
@@ -295,6 +307,7 @@ bool MonitorSpawnOnMap::IsConditionMet(const std::string& monitorStr, Player* bo
     return spawned->GetMapId() == bot->GetMapId() && spawned->GetInstanceId() == bot->GetInstanceId();
 }
 
+/// 监听器：判断第一个生成机器人当前是否存活
 bool MonitorSpawnAlive::IsConditionMet(const std::string& monitorStr, Player* bot, TestContext& ctx) const
 {
     Player* spawned = GetSpawnedBot(ctx);
@@ -304,6 +317,7 @@ bool MonitorSpawnAlive::IsConditionMet(const std::string& monitorStr, Player* bo
     return spawned->IsAlive();
 }
 
+/// 监听器：判断第一个生成机器人是否接受了本轮复活请求并在落点附近复活
 bool MonitorSpawnResurrected::IsConditionMet(const std::string& monitorStr, Player* bot, TestContext& ctx) const
 {
     Player* spawned = GetSpawnedBot(ctx);
@@ -312,7 +326,7 @@ bool MonitorSpawnResurrected::IsConditionMet(const std::string& monitorStr, Play
 
     const bool requestedBy = spawned->isRessurectRequestedBy(bot->GetObjectGuid());
 
-    // Measure the landing against the position our request specified, never against the acting bot:
+    // Measure the landing against the position our request specified, never against the acting bot: | 测量目标相对复活请求指定坐标的落点（而非主控机器人坐标），兼容跨图随机漫游行为
     // the caller is a random bot that can random-teleport thousands of yards (or into a battleground)
     // while the 120 s observe window runs. The comparison is optional - without one the monitor
     // asserts only that the corpse was revived onto the map our request named while still carrying
@@ -341,6 +355,7 @@ bool MonitorSpawnResurrected::IsConditionMet(const std::string& monitorStr, Play
     return closeEnough;
 }
 
+/// 监听器：判断第一个生成机器人当前是否处于死亡状态
 bool MonitorSpawnDead::IsConditionMet(const std::string& monitorStr, Player* bot, TestContext& ctx) const
 {
     Player* spawned = GetSpawnedBot(ctx);
@@ -351,9 +366,10 @@ bool MonitorSpawnDead::IsConditionMet(const std::string& monitorStr, Player* bot
 }
 
 // =============================================================================================
-// BL-14 .. BL-25 - cross-map summon / resurrect scripts
+// BL-14 .. BL-25 - cross-map summon / resurrect scripts | BL-14 .. BL-25 跨地图召唤与复活测试脚本
 // =============================================================================================
 
+/// 注册所有跨图召唤、复活及边界条件（BL-14 ~ BL-25）集成测试脚本
 void TestRegistry::RegisterTeleportTests()
 {
     static const std::string gmInvisible = "gm visible off";
@@ -361,7 +377,7 @@ void TestRegistry::RegisterTeleportTests()
     static const std::string needAlive = "monitor bot dead => abort \"Bot died, test interrupted\"";
     static const std::string needSpawn = "monitor spawn on map => pass \"Spawned bot reached the summoner's map\"";
 
-    // BL-14 - alive bot summoned on the same map. The spawned bot is left in Stormwind and the
+    // BL-14 - alive bot summoned on the same map. The spawned bot is left in Stormwind and the | BL-14：同图召唤存活机器人（暴风城 -> 艾尔文森林）
     // summoner moves to Elwynn (both map 0), so the closing distance proves the summon happened.
     RegisterTest("teleport_summon_alive_same_map", {
         gmInvisible,
@@ -378,7 +394,7 @@ void TestRegistry::RegisterTeleportTests()
         gmVisible
     });
 
-    // BL-15 - alive bot summoned across maps. Summoner crosses to Kalimdor; the spawned bot has to
+    // BL-15 - alive bot summoned across maps. Summoner crosses to Kalimdor; the spawned bot has to | BL-15：跨图召唤存活机器人（主控前往卡利姆多）
     // follow it there through the request path. A bad map/thread assumption shows up as a crash.
     RegisterTest("teleport_summon_alive_cross_map", {
         gmInvisible,
@@ -395,7 +411,7 @@ void TestRegistry::RegisterTeleportTests()
         gmVisible
     });
 
-    // BL-16 - dead bot summoned on the same map. Must be resurrected by our request, not merely
+    // BL-16 - dead bot summoned on the same map. Must be resurrected by our request, not merely | BL-16：同图召唤并复活死亡机器人（必须通过复活请求就近落地）
     // teleported or revived by the bot's own dead strategy (spirit healer), so the monitor requires
     // the resurrect to have landed the corpse next to the summoner.
     RegisterTest("teleport_summon_dead_same_map", {
@@ -414,7 +430,7 @@ void TestRegistry::RegisterTeleportTests()
         gmVisible
     });
 
-    // BL-22 - the plain summon path must never resurrect a corpse. `PlayerbotAI::SendSummonRequest`
+    // BL-22 - the plain summon path must never resurrect a corpse. `PlayerbotAI::SendSummonRequest` | BL-22：普通召唤请求不得复活尸体，必须被拒绝且尸体保持死亡
     // refuses a dead target outright, and the only code that rezzes on this path is the *explicit*
     // `resurrectPlayer` branch of `SummonAction::Teleport` (covered by BL-16/BL-17). So a summon
     // request aimed at a corpse must be refused, and the corpse must stay dead. Note this asserts the
@@ -437,7 +453,7 @@ void TestRegistry::RegisterTeleportTests()
         gmVisible
     });
 
-    // BL-17 - dead bot summoned across maps.
+    // BL-17 - dead bot summoned across maps. | BL-17：跨图召唤并复活死亡机器人（校验目标在请求地图上存活且持有请求记录）
     //
     // No distance assertion here, unlike BL-16: the spawned target is a free-alt random bot, so
     // RandomPlayerbotMgr keeps roaming it (random teleport / arena queue) and can move it on while
@@ -462,7 +478,7 @@ void TestRegistry::RegisterTeleportTests()
         gmVisible
     });
     // =========================================================================================
-    // DIAGNOSTIC (temporary) - isolate the spawn/login crash.
+    // DIAGNOSTIC (temporary) - isolate the spawn/login crash. | 临时诊断测试：定位 spawn/login 过程中 libmysql 崩溃问题
     // These are NOT BL-14..28 coverage; they exist only to localise the libmysql crash and
     // should be deleted once the spawn path is fixed.
     //
@@ -533,7 +549,7 @@ void TestRegistry::RegisterTeleportTests()
     // Tests for the primitives added for BL-20 / BL-26 / BL-28: move spawn, engage spawn, spawn dead
     // =========================================================================================
 
-    // BL-20 - an in-combat target cannot accept a summon, so the request must be refused (the caller
+    // BL-20 - an in-combat target cannot accept a summon, so the request must be refused (the caller | BL-20：战斗中的目标应拒绝召唤请求
     // then falls back to a direct teleport). Forces the in-combat state with engage spawn.
     RegisterTest("teleport_summon_in_combat_rejected", {
         gmInvisible,
@@ -546,7 +562,7 @@ void TestRegistry::RegisterTeleportTests()
         "observe"
     });
 
-    // Smoke test for "move spawn" - cross-map and deterministic. Asserts on the MAP, not distance,
+    // Smoke test for "move spawn" - cross-map and deterministic. Asserts on the MAP, not distance, | move spawn 跨地图移动冒烟测试（暴风城 -> 奥格瑞玛）
     // so an AI-wandering bot cannot produce a false negative. The host stays in Stormwind (map 0)
     // and the spawned bot is moved to Orgrimmar (map 1), so "spawn on map" must never become true.
     //
@@ -565,13 +581,13 @@ void TestRegistry::RegisterTeleportTests()
         "observe"
     });
     // =========================================================================================
-    // BL-25 / BL-26 / BL-28 - a bot teleporting *other* bots must not run another map's work on its
+    // BL-25 / BL-26 / BL-28 - a bot teleporting *other* bots must not run another map's work on its | BL-25/26/28：通过 RunOnOwningThread 实现线程安全的跨图群体传送
     // own thread. "teleport group" routes every member through PlayerbotAI::RunOnOwningThread, so a
     // group split across maps exercises the world-thread hop (the case that used to abort inside
     // WorldObject::GetMap()), while members already sharing the host's map take the inline path.
     // =========================================================================================
 
-    // Cross-map group teleport. The group is formed first and the host only leaves afterwards:
+    // Cross-map group teleport. The group is formed first and the host only leaves afterwards: | 跨图队伍传送测试：先组队再切图，验证组队同步与目标地图全员抵达
     // "mgroup" creates the members asynchronously, and the deferred join (RandomPlayerbotMgr's
     // "create group" value, RandomPlayerbotMgr.cpp:909) is consumed on the tick it is first seen -
     // so a host that teleports away while the members are still logging in loses the join silently

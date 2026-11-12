@@ -1,9 +1,11 @@
+/// 测试前置条件：角色职业/状态与装备要求命令实现
 #include "playerbot/playerbot.h"
 #include "RequireState.h"
 #include "playerbot/AiFactory.h"
 
 using namespace ai;
 
+/// 执行 require bot is 命令：验证机器人等级、职业、种族、阵营与性别等条件
 TestResult RequireBotIs::Execute(const std::string& params, Player* bot,
             PlayerbotAI* ai, TestContext& ctx, std::string& message)
 {
@@ -85,6 +87,7 @@ TestResult RequireBotIs::Execute(const std::string& params, Player* bot,
     return TestResult::PASS;
 }
 
+/// 执行 require equip 命令：验证机器人指定装备槽位穿戴的物品 ID
 TestResult RequireEquip::Execute(const std::string& params, Player* bot, PlayerbotAI* ai, TestContext& ctx, std::string& message)
 {
     std::string key;

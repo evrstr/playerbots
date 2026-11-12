@@ -4,6 +4,7 @@
 
 using namespace ai;
 
+/// 执行动作主逻辑（日志级别指令动作）
 bool LogLevelAction::Execute(Event& event)
 {
     std::string param = event.getParam();
@@ -24,6 +25,7 @@ bool LogLevelAction::Execute(Event& event)
     return true;    
 }
 
+/// 将日志级别枚举值转换为对应的字符串名称
 std::string LogLevelAction::logLevel2string(LogLevel level)
 {
     switch (level) 
@@ -38,6 +40,7 @@ std::string LogLevelAction::logLevel2string(LogLevel level)
         return "debug";
     }
 }
+/// 将字符串名称解析为对应的日志级别枚举值
 LogLevel LogLevelAction::string2logLevel(std::string level)
 {
     if (level == "debug")

@@ -4,10 +4,13 @@
 
 namespace ai
 {
+   /// 接受战场邀请动作：收到战场入场邀请时点击接受（当前已禁用）
    class AcceptBgInvitationAction : public Action {
    public:
+      /// 构造函数：初始化接受战场邀请动作
       AcceptBgInvitationAction(PlayerbotAI* ai) : Action(ai, "accept bg invitation") {}
 
+      /// 执行动作主逻辑（接受战场邀请动作）
       virtual bool Execute(Event& event) override
       {
          /*
@@ -27,7 +30,7 @@ namespace ai
       }
 
 #ifdef GenerateBotHelp
-      virtual std::string GetHelpName() { return "accept bg invitation"; } //Must equal iternal name
+      virtual std::string GetHelpName() { return "accept bg invitation"; } // Must equal iternal name (必须与内部动作名称一致)
       virtual std::string GetHelpDescription()
       {
           return "This action clicks the accept button when invited to join a bg.\n"

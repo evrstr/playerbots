@@ -1,3 +1,4 @@
+// 策略值实现：TrainerValues（训练师列表构建、可学法术筛选与总费用统计）
 
 #include "playerbot/playerbot.h"
 #include "TrainerValues.h"
@@ -7,14 +8,15 @@
 using namespace ai;
 
 
+// 扫描所有 NPC 模板及训练师法术列表，按训练师类型和前置需求建立全局查找表
 trainableSpellMap* TrainableSpellMapValue::Calculate()
 {
     trainableSpellMap* spellMap = new trainableSpellMap;
 
-    //           template, trainer
+    //           template, trainer | 记录训练师模板 ID 与对应 NPC 模板列表
     std::unordered_map <uint32, std::vector<CreatureInfo const*>> trainerTemplateIds;
 
-    //Select all trainer lists and their trainers.
+    //Select all trainer lists and their trainers. | 遍历并收集全部训练师法术表及其所属训练师 NPC
     for (uint32 id = 0; id < sCreatureStorage.GetMaxEntry(); ++id)
     {
         CreatureInfo const* creatureInfo = sCreatureStorage.LookupEntry<CreatureInfo>(id);
@@ -89,7 +91,7 @@ trainableSpellMap* TrainableSpellMapValue::Calculate()
                     spellRequirement = trainerSpell.reqSkill;
                 else
                 {
-                    // exist, already checked at loading
+                    // exist, already checked at loading | 训练师法术表必定存在，加载阶段已校验
 #ifdef MANGOSBOT_ZERO
                     SpellEntry const* spell = sSpellTemplate.LookupEntry<SpellEntry>(trainerSpell.learnedSpell);
 #else
@@ -108,6 +110,7 @@ trainableSpellMap* TrainableSpellMapValue::Calculate()
     return spellMap;
 }
 
+// 筛选出机器人当前等级足够、尚未掌握且符合专业/阵营要求的训练师法术
 std::vector<TrainerSpell const*> TrainableSpellsValue::Calculate()
 {
     std::vector<TrainerSpell const*> trainableSpells;
@@ -137,7 +140,7 @@ std::vector<TrainerSpell const*> TrainableSpellsValue::Calculate()
                 if (state != TRAINER_SPELL_GREEN)
                     continue;
 
-                //Skip initial profession training.
+                //Skip initial profession training. | 跳过需要消耗专业栏位的初级专业训练技能
 #ifdef MANGOSBOT_ZERO
                 if (bot->GetLevel() < 10 && sSpellMgr.IsProfessionSpell(trainerSpell->learnedSpell) && sSpellMgr.GetSpellRank(trainerSpell->learnedSpell) == 1)
 #else
@@ -153,6 +156,7 @@ std::vector<TrainerSpell const*> TrainableSpellsValue::Calculate()
     return trainableSpells;
 }
 
+// 将当前可学法术列表格式化为聊天可读法术链接文本
 std::string TrainableSpellsValue::Format()
 {
     std::vector<std::string> vec;  
@@ -166,6 +170,7 @@ std::string TrainableSpellsValue::Format()
     return sPlayerbotHelpMgr.makeList(vec, "[<part>]");
 }
 
+// 提取教授可学法术的全部去重训练师 NPC Entry
 std::vector<int32> AvailableTrainersValue::Calculate()
 {
     std::vector<TrainerSpell const*> trainableSpells = AI_VALUE2(std::vector<TrainerSpell const*>, "trainable spells", getQualifier());;
@@ -204,6 +209,7 @@ std::vector<int32> AvailableTrainersValue::Calculate()
     return retTrainers;
 }
 
+// 汇总所有可学法术的学习花费总额
 uint32 TrainCostValue::Calculate()
 {
     uint32 TotalCost = 0;

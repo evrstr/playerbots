@@ -6,6 +6,7 @@
 #include "playerbot/PlayerbotAIConfig.h"
 using namespace ai;
 
+/// 执行动作主逻辑（检查邮件动作）
 bool CheckMailAction::Execute(Event& event)
 {
     WorldPacket p;
@@ -15,7 +16,7 @@ bool CheckMailAction::Execute(Event& event)
 
     PlayerMails mails;
 
-    //Fetch mails first and then loop over them to prevent needing to check mails sent to self.
+    // Fetch mails first and then loop over them to prevent needing to check mails sent to self. (先获取邮件列表再遍历处理，避免重复检查发给自己的邮件。)
     for (PlayerMails::iterator i = bot->GetMailBegin(); i != bot->GetMailEnd(); ++i)
     {
         mails.push_back(*i);
@@ -51,6 +52,7 @@ bool CheckMailAction::Execute(Event& event)
     return true;
 }
 
+/// 判断当前状态下该动作是否可用/有效（检查邮件动作）
 bool CheckMailAction::isUseful()
 {
     if (ai->GetMaster() || !bot->GetMailSize() || bot->InBattleGround())
@@ -60,6 +62,7 @@ bool CheckMailAction::isUseful()
 }
 
 
+/// 遍历邮箱列表并执行相应的邮件处理器操作
 void CheckMailAction::ProcessMail(Mail* mail, Player* owner)
 {
     if (mail->items.empty())

@@ -6,6 +6,7 @@
 
 using namespace ai;
 
+/// 执行动作主逻辑（传送指令动作）
 bool TeleportAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();

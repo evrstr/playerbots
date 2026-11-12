@@ -1,3 +1,4 @@
+// 策略值实现：TradeValues（交易赠送物品与附魔目标物品匹配）
 
 #include "playerbot/playerbot.h"
 #include "TradeValues.h"
@@ -8,6 +9,7 @@
 
 using namespace ai;
 
+// 检查指定模板 ID 的物品是否已放入当前交易窗口
 bool ItemsUsefulToGiveValue::IsTradingItem(uint32 entry)
 {
     TradeData* trade = bot->GetTradeData();
@@ -26,6 +28,7 @@ bool ItemsUsefulToGiveValue::IsTradingItem(uint32 entry)
     return false;
 }
 
+// 遍历自身闲置物品（无用/卖店/拍卖/分解），排除灵魂绑定与重复项，筛选对目标玩家有价值的物品
 std::list<Item*> ItemsUsefulToGiveValue::Calculate()
 {
     GuidPosition guidP = AI_VALUE(GuidPosition, "rpg target");
@@ -52,7 +55,7 @@ std::list<Item*> ItemsUsefulToGiveValue::Calculate()
             if (!item->CanBeTraded())
                 continue;
 
-            // do not trade equipped items
+            // do not trade equipped items | 不交易已装备在身上的物品
             if (item->IsEquipped())
                 continue;
 
@@ -61,13 +64,13 @@ std::list<Item*> ItemsUsefulToGiveValue::Calculate()
             if (trade)
             {
 
-                if (trade->HasItem(item->GetObjectGuid())) //This specific item isn't being traded.
+                if (trade->HasItem(item->GetObjectGuid())) //This specific item isn't being traded. | 跳过已放入交易栏的该物品实例
                     continue;
 
-                if (IsTradingItem(item->GetEntry())) //A simular item isn't being traded.
+                if (IsTradingItem(item->GetEntry())) //A simular item isn't being traded. | 跳过同模板 ID 已在交易中的物品
                     continue;
 
-                if (std::any_of(giveItems.begin(), giveItems.end(), [item](Item* i) {return i->GetEntry() == item->GetEntry(); })) //We didn't already add a simular item to this list.
+                if (std::any_of(giveItems.begin(), giveItems.end(), [item](Item* i) {return i->GetEntry() == item->GetEntry(); })) //We didn't already add a simular item to this list. | 防止向候选列表重复添加同类物品
                     continue;
             }
 
@@ -81,6 +84,7 @@ std::list<Item*> ItemsUsefulToGiveValue::Calculate()
     return giveItems;
 }
 
+// 匹配已学会的附魔技能与指定目标的已装备物品，返回可进行交易附魔的装备列表
 std::list<Item*> ItemsUsefulToEnchantValue::Calculate()
 {
     GuidPosition guidP = AI_VALUE(GuidPosition, "rpg target");
@@ -114,7 +118,7 @@ std::list<Item*> ItemsUsefulToEnchantValue::Calculate()
         if (PHAS_AI_VALUE2("force item usage", item->GetProto()->ItemId))
             continue;
 
-        // Only trade equipped items
+        // Only trade equipped items | 仅对目标已穿戴在身上的装备进行代附魔评估
         if (!item->IsEquipped())
             continue;
 
@@ -123,10 +127,10 @@ std::list<Item*> ItemsUsefulToEnchantValue::Calculate()
         if (trade)
         {
 
-            if (trade->HasItem(item->GetObjectGuid())) //This specific item isn't being traded.
+            if (trade->HasItem(item->GetObjectGuid())) //This specific item isn't being traded. | 跳过已放入交易栏的物品
                 continue;
 
-            if (std::any_of(enchantItems.begin(), enchantItems.end(), [item](Item* i) {return i->GetEntry() == item->GetEntry(); })) //We didn't already add a simular item to this list.
+            if (std::any_of(enchantItems.begin(), enchantItems.end(), [item](Item* i) {return i->GetEntry() == item->GetEntry(); })) //We didn't already add a simular item to this list. | 避免重复添加相同模板的待附魔装备
                 continue;
         }
 

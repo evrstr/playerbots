@@ -9,9 +9,10 @@ namespace ai
     class AiObjectContext;
     class ChatHelper;
 
+    /// AI 策略对象基类，持有机器人实体、AI 上下文与聊天助手指针
     class AiObject : public PlayerbotAIAware
-	{
-	public:
+    {
+    public:
         AiObject(PlayerbotAI* ai);
 
     protected:
@@ -19,8 +20,9 @@ namespace ai
         Player* GetMaster();
         AiObjectContext* context;
         ChatHelper* chat;
-	};
+    };
 
+    /// 带名称标识的 AI 对象基类（Action、Trigger、Multiplier、Value 等均继承此类）
     class AiNamedObject : public AiObject
     {
     public:
@@ -34,10 +36,10 @@ namespace ai
     };
 }
 
-// MACROS GO HERE
+// MACROS GO HERE | 策略系统常用触发器、动作与动作节点定义宏
 
 //
-// TRIGGERS
+// TRIGGERS | 触发器定义宏
 //
 
 #define NEXT_TRIGGERS(name, relevance) \
@@ -283,7 +285,7 @@ class clazz : public super \
     }
 
 //
-// ACTIONS
+// ACTIONS | 动作类定义宏
 //
 
 #define MELEE_ACTION(clazz, spell) \
@@ -564,7 +566,7 @@ class clazz : public BuffOnPartyAction \
         clazz(PlayerbotAI* ai) : BuffOnPartyAction(ai, name) {}
 
 //
-// Action node
+// Action node | 动作节点工厂辅助宏（P=前置, A=替代, C=后续）
 //
 
 // node_name , action, prerequisite

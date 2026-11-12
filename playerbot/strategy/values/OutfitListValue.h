@@ -1,12 +1,14 @@
+// 策略值头文件：OutfitListValue（配装方案名称列表与抗性顺序配置）
 #pragma once
 #include "playerbot/strategy/Value.h"
 
 namespace ai
 {
     typedef std::list<std::string> Outfit;
+    // 手动设置值：保存机器人自定义套装配置字符串列表，支持 ^ 分隔存取
     class OutfitListValue : public ManualSetValue<Outfit&>
-	{
-	public:
+    {
+    public:
         OutfitListValue(PlayerbotAI* ai, std::string name = "outfit list") : ManualSetValue<Outfit&>(ai, list, name) {}
 
         virtual std::string Save() override;
@@ -16,6 +18,7 @@ namespace ai
         Outfit list;
     };
 
+    // 手动设置值：保存抗性装备穿戴优先级顺序配置字符串
     class ResistOrderValue : public ManualSetValue<std::string>
     {
     public:

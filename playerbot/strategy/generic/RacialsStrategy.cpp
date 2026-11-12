@@ -1,14 +1,16 @@
+/// 通用种族天赋（Racials）自动施放策略实现
 
 #include "playerbot/playerbot.h"
 #include "RacialsStrategy.h"
 
 using namespace ai;
 
+/// 初始化非战斗/通用种族天赋触发器（纳鲁的赐福、战争践踏、食尸、逃命专家、亡灵意志、狂暴、石像形态、奥术洪流等）
 void RacialsStrategy::InitNonCombatTriggers(std::list<TriggerNode*> &triggers)
 {
-	triggers.push_back(new TriggerNode(
-		"low health", 
-		NextAction::array(0, new NextAction("gift of the naaru", 71.0f), NULL)));
+    triggers.push_back(new TriggerNode(
+        "low health", 
+        NextAction::array(0, new NextAction("gift of the naaru", 71.0f), NULL)));
 
     triggers.push_back(new TriggerNode(
         "melee medium aoe",
@@ -59,6 +61,7 @@ void RacialsStrategy::InitNonCombatTriggers(std::list<TriggerNode*> &triggers)
         NextAction::array(0, new NextAction("arcane torrent", 71.0f), NULL)));
 }
 
+/// 初始化战斗种族天赋触发器：复用非战斗种族天赋配置
 void RacialsStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     InitNonCombatTriggers(triggers);

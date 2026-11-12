@@ -1,3 +1,4 @@
+/// 测试命令：任务状态配置与通用聊天命令执行实现
 #include "playerbot/playerbot.h"
 #include "CommandQuest.h"
 #include "Quests/QuestDef.h"
@@ -7,14 +8,15 @@
 using namespace ai;
 
 // =====================================================
-// CommandSetupAcceptQuest
-// Format: "accept quest <questId>"
+// CommandSetupAcceptQuest | 强制接取任务命令
+// Format: "accept quest <questId>" | 格式："accept quest <questId>"
 // =====================================================
+/// 执行 accept quest 命令：校验并强制为机器人接取指定任务，同时发放起始任务物品
 TestResult CommandSetupAcceptQuest::Execute(const std::string& params, Player* bot,
                     PlayerbotAI* ai, TestContext& ctx, std::string& message)
 {
     std::string questStr = params;
-    // Strip "quest " prefix if present from params
+    // Strip "quest " prefix if present from params | 若参数带有 "quest " 前缀则先剥离
     if (questStr.find("quest ") == 0)
         questStr = questStr.substr(6);
 
@@ -32,7 +34,7 @@ TestResult CommandSetupAcceptQuest::Execute(const std::string& params, Player* b
         return TestResult::IMPOSSIBLE;
     }
 
-    // Check if already has this quest
+    // Check if already has this quest | 检查机器人是否已持有或已完成该任务
     QuestStatus status = bot->GetQuestStatus(questId);
     if (status == QUEST_STATUS_INCOMPLETE || status == QUEST_STATUS_COMPLETE)
         return TestResult::PASS; // Already have it
@@ -60,10 +62,11 @@ TestResult CommandSetupAcceptQuest::Execute(const std::string& params, Player* b
 }
 
 // =====================================================
-// CommandSetupForceCompleteQuest
-// Format: "complete quest <questId>"
-// Force-completes all objectives (items + creature/GO counts)
+// CommandSetupForceCompleteQuest | 强制完成任务全部目标命令
+// Format: "complete quest <questId>" | 格式："complete quest <questId>"
+// Force-completes all objectives (items + creature/GO counts) | 强制满足物品收集与怪物/对象交互计数
 // =====================================================
+/// 执行 complete quest 命令：自动补齐任务物品并触发所有击杀/交互计数
 TestResult CommandSetupForceCompleteQuest::Execute(const std::string& params, Player* bot,
                     PlayerbotAI* ai, TestContext& ctx, std::string& message)
 {
@@ -95,7 +98,7 @@ TestResult CommandSetupForceCompleteQuest::Execute(const std::string& params, Pl
     if (status == QUEST_STATUS_COMPLETE)
         return TestResult::PASS;
 
-    // Satisfy item objectives
+    // Satisfy item objectives | 满足所有任务物品需求
     for (uint8 i = 0; i < QUEST_ITEM_OBJECTIVES_COUNT; ++i)
     {
         uint32 itemId = quest->ReqItemId[i];
@@ -118,7 +121,7 @@ TestResult CommandSetupForceCompleteQuest::Execute(const std::string& params, Pl
         bot->SendNewItem(item, count - curCount, true, false);
     }
 
-    // Satisfy creature/GO kill objectives
+    // Satisfy creature/GO kill objectives | 满足所有生物击杀或游戏对象交互计数
     for (uint8 i = 0; i < QUEST_OBJECTIVES_COUNT; ++i)
     {
         int32 creature = quest->ReqCreatureOrGOId[i];
@@ -153,10 +156,11 @@ TestResult CommandSetupForceCompleteQuest::Execute(const std::string& params, Pl
 }
 
 // =====================================================
-// CommandSetupRewardQuest
-// Format: "reward quest <questId>"
-// Completes objectives and rewards the quest immediately
+// CommandSetupRewardQuest | 强制直接结算任务奖励命令
+// Format: "reward quest <questId>" | 格式："reward quest <questId>"
+// Completes objectives and rewards the quest immediately | 补齐任务目标并立即发放奖励
 // =====================================================
+/// 执行 reward quest 命令：若未领奖则直接完成目标并结算任务奖励
 TestResult CommandSetupRewardQuest::Execute(const std::string& params, Player* bot,
                     PlayerbotAI* ai, TestContext& ctx, std::string& message)
 {
@@ -178,12 +182,12 @@ TestResult CommandSetupRewardQuest::Execute(const std::string& params, Player* b
         return TestResult::IMPOSSIBLE;
     }
 
-    // Check if already rewarded
+    // Check if already rewarded | 检查任务是否已经领过奖励
     auto it = bot->getQuestStatusMap().find(questId);
     if (it != bot->getQuestStatusMap().end() && it->second.m_rewarded)
         return TestResult::PASS;
 
-    // Accept if not already
+    // Accept if not already | 若尚未接取则先接取任务
     QuestStatus status = bot->GetQuestStatus(questId);
     if (status == QUEST_STATUS_NONE)
     {
@@ -195,7 +199,7 @@ TestResult CommandSetupRewardQuest::Execute(const std::string& params, Player* b
         bot->AddQuest(quest, nullptr);
     }
 
-    // Satisfy all objectives
+    // Satisfy all objectives | 满足全部任务目标
     for (uint8 i = 0; i < QUEST_ITEM_OBJECTIVES_COUNT; ++i)
     {
         uint32 itemId = quest->ReqItemId[i];
@@ -244,22 +248,23 @@ TestResult CommandSetupRewardQuest::Execute(const std::string& params, Player* b
         }
     }
 
-    // Reward the quest
+    // Reward the quest | 结算任务奖励
     bot->RewardQuest(quest, 0, bot, false);
 
     return TestResult::PASS;
 }
 
 // =====================================================
-// CommandSetupForceObjectives
-// Format: "force objectives <questId> except <objIndex>"
-// Satisfies every objective of an ACTIVE quest except the given creature/GO objective index
-// (items get injected, creature counts credited). Used by the quest-clear test flavor.
+// CommandSetupForceObjectives | 强制满足部分任务目标命令
+// Format: "force objectives <questId> except <objIndex>" | 格式："force objectives <questId> except <objIndex>"
+// Satisfies every objective of an ACTIVE quest except the given creature/GO objective index | 满足除指定索引外的全部激活任务目标（注入物品或计入击杀数），
+// (items get injected, creature counts credited). Used by the quest-clear test flavor. | 专用于孤立测试单一任务目标（objIndex 为空表示满足所有目标）。
 // =====================================================
+/// 执行 force objectives 命令：强行满足除指定目标索引外的所有任务条件
 TestResult CommandSetupForceObjectives::Execute(const std::string& params, Player* bot,
                     PlayerbotAI* ai, TestContext& ctx, std::string& message)
 {
-    // params: "<questId> except <objIndex>"
+    // params: "<questId> except <objIndex>" | 参数格式："<questId> except <objIndex>"
     std::istringstream in(params);
     std::string questStr;
     std::string exceptKeyword;
@@ -306,7 +311,7 @@ TestResult CommandSetupForceObjectives::Execute(const std::string& params, Playe
         return TestResult::IMPOSSIBLE;
     }
 
-    // Satisfy item objectives
+    // Satisfy item objectives | 满足全部物品需求
     for (uint8 i = 0; i < QUEST_ITEM_OBJECTIVES_COUNT; ++i)
     {
         if (static_cast<int32>(i) == exceptIndex)
@@ -332,7 +337,7 @@ TestResult CommandSetupForceObjectives::Execute(const std::string& params, Playe
         bot->SendNewItem(item, count - curCount, true, false);
     }
 
-    // Satisfy creature/GO objectives
+    // Satisfy creature/GO objectives | 满足非排除索引的生物/游戏对象目标
     for (uint8 i = 0; i < QUEST_OBJECTIVES_COUNT; ++i)
     {
         if (static_cast<int32>(i) == exceptIndex)
@@ -366,9 +371,10 @@ TestResult CommandSetupForceObjectives::Execute(const std::string& params, Playe
 }
 
 // =====================================================
-// CommandSetupDo// Format: "do <chat command>"
-// Executes a bot chat command (like equip upgrades, accept quest, etc.)
+// CommandSetupDo// Format: "do <chat command>" | 执行机器人聊天指令命令 | 格式："do <chat command>"
+// Executes a bot chat command (like equip upgrades, accept quest, etc.) | 转发执行任意机器人聊天命令（如装备升级、接任务等）
 // =====================================================
+/// 执行 do 命令：通过耳语消息向机器人 AI 分发任意聊天控制指令
 TestResult CommandSetupDo::Execute(const std::string& params, Player* bot,
                     PlayerbotAI* ai, TestContext& ctx, std::string& message)
 {

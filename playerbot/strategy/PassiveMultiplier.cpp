@@ -9,6 +9,7 @@ using namespace ai;
 std::list<std::string> PassiveMultiplier::allowedActions;
 std::list<std::string> PassiveMultiplier::allowedParts;
 
+// 初始化被动模式下仍允许放行的管理命令与移动动作白名单
 PassiveMultiplier::PassiveMultiplier(PlayerbotAI* ai) : Multiplier(ai, "passive")
 {
     if (allowedActions.empty())
@@ -37,10 +38,11 @@ PassiveMultiplier::PassiveMultiplier(PlayerbotAI* ai) : Multiplier(ai, "passive"
     }
 }
 
+// 判断动作是否在白名单内或为瞬发法术，否则返回 0 予以抑制
 float PassiveMultiplier::GetValue(Action* action) 
 {
     if (!action)
-		return 1.0f;
+        return 1.0f;
 
     std::string name = action->getName();
 
@@ -56,7 +58,7 @@ float PassiveMultiplier::GetValue(Action* action)
             return 1.0f;
     }
 
-    // Instant cast actions should be allowed while passive
+    // Instant cast actions should be allowed while passive | 被动状态下允许瞬发非引导法术
     CastSpellAction* spellAction = dynamic_cast<CastSpellAction*>(action);
     if (spellAction)
     {

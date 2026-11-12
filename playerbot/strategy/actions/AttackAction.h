@@ -5,18 +5,25 @@
 
 namespace ai
 {
-	class AttackAction : public MovementAction
-	{
-	public:
-		AttackAction(PlayerbotAI* ai, std::string name) : MovementAction(ai, name) {}
+    /// 攻击动作基类：向目标移动并进入近战或远程攻击状态
+    class AttackAction : public MovementAction
+    {
+    public:
+        /// 构造函数：初始化攻击动作基类
+        AttackAction(PlayerbotAI* ai, std::string name) : MovementAction(ai, name) {}
 
     public:
+        /// 执行动作主逻辑（攻击动作基类）
         virtual bool Execute(Event& event) override;
-        virtual bool isPossible() override { return !bot->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_CLIENT_CONTROL_LOST); }; //Override movement stay.
+        /// 判断执行该动作的前置条件是否满足（攻击动作基类）
+        virtual bool isPossible() override { return !bot->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_CLIENT_CONTROL_LOST); }; // Override movement stay. (覆盖原地停留（stay）移动限制。)
 
     protected:
+        /// 启动或切换至指定目标的近战/远程攻击流程
         bool Attack(Player* requester, Unit* target);
+        /// 命令机器人召唤的宠物主动攻击指定目标
         bool PetAttack(Player* requester, Unit* target);
+        /// 检查目标单位是否存活、在视野内且满足攻击/施法合法性
         bool IsTargetValid(Player* requester, Unit* target);
 
 #ifdef GenerateBotHelp
@@ -31,13 +38,17 @@ namespace ai
 #endif 
     };
 
+    /// 攻击主人目标动作：切换并攻击当前主人/队长选中的目标
     class AttackMyTargetAction : public AttackAction
     {
     public:
+        /// 构造函数：初始化攻击主人目标动作
         AttackMyTargetAction(PlayerbotAI* ai, std::string name = "attack my target") : AttackAction(ai, name) { MakeVerbose(true); }
 
     public:
+        /// 执行动作主逻辑（攻击主人目标动作）
         virtual bool Execute(Event& event) override;
+        /// 判断当前状态下该动作是否可用/有效（攻击主人目标动作）
         virtual bool isUseful() override;
 
 #ifdef GenerateBotHelp
@@ -52,13 +63,17 @@ namespace ai
 #endif 
     };
 
+    /// 攻击团队标记目标动作：攻击带有指定团队目标标记（RTI）的敌人
     class AttackRTITargetAction : public AttackAction
     {
     public:
+        /// 构造函数：初始化攻击团队标记目标动作
         AttackRTITargetAction(PlayerbotAI* ai, std::string name = "attack rti target") : AttackAction(ai, name) { MakeVerbose(true); }
 
     public:
+        /// 执行动作主逻辑（攻击团队标记目标动作）
         virtual bool Execute(Event& event) override;
+        /// 判断当前状态下该动作是否可用/有效（攻击团队标记目标动作）
         virtual bool isUseful() override;
 
 #ifdef GenerateBotHelp
@@ -73,13 +88,17 @@ namespace ai
 #endif 
     };
 
+    /// 攻击决斗对手动作：在决斗开始后主动攻击决斗对手
     class AttackDuelOpponentAction : public AttackAction
     {
     public:
+        /// 构造函数：初始化攻击决斗对手动作
         AttackDuelOpponentAction(PlayerbotAI* ai, std::string name = "attack duel opponent") : AttackAction(ai, name) {}
 
     public:
+        /// 执行动作主逻辑（攻击决斗对手动作）
         virtual bool Execute(Event& event) override;
+        /// 判断当前状态下该动作是否可用/有效（攻击决斗对手动作）
         virtual bool isUseful() override;
 
 #ifdef GenerateBotHelp

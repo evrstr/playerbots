@@ -1,3 +1,4 @@
+// 策略值实现：GrindTargetValue（刷怪目标评分、任务需求优先与防抢怪距离加权）
 
 #include "playerbot/playerbot.h"
 #include "GrindTargetValue.h"
@@ -12,6 +13,7 @@
 
 using namespace ai;
 
+// 依次尝试按允许 0 人、1 人、2 人、3 人围攻的阈值挑选合适的刷怪目标
 ObjectGuid GrindTargetValue::Calculate()
 {
     uint32 memberCount = 1;
@@ -29,6 +31,7 @@ ObjectGuid GrindTargetValue::Calculate()
     return target ? target->GetObjectGuid() : ObjectGuid();
 }
 
+// 综合任务需求、队伍等级、距离惩罚与已锁定人数，选出最优的练级目标
 Unit* GrindTargetValue::FindTargetForGrinding(int assistCount)
 {
     uint32 memberCount = 1;
@@ -159,7 +162,7 @@ Unit* GrindTargetValue::FindTargetForGrinding(int assistCount)
             continue;
         }
 
-        if (!bot->InBattleGround() && !CanFreeMoveValue::CanFreeTarget(ai, GuidPosition(unit))) //Do not grind mobs far away from master.
+        if (!bot->InBattleGround() && !CanFreeMoveValue::CanFreeTarget(ai, GuidPosition(unit))) //Do not grind mobs far away from master. | 避免攻击距离主控太远的怪物
         {
             if (ai->HasStrategy("debug grind", BotState::BOT_STATE_NON_COMBAT))
                 ai->TellPlayer(GetMaster(), chat->formatWorldobject(unit) + " ignored (out of free range).");
@@ -319,6 +322,7 @@ Unit* GrindTargetValue::FindTargetForGrinding(int assistCount)
     return result;
 }
 
+// 统计当前小队/团队中已有多少名玩家或机器人锁定了该生物
 int GrindTargetValue::GetTargetingPlayerCount( Unit* unit )
 {
     Group* group = bot->GetGroup();

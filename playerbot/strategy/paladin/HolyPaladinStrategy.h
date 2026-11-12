@@ -1,8 +1,10 @@
+// 圣骑士 - 神圣圣骑士策略头文件 (HolyPaladinStrategy.h)
 #pragma once
 #include "PaladinStrategy.h"
 
 namespace ai
 {
+    // 神圣圣骑士专精占位策略：用于专精识别与占位的策略类
     class HolyPaladinPlaceholderStrategy : public SpecPlaceholderStrategy
     {
     public:
@@ -11,6 +13,7 @@ namespace ai
         std::string getName() override { return "holy"; }
     };
 
+    // 神圣圣骑士策略：定义该专精/场景下的触发器与默认行为
     class HolyPaladinStrategy : public PaladinStrategy
     {
     public:
@@ -23,6 +26,7 @@ namespace ai
         virtual void InitDeadTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 神圣圣骑士PVE策略：定义该专精/场景下的触发器与默认行为
     class HolyPaladinPveStrategy : public HolyPaladinStrategy
     {
     public:
@@ -36,6 +40,7 @@ namespace ai
         void InitDeadTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 神圣圣骑士PVP策略：定义该专精/场景下的触发器与默认行为
     class HolyPaladinPvpStrategy : public HolyPaladinStrategy
     {
     public:
@@ -49,6 +54,7 @@ namespace ai
         void InitDeadTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 神圣圣骑士团队副本策略：定义该专精/场景下的触发器与默认行为
     class HolyPaladinRaidStrategy : public HolyPaladinStrategy
     {
     public:
@@ -62,6 +68,7 @@ namespace ai
         void InitDeadTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 神圣圣骑士AOE群体策略：定义该专精/场景下的触发器与默认行为
     class HolyPaladinAoeStrategy : public PaladinAoeStrategy
     {
     public:
@@ -72,6 +79,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 神圣圣骑士AOE群体PVE策略：定义该专精/场景下的触发器与默认行为
     class HolyPaladinAoePveStrategy : public HolyPaladinAoeStrategy
     {
     public:
@@ -83,6 +91,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 神圣圣骑士AOE群体PVP策略：定义该专精/场景下的触发器与默认行为
     class HolyPaladinAoePvpStrategy : public HolyPaladinAoeStrategy
     {
     public:
@@ -94,6 +103,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 神圣圣骑士AOE群体团队副本策略：定义该专精/场景下的触发器与默认行为
     class HolyPaladinAoeRaidStrategy : public HolyPaladinAoeStrategy
     {
     public:
@@ -105,6 +115,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 神圣圣骑士增益Buff策略：定义该专精/场景下的触发器与默认行为
     class HolyPaladinBuffStrategy : public PaladinBuffStrategy
     {
     public:
@@ -115,6 +126,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 神圣圣骑士增益BuffPVE策略：定义该专精/场景下的触发器与默认行为
     class HolyPaladinBuffPveStrategy : public HolyPaladinBuffStrategy
     {
     public:
@@ -126,6 +138,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 神圣圣骑士增益BuffPVP策略：定义该专精/场景下的触发器与默认行为
     class HolyPaladinBuffPvpStrategy : public HolyPaladinBuffStrategy
     {
     public:
@@ -137,6 +150,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 神圣圣骑士增益Buff团队副本策略：定义该专精/场景下的触发器与默认行为
     class HolyPaladinBuffRaidStrategy : public HolyPaladinBuffStrategy
     {
     public:
@@ -148,6 +162,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 神圣圣骑士爆发增益策略：定义该专精/场景下的触发器与默认行为
     class HolyPaladinBoostStrategy : public PaladinBoostStrategy
     {
     public:
@@ -158,6 +173,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 神圣圣骑士爆发增益PVE策略：定义该专精/场景下的触发器与默认行为
     class HolyPaladinBoostPveStrategy : public HolyPaladinBoostStrategy
     {
     public:
@@ -169,6 +185,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 神圣圣骑士爆发增益PVP策略：定义该专精/场景下的触发器与默认行为
     class HolyPaladinBoostPvpStrategy : public HolyPaladinBoostStrategy
     {
     public:
@@ -180,6 +197,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 神圣圣骑士爆发增益团队副本策略：定义该专精/场景下的触发器与默认行为
     class HolyPaladinBoostRaidStrategy : public HolyPaladinBoostStrategy
     {
     public:
@@ -191,6 +209,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 神圣圣骑士控制(CC)策略：定义该专精/场景下的触发器与默认行为
     class HolyPaladinCcStrategy : public PaladinCcStrategy
     {
     public:
@@ -201,6 +220,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 神圣圣骑士控制(CC)PVE策略：定义该专精/场景下的触发器与默认行为
     class HolyPaladinCcPveStrategy : public HolyPaladinCcStrategy
     {
     public:
@@ -212,6 +232,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 神圣圣骑士控制(CC)PVP策略：定义该专精/场景下的触发器与默认行为
     class HolyPaladinCcPvpStrategy : public HolyPaladinCcStrategy
     {
     public:
@@ -223,6 +244,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 神圣圣骑士控制(CC)团队副本策略：定义该专精/场景下的触发器与默认行为
     class HolyPaladinCcRaidStrategy : public HolyPaladinCcStrategy
     {
     public:
@@ -234,6 +256,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 神圣圣骑士驱散净化策略：定义该专精/场景下的触发器与默认行为
     class HolyPaladinCureStrategy : public PaladinCureStrategy
     {
     public:
@@ -244,6 +267,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 神圣圣骑士驱散净化PVE策略：定义该专精/场景下的触发器与默认行为
     class HolyPaladinCurePveStrategy : public HolyPaladinCureStrategy
     {
     public:
@@ -255,6 +279,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 神圣圣骑士驱散净化PVP策略：定义该专精/场景下的触发器与默认行为
     class HolyPaladinCurePvpStrategy : public HolyPaladinCureStrategy
     {
     public:
@@ -266,6 +291,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 神圣圣骑士驱散净化团队副本策略：定义该专精/场景下的触发器与默认行为
     class HolyPaladinCureRaidStrategy : public HolyPaladinCureStrategy
     {
     public:
@@ -277,6 +303,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 神圣圣骑士光环策略：定义该专精/场景下的触发器与默认行为
     class HolyPaladinAuraStrategy : public PaladinAuraStrategy
     {
     public:
@@ -287,6 +314,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 神圣圣骑士光环PVE策略：定义该专精/场景下的触发器与默认行为
     class HolyPaladinAuraPveStrategy : public HolyPaladinAuraStrategy
     {
     public:
@@ -298,6 +326,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 神圣圣骑士光环PVP策略：定义该专精/场景下的触发器与默认行为
     class HolyPaladinAuraPvpStrategy : public HolyPaladinAuraStrategy
     {
     public:
@@ -309,6 +338,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 神圣圣骑士光环团队副本策略：定义该专精/场景下的触发器与默认行为
     class HolyPaladinAuraRaidStrategy : public HolyPaladinAuraStrategy
     {
     public:
@@ -320,6 +350,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 神圣圣骑士祝福策略：定义该专精/场景下的触发器与默认行为
     class HolyPaladinBlessingStrategy : public PaladinBlessingStrategy
     {
     public:
@@ -330,6 +361,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 神圣圣骑士祝福PVE策略：定义该专精/场景下的触发器与默认行为
     class HolyPaladinBlessingPveStrategy : public HolyPaladinBlessingStrategy
     {
     public:
@@ -341,6 +373,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 神圣圣骑士祝福PVP策略：定义该专精/场景下的触发器与默认行为
     class HolyPaladinBlessingPvpStrategy : public HolyPaladinBlessingStrategy
     {
     public:
@@ -352,6 +385,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 神圣圣骑士祝福团队副本策略：定义该专精/场景下的触发器与默认行为
     class HolyPaladinBlessingRaidStrategy : public HolyPaladinBlessingStrategy
     {
     public:

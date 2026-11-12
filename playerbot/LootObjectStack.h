@@ -5,6 +5,7 @@ namespace ai
 {
     class ItemQualifier;
 
+    /// 可拾取目标对象描述类（尸体、剥皮、草药/矿点/宝箱及所需技能/钥匙信息）
     class LootObject
     {
     public:
@@ -24,6 +25,7 @@ namespace ai
         uint32 reqItem;
     };
 
+    /// 拾取目标集合元素，记录目标 GUID 与加入时间
     class LootTarget
     {
     public:
@@ -39,12 +41,14 @@ namespace ai
         time_t asOfTime;
     };
 
+    /// 带过期清理功能的拾取目标集合
     class LootTargetList : public std::set<LootTarget>
     {
     public:
         void shrink(time_t fromTime);
     };
 
+    /// 机器人可拾取目标栈管理器，按距离排序并返回最近可拾取对象
     class LootObjectStack
     {
     public:

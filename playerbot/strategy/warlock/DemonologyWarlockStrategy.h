@@ -1,8 +1,10 @@
+// 术士 - 恶魔学识术士策略头文件 (DemonologyWarlockStrategy.h)
 #pragma once
 #include "WarlockStrategy.h"
 
 namespace ai
 {
+    // 恶魔学识术士专精占位策略：用于专精识别与占位的策略类
     class DemonologyWarlockPlaceholderStrategy : public SpecPlaceholderStrategy
     {
     public:
@@ -11,6 +13,7 @@ namespace ai
         std::string getName() override { return "demonology"; }
     };
 
+    // 恶魔学识术士策略：定义该专精/场景下的触发器与默认行为
     class DemonologyWarlockStrategy : public WarlockStrategy
     {
     public:
@@ -25,6 +28,7 @@ namespace ai
         virtual NextAction** GetDefaultCombatActions() override;
     };
 
+    // 恶魔学识术士PVE策略：定义该专精/场景下的触发器与默认行为
     class DemonologyWarlockPveStrategy : public DemonologyWarlockStrategy
     {
     public:
@@ -38,6 +42,7 @@ namespace ai
         void InitDeadTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 恶魔学识术士PVP策略：定义该专精/场景下的触发器与默认行为
     class DemonologyWarlockPvpStrategy : public DemonologyWarlockStrategy
     {
     public:
@@ -51,6 +56,7 @@ namespace ai
         void InitDeadTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 恶魔学识术士团队副本策略：定义该专精/场景下的触发器与默认行为
     class DemonologyWarlockRaidStrategy : public DemonologyWarlockStrategy
     {
     public:
@@ -64,6 +70,7 @@ namespace ai
         void InitDeadTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 恶魔学识术士AOE群体策略：定义该专精/场景下的触发器与默认行为
     class DemonologyWarlockAoeStrategy : public WarlockAoeStrategy
     {
     public:
@@ -74,6 +81,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 恶魔学识术士AOE群体PVE策略：定义该专精/场景下的触发器与默认行为
     class DemonologyWarlockAoePveStrategy : public DemonologyWarlockAoeStrategy
     {
     public:
@@ -85,6 +93,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 恶魔学识术士AOE群体PVP策略：定义该专精/场景下的触发器与默认行为
     class DemonologyWarlockAoePvpStrategy : public DemonologyWarlockAoeStrategy
     {
     public:
@@ -96,6 +105,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 恶魔学识术士AOE群体团队副本策略：定义该专精/场景下的触发器与默认行为
     class DemonologyWarlockAoeRaidStrategy : public DemonologyWarlockAoeStrategy
     {
     public:
@@ -107,6 +117,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 恶魔学识术士增益Buff策略：定义该专精/场景下的触发器与默认行为
     class DemonologyWarlockBuffStrategy : public WarlockBuffStrategy
     {
     public:
@@ -117,6 +128,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 恶魔学识术士增益BuffPVE策略：定义该专精/场景下的触发器与默认行为
     class DemonologyWarlockBuffPveStrategy : public DemonologyWarlockBuffStrategy
     {
     public:
@@ -128,6 +140,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 恶魔学识术士增益BuffPVP策略：定义该专精/场景下的触发器与默认行为
     class DemonologyWarlockBuffPvpStrategy : public DemonologyWarlockBuffStrategy
     {
     public:
@@ -139,6 +152,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 恶魔学识术士增益Buff团队副本策略：定义该专精/场景下的触发器与默认行为
     class DemonologyWarlockBuffRaidStrategy : public DemonologyWarlockBuffStrategy
     {
     public:
@@ -150,6 +164,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 恶魔学识术士爆发增益策略：定义该专精/场景下的触发器与默认行为
     class DemonologyWarlockBoostStrategy : public WarlockBoostStrategy
     {
     public:
@@ -160,6 +175,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 恶魔学识术士爆发增益PVE策略：定义该专精/场景下的触发器与默认行为
     class DemonologyWarlockBoostPveStrategy : public DemonologyWarlockBoostStrategy
     {
     public:
@@ -171,6 +187,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 恶魔学识术士爆发增益PVP策略：定义该专精/场景下的触发器与默认行为
     class DemonologyWarlockBoostPvpStrategy : public DemonologyWarlockBoostStrategy
     {
     public:
@@ -182,6 +199,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 恶魔学识术士爆发增益团队副本策略：定义该专精/场景下的触发器与默认行为
     class DemonologyWarlockBoostRaidStrategy : public DemonologyWarlockBoostStrategy
     {
     public:
@@ -193,6 +211,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 恶魔学识术士控制(CC)策略：定义该专精/场景下的触发器与默认行为
     class DemonologyWarlockCcStrategy : public WarlockCcStrategy
     {
     public:
@@ -203,6 +222,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 恶魔学识术士控制(CC)PVE策略：定义该专精/场景下的触发器与默认行为
     class DemonologyWarlockCcPveStrategy : public DemonologyWarlockCcStrategy
     {
     public:
@@ -214,6 +234,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 恶魔学识术士控制(CC)PVP策略：定义该专精/场景下的触发器与默认行为
     class DemonologyWarlockCcPvpStrategy : public DemonologyWarlockCcStrategy
     {
     public:
@@ -225,6 +246,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 恶魔学识术士控制(CC)团队副本策略：定义该专精/场景下的触发器与默认行为
     class DemonologyWarlockCcRaidStrategy : public DemonologyWarlockCcStrategy
     {
     public:
@@ -236,6 +258,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 恶魔学识术士宠物策略：定义该专精/场景下的触发器与默认行为
     class DemonologyWarlockPetStrategy : public WarlockPetStrategy
     {
     public:
@@ -246,6 +269,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 恶魔学识术士宠物PVE策略：定义该专精/场景下的触发器与默认行为
     class DemonologyWarlockPetPveStrategy : public DemonologyWarlockPetStrategy
     {
     public:
@@ -257,6 +281,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 恶魔学识术士宠物PVP策略：定义该专精/场景下的触发器与默认行为
     class DemonologyWarlockPetPvpStrategy : public DemonologyWarlockPetStrategy
     {
     public:
@@ -268,6 +293,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 恶魔学识术士宠物团队副本策略：定义该专精/场景下的触发器与默认行为
     class DemonologyWarlockPetRaidStrategy : public DemonologyWarlockPetStrategy
     {
     public:
@@ -279,6 +305,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 恶魔学识术士诅咒策略：定义该专精/场景下的触发器与默认行为
     class DemonologyWarlockCursesStrategy : public WarlockCursesStrategy
     {
     public:
@@ -288,6 +315,7 @@ namespace ai
         virtual void InitCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 恶魔学识术士诅咒PVE策略：定义该专精/场景下的触发器与默认行为
     class DemonologyWarlockCursesPveStrategy : public DemonologyWarlockCursesStrategy
     {
     public:
@@ -298,6 +326,7 @@ namespace ai
         void InitCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 恶魔学识术士诅咒PVP策略：定义该专精/场景下的触发器与默认行为
     class DemonologyWarlockCursesPvpStrategy : public DemonologyWarlockCursesStrategy
     {
     public:
@@ -308,6 +337,7 @@ namespace ai
         void InitCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 恶魔学识术士诅咒团队副本策略：定义该专精/场景下的触发器与默认行为
     class DemonologyWarlockCursesRaidStrategy : public DemonologyWarlockCursesStrategy
     {
     public:

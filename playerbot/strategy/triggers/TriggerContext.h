@@ -1,3 +1,4 @@
+/// 通用 AI 触发器上下文注册表
 #pragma once
 
 #include "HealthTriggers.h"
@@ -29,9 +30,11 @@
 
 namespace ai
 {
+    /// 触发器工厂上下文，负责创建并按名称索引所有通用、副本、RPG 及测试触发器
     class TriggerContext : public NamedObjectContext<Trigger>
     {
     public:
+        /// 构造并注册全量触发器构造 lambda 映射
         TriggerContext()
         {
             creators["return"] = [](PlayerbotAI* ai) { return new ReturnTrigger(ai); };
@@ -147,7 +150,7 @@ namespace ai
             creators["update follow"] = [](PlayerbotAI* ai) { return new UpdateFollowTrigger(ai); };
             creators["stop follow"] = [](PlayerbotAI* ai) { return new StopFollowTrigger(ai); };
 
-            // Register freefollow triggers
+            // Register freefollow triggers | 注册自由跟随（游荡）相关触发器
             creators["wander far"] = [](PlayerbotAI* ai) { return new WanderFarTrigger(ai); };
             creators["wander medium"] = [](PlayerbotAI* ai) { return new WanderMediumTrigger(ai); };
             creators["wander near"] = [](PlayerbotAI* ai) { return new WanderNearTrigger(ai); };
@@ -208,7 +211,7 @@ namespace ai
             creators["charmed"] = [](PlayerbotAI* ai) { return new CharmedTrigger(ai); };
             creators["stunned"] = [](PlayerbotAI* ai) { return new StunnedTrigger(ai); };
 
-            // move to/enter dark portal if near
+            // move to/enter dark portal if near | 靠近黑暗之门时移动并进入
             creators["near dark portal"] = [](PlayerbotAI* ai) { return new NearDarkPortalTrigger(ai); };
             creators["at dark portal azeroth"] = [](PlayerbotAI* ai) { return new AtDarkPortalAzerothTrigger(ai); };
             creators["at dark portal outland"] = [](PlayerbotAI* ai) { return new AtDarkPortalOutlandTrigger(ai); };
@@ -218,7 +221,7 @@ namespace ai
 
             creators["need world buff"] = [](PlayerbotAI* ai) { return new NeedWorldBuffTrigger(ai); };
 
-            // World Buff Travel triggers
+            // World Buff Travel triggers | 世界增益自动旅行触发器
             creators["world buff travel zone reached"] = [](PlayerbotAI* ai) { return new WorldBuffTravelZoneReachedTrigger(ai); };
             creators["world buff travel need move"] = [](PlayerbotAI* ai) { return new WorldBuffTravelNeedMoveTrigger(ai); };
             creators["world buff travel portal step"] = [](PlayerbotAI* ai) { return new WorldBuffTravelPortalStepTrigger(ai); };
@@ -289,7 +292,7 @@ namespace ai
 
             creators["apply glyphs"] = [](PlayerbotAI* ai) { return new ApplyGlyphTrigger(ai); };
 
-            // racials
+            // racials | 种族天赋触发器
             creators["berserking"] = [](PlayerbotAI* ai) { return new BerserkingTrigger(ai); };
             creators["blood fury"] = [](PlayerbotAI* ai) { return new BloodFuryTrigger(ai); };
             creators["cannibalize"] = [](PlayerbotAI* ai) { return new CannibalizeTrigger(ai); };
@@ -301,7 +304,7 @@ namespace ai
             creators["war stomp"] = [](PlayerbotAI* ai) { return new WarStompTrigger(ai); };
             creators["perception"] = [](PlayerbotAI* ai) { return new PerceptionTrigger(ai); };
 
-            // Dungeon Triggers
+            // Dungeon Triggers | 副本进入/离开触发器
             creators["enter onyxias lair"] = [](PlayerbotAI* ai) { return new OnyxiasLairEnterDungeonTrigger(ai); };
             creators["leave onyxias lair"] = [](PlayerbotAI* ai) { return new OnyxiasLairLeaveDungeonTrigger(ai); };
             creators["enter molten core"] = [](PlayerbotAI* ai) { return new MoltenCoreEnterDungeonTrigger(ai); };
@@ -315,7 +318,7 @@ namespace ai
             creators["enter mechanar"] = [](PlayerbotAI* ai) { return new MechanarEnterDungeonTrigger(ai); };
             creators["leave mechanar"] = [](PlayerbotAI* ai) { return new MechanarLeaveDungeonTrigger(ai); };
 
-            // Dungeon Boss Triggers
+            // Dungeon Boss Triggers | 副本首领机制触发器
             creators["start onyxia fight"] = [](PlayerbotAI* ai) { return new OnyxiaStartFightTrigger(ai); };
             creators["end onyxia fight"] = [](PlayerbotAI* ai) { return new OnyxiaEndFightTrigger(ai); };
 
@@ -367,7 +370,7 @@ namespace ai
 
             creators["specific creature too close"] = [](PlayerbotAI* ai) { return new CloseToSpecificCreaturesTrigger(ai, "specific creature too close", true); };
 
-            // Test framework triggers
+            // Test framework triggers | 测试框架触发器
 #ifdef GenerateBotTests
             creators["test ready"] = [](PlayerbotAI* ai) { return new TestReadyTrigger(ai); };
 #endif

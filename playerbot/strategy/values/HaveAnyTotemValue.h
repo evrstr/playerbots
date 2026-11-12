@@ -1,3 +1,4 @@
+// 策略值头文件：HaveAnyTotemValue（检测附近是否存在任意图腾）
 #pragma once
 #include "playerbot/strategy/Value.h"
 #include "TargetValue.h"
@@ -5,9 +6,10 @@
 
 namespace ai
 {
+    // 布尔值计算器：检查附近 NPC 列表中是否存在任意图腾单位
     class HaveAnyTotemValue : public BoolCalculatedValue, public Qualified
-	{
-	public:
+    {
+    public:
         HaveAnyTotemValue(PlayerbotAI* ai, std::string name = "have any totem") : BoolCalculatedValue(ai, name), Qualified() {}
 
         bool Calculate() override

@@ -13,12 +13,13 @@ namespace ai
 
 using namespace ai;
 
+/// AI 工厂类，负责创建 AI 上下文、战斗/非战斗/死亡/反应引擎，并解析玩家天赋专精与团队角色
 class AiFactory
 {
 public:
     static AiObjectContext* createAiObjectContext(Player* player, PlayerbotAI* ai);
-	static Engine* createCombatEngine(Player* player, PlayerbotAI* const facade, AiObjectContext* AiObjectContext);
-	static Engine* createNonCombatEngine(Player* player, PlayerbotAI* const facade, AiObjectContext* AiObjectContext);
+    static Engine* createCombatEngine(Player* player, PlayerbotAI* const facade, AiObjectContext* AiObjectContext);
+    static Engine* createNonCombatEngine(Player* player, PlayerbotAI* const facade, AiObjectContext* AiObjectContext);
     static Engine* createDeadEngine(Player* player, PlayerbotAI* const facade, AiObjectContext* AiObjectContext);
     static ReactionEngine* createReactionEngine(Player* player, PlayerbotAI* const facade, AiObjectContext* AiObjectContext);
     static void AddDefaultNonCombatStrategies(Player* player, PlayerbotAI* const facade, Engine* nonCombatEngine);

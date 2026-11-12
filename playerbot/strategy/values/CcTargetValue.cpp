@@ -1,3 +1,4 @@
+// 策略值实现：CcTargetValue（控场目标筛选策略）
 
 #include "playerbot/playerbot.h"
 #include "CcTargetValue.h"
@@ -8,6 +9,7 @@
 
 using namespace ai;
 
+// 控场目标评分策略：优先匹配团队标记（RTI），排除近战交战中或已被他人瞄准的目标
 class FindTargetForCcStrategy : public FindTargetStrategy
 {
 public:
@@ -58,7 +60,7 @@ public:
         if (!ai->CanCastSpell(spell, creature, true, nullptr, false, true))
             return;
 
-        // If we have rti cc none but have cc strategy, then we'll cc something that isn't occupied
+        // If we have rti cc none but have cc strategy, then we'll cc something that isn't occupied | 若未指定控场标记但启用了 cc 策略，则选择未被队友集火的空闲目标
         std::string rti = AI_VALUE(std::string, "rti cc");
         int index = RtiTargetValue::GetRtiIndex(rti);
         if (index == -1 && ai->HasStrategy("cc", BotState::BOT_STATE_COMBAT))
@@ -75,13 +77,13 @@ public:
                 if (isBot)
                 {
                     AiObjectContext* context = memberAI->GetAiObjectContext();
-                    // If someone else has this target as their current target, don't cc
+                    // If someone else has this target as their current target, don't cc | 若有其他队员正将其作为当前目标，则不进行控场
                     if (context && context->GetValue<ObjectGuid>("current target")->Get() == creature->GetObjectGuid())
                         return;
                 }
                 else
                 {
-                    // If member is not a bot, check if they are targeting this
+                    // If member is not a bot, check if they are targeting this | 若队友为真实玩家，检查其当前目标是否指向该生物
                     if (member->GetSelectionGuid() == creature->GetObjectGuid())
                         return;
                 }
@@ -106,6 +108,7 @@ private:
     float maxDistance;
 };
 
+// 遍历无视线限制的潜在目标列表，选出最适合施加控场法术的单位
 ObjectGuid CcTargetValue::Calculate()
 {
     std::list<ObjectGuid> possible = AI_VALUE(std::list<ObjectGuid>,"possible targets no los");

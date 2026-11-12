@@ -7,6 +7,7 @@
 
 using namespace ai;
 
+/// 执行动作主逻辑（查询物品用途动作）
 bool QueryItemUsageAction::Execute(Event& event)
 {
     Player* requester = event.getOwner();
@@ -28,11 +29,11 @@ bool QueryItemUsageAction::Execute(Event& event)
         //uint32 invCount;
         uint8 bagSlot;
 
-        data >> received;                               // 0=looted, 1=from npc
-        data >> created;                                // 0=received, 1=created
-        data >> isShowChatMessage;                                      // IsShowChatMessage
+        data >> received;                               // 0=looted, 1=from npc (0=拾取获得，1=NPC 给予)
+        data >> created;                                // 0=received, 1=created (0=接收获得，1=制作产生)
+        data >> isShowChatMessage;                                      // IsShowChatMessage (是否显示聊天消息)
         data >> bagSlot;
-                                                                // item slot, but when added to stack: 0xFFFFFFFF
+                                                                // item slot, but when added to stack: 0xFFFFFFFF (物品槽位（堆叠合并时为 0xFFFFFFFF）)
         data >> slotId;
         data >> itemId;
         data >> suffixFactor;
@@ -122,6 +123,7 @@ bool QueryItemUsageAction::Execute(Event& event)
     return true;
 }
 
+/// 统计符合条件的目标或物品数量
 uint32 QueryItemUsageAction::GetCount(ItemQualifier& qualifier)
 {
     IterateItemsMask mask = IterateItemsMask((uint8)IterateItemsMask::ITERATE_ITEMS_IN_EQUIP | (uint8)IterateItemsMask::ITERATE_ITEMS_IN_BAGS);
@@ -138,6 +140,7 @@ uint32 QueryItemUsageAction::GetCount(ItemQualifier& qualifier)
     return total;
 }
 
+/// 查询指定物品的基本属性与背包持有情况
 std::string QueryItemUsageAction::QueryItem(ItemQualifier& qualifier, uint32 count, uint32 total, bool reason)
 {
     std::ostringstream out;
@@ -161,6 +164,7 @@ std::string QueryItemUsageAction::QueryItem(ItemQualifier& qualifier, uint32 cou
     return out.str();
 }
 
+/// 分析并输出物品对当前机器人的综合用途评估
 std::string QueryItemUsageAction::QueryItemUsage(ItemQualifier& qualifier, bool reason)
 {
     ItemUsage usage = AI_VALUE2(ItemUsage, "item usage", qualifier.GetQualifier());
@@ -207,6 +211,7 @@ std::string QueryItemUsageAction::QueryItemUsage(ItemQualifier& qualifier, bool 
     return "";
 }
 
+/// 查询物品的商人收购价、购买价或拍卖行估值
 std::string QueryItemUsageAction::QueryItemPrice(ItemQualifier& qualifier)
 {
     if (!sRandomPlayerbotMgr.IsRandomBot(bot))
@@ -247,6 +252,7 @@ std::string QueryItemUsageAction::QueryItemPrice(ItemQualifier& qualifier)
     return msg.str();
 }
 
+/// 查询任务相关物品在任务目标中的需求与用途
 std::string QueryItemUsageAction::QueryQuestItem(uint32 itemId)
 {
     Player *bot = ai->GetBot();
@@ -271,6 +277,7 @@ std::string QueryItemUsageAction::QueryQuestItem(uint32 itemId)
 }
 
 
+/// 查询任务相关物品在任务目标中的需求与用途
 std::string QueryItemUsageAction::QueryQuestItem(uint32 itemId, const Quest *questTemplate, const QuestStatusData *questStatus)
 {
     for (int i = 0; i < QUEST_OBJECTIVES_COUNT; i++)
@@ -290,6 +297,7 @@ std::string QueryItemUsageAction::QueryQuestItem(uint32 itemId, const Quest *que
     return "";
 }
 
+/// 计算并对比物品的装等评分与属性提升幅度
 std::string QueryItemUsageAction::QueryItemPower(ItemQualifier& qualifier)
 {
     uint32 power = sRandomItemMgr.ItemStatWeight(bot, qualifier);

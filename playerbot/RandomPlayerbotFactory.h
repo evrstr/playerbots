@@ -11,13 +11,15 @@ class Unit;
 class Object;
 class Item;
 
+/// 随机机器人角色、公会、竞技场队伍及外观名称生成器
 class RandomPlayerbotFactory
 {
     public:
         
+        /// 角色名称池按种族与性别划分的枚举
         enum class NameRaceAndGender : uint8
         {
-            // Generic is the category used for human & undead
+            // Generic is the category used for human & undead (人类与亡灵共用通用名称池)
             GenericMale = 0,
             GenericFemale,
             GnomeMale,
@@ -60,11 +62,11 @@ class RandomPlayerbotFactory
         }
 
         RandomPlayerbotFactory(uint32 accountId);
-		virtual ~RandomPlayerbotFactory() {}
+        virtual ~RandomPlayerbotFactory() {}
 
-	public:
+    public:
         bool CreateRandomBot(uint8 cls, uint8 inputRace = 0);
-        // Picks a random, DBC-valid appearance for the given race/gender.
+        // Picks a random, DBC-valid appearance for the given race/gender. (为指定种族和性别随机挑选 DBC 合法的外观参数)
         static void RandomizeAppearance(uint8 race, uint8 gender, uint8& skin, uint8& face, uint8& hairStyle, uint8& hairColor, uint8& facialHair);
         static void CreateRandomBots();
         static void LoadRandomBotAccounts();

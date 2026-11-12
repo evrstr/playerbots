@@ -1,3 +1,4 @@
+// 策略值实现：GroupValues（队伍成员聚合及全队状态就绪检查）
 
 #include "playerbot/playerbot.h"
 #include "GroupValues.h"
@@ -6,6 +7,7 @@
 
 using namespace ai;
 
+// 收集所在队伍全部成员 GUID，若未组队则仅返回自身
 std::list<ObjectGuid> GroupMembersValue::Calculate()
 {
     std::list<ObjectGuid> members;
@@ -25,6 +27,7 @@ std::list<ObjectGuid> GroupMembersValue::Calculate()
 }
 
 
+// 检查当前是否拥有活跃主控且处于 follow 或 wander 策略
 bool IsFollowingPartyValue::Calculate()
 {
     if (ai->GetGroupMaster() == bot)
@@ -37,6 +40,7 @@ bool IsFollowingPartyValue::Calculate()
     return false;
 }
 
+// 判断自身是否处于队长安全范围内（或未组队/自身即为队长）
 bool IsNearLeaderValue::Calculate()
 {
     Player* groupMaster = ai->GetGroupMaster();
@@ -50,6 +54,7 @@ bool IsNearLeaderValue::Calculate()
     return sServerFacade.GetDistance2d(bot, ai->GetGroupMaster()) < sPlayerbotAIConfig.reactDistance;
 }
 
+// 遍历队伍成员并累加指定布尔值为 true 的成员数量
 uint32 GroupBoolCountValue::Calculate()
 {
     uint32 count = 0;
@@ -74,6 +79,7 @@ uint32 GroupBoolCountValue::Calculate()
     return count;
 };
 
+// 遍历队伍成员，若任一成员不满足指定布尔值则返回 false
 bool GroupBoolANDValue::Calculate()
 {
     for (ObjectGuid guid : AI_VALUE(std::list<ObjectGuid>, "group members"))
@@ -96,6 +102,7 @@ bool GroupBoolANDValue::Calculate()
     return true;
 };
 
+// 遍历队伍成员，若任一成员满足指定布尔值则返回 true
 bool GroupBoolORValue::Calculate()
 {
     for (ObjectGuid guid : AI_VALUE(std::list<ObjectGuid>, "group members"))
@@ -118,6 +125,7 @@ bool GroupBoolORValue::Calculate()
     return false;
 };
 
+// 检查附近跟随状态的机器人队友是否存活且血量/法力高于低阈值
 bool GroupReadyValue::Calculate()
 {
     bool inDungeon = !WorldPosition(bot).isOverworld();
@@ -129,7 +137,7 @@ bool GroupReadyValue::Calculate()
         if (!member)
             continue;
 
-        if (inDungeon) // In dungeons all following members need to be alive before continuing.
+        if (inDungeon) // In dungeons all following members need to be alive before continuing. | 在地下城中，所有跟随状态的队友必须存活才能继续推进
         {
             PlayerbotAI* memberAi = member->GetPlayerbotAI();
 
@@ -141,13 +149,13 @@ bool GroupReadyValue::Calculate()
             if (!member->IsAlive() && isFollowing)
                 return false;
         }
-        //We only wait for members that are in range otherwise we might be waiting for bots stuck in dead loops forever.
+        //We only wait for members that are in range otherwise we might be waiting for bots stuck in dead loops forever. | 仅等待视距范围内的队友，避免因卡死在远处的机器人导致无限等待
         if (ai->GetGroupMaster() && sServerFacade.GetDistance2d(member, ai->GetGroupMaster()) > sPlayerbotAIConfig.sightDistance)
             continue;        
 
         bool hasAttackers = AI_VALUE_LAZY(bool, "has attackers") || AI_VALUE_LAZY(bool, "has enemy player targets") || ai->GetUnit(AI_VALUE_LAZY(ObjectGuid, "dps target"));
 
-        //Wait for members to recover health/mana.
+        //Wait for members to recover health/mana. | 等待队友恢复生命值与法力值
         if (hasAttackers && member->GetHealthPercent() < sPlayerbotAIConfig.almostFullHealth && !member->IsInCombat())
             return false;
 

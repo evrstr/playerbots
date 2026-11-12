@@ -1,9 +1,11 @@
+// 策略值实现：Arrow（箭头阵型构建与成员站位计算）
 #include "playerbot/playerbot.h"
 #include "Formations.h"
 #include "Arrow.h"
 
 using namespace ai;
 
+// 计算并返回当前机器人在箭头阵型中的目标世界坐标
 WorldLocation ArrowFormation::GetLocationInternal()
 {
     if (!bot->GetGroup()) return Formation::NullLocation;
@@ -68,6 +70,7 @@ WorldLocation ArrowFormation::GetLocationInternal()
     return WorldLocation(followTarget->GetMapId(), x, y, z);
 }
 
+// 初始化阵型，将所有队员和主控玩家分别填充到对应职责槽位
 void ArrowFormation::Build()
 {
     if (built)
@@ -79,6 +82,7 @@ void ArrowFormation::Build()
     built = true;
 }
 
+// 根据队员职责（坦克/治疗/远程/近战）查找对应的阵型槽位
 FormationSlot* ArrowFormation::FindSlot(Player* member)
 {
     if (ai->IsTank(member))
@@ -91,6 +95,7 @@ FormationSlot* ArrowFormation::FindSlot(Player* member)
         return &melee;
 }
 
+// 将除主控外的其余队伍成员加入各自职责槽位
 void ArrowFormation::FillSlotsExceptMaster()
 {
     Unit* followTarget = ai->GetUnit(AI_VALUE(ObjectGuid, "follow target"));
@@ -112,6 +117,7 @@ void ArrowFormation::FillSlotsExceptMaster()
     }
 }
 
+// 将主控玩家插入其所属槽位的中心位置
 void ArrowFormation::AddMasterToSlot()
 {
     Unit* followTarget = ai->GetUnit(AI_VALUE(ObjectGuid, "follow target"));
@@ -133,6 +139,7 @@ void ArrowFormation::AddMasterToSlot()
     }
 }
 
+// 调用指定的布局器依次计算槽位内所有成员的坐标
 void FormationSlot::PlaceUnits(UnitPlacer* placer)
 {
     uint32 index = 0;
@@ -145,6 +152,7 @@ void FormationSlot::PlaceUnits(UnitPlacer* placer)
     }
 }
 
+// 按多行队列方式计算指定索引成员的偏移坐标
 UnitPosition MultiLineUnitPlacer::Place(FormationUnit *unit, uint32 index, uint32 count)
 {
     SingleLineUnitPlacer placer(orientation, range);
@@ -159,6 +167,7 @@ UnitPosition MultiLineUnitPlacer::Place(FormationUnit *unit, uint32 index, uint3
     return placer.Place(unit, indexInLine, lineSize);
 }
 
+// 按单行展开方式计算指定索引成员的偏移坐标
 UnitPosition SingleLineUnitPlacer::Place(FormationUnit *unit, uint32 index, uint32 count)
 {
     float angle = orientation - M_PI / 2.0f;
@@ -167,6 +176,7 @@ UnitPosition SingleLineUnitPlacer::Place(FormationUnit *unit, uint32 index, uint
     return UnitPosition(x, y);
 }
 
+// 整体平移该槽位内所有成员的平面坐标
 void FormationSlot::Move(float dx, float dy)
 {
     for (std::vector<FormationUnit*>::iterator i = units.begin(); i != units.end(); ++i)
@@ -176,6 +186,7 @@ void FormationSlot::Move(float dx, float dy)
     }
 }
 
+// 析构释放槽位内的所有 FormationUnit 对象
 FormationSlot::~FormationSlot()
 {
     for (std::vector<FormationUnit*>::iterator i = units.begin(); i != units.end(); ++i)

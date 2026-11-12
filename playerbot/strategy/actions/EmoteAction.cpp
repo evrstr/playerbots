@@ -11,15 +11,18 @@ std::map<std::string, uint32> EmoteActionBase::emotes;
 std::map<std::string, uint32> EmoteActionBase::textEmotes;
 char *strstri(const char *haystack, const char *needle);
 
+/// 构造函数：初始化表情动作基类
 EmoteActionBase::EmoteActionBase(PlayerbotAI* ai, std::string name) : Action(ai, name)
 {
     if (emotes.empty()) InitEmotes();
 }
 
+/// 构造函数：初始化表情表演动作
 EmoteAction::EmoteAction(PlayerbotAI* ai) : EmoteActionBase(ai, "emote"), Qualified()
 {
 }
 
+/// 初始化表情名称与客户端表情枚举值的映射表
 void EmoteActionBase::InitEmotes()
 {
     emotes["dance"] = EMOTE_ONESHOT_DANCE;
@@ -65,10 +68,10 @@ void EmoteActionBase::InitEmotes()
     textEmotes["congratulate"] = TEXTEMOTE_CONGRATULATE;
     textEmotes["hello"] = TEXTEMOTE_HELLO;
     textEmotes["no"] = TEXTEMOTE_NO;
-    textEmotes["nod"] = TEXTEMOTE_NOD; // yes
+    textEmotes["nod"] = TEXTEMOTE_NOD; // yes (是)
     textEmotes["sigh"] = TEXTEMOTE_SIGH;
     textEmotes["thank"] = TEXTEMOTE_THANK;
-    textEmotes["welcome"] = TEXTEMOTE_WELCOME; // you are welcome
+    textEmotes["welcome"] = TEXTEMOTE_WELCOME; // you are welcome (不客气)
     textEmotes["whistle"] = TEXTEMOTE_WHISTLE;
     textEmotes["yawn"] = TEXTEMOTE_YAWN;
     textEmotes["oom"] = 323;
@@ -98,6 +101,7 @@ void EmoteActionBase::InitEmotes()
     textEmotes["flirt"] = TEXTEMOTE_FLIRT;
 }
 
+/// 执行指定的文本表情或动作动画
 bool EmoteActionBase::Emote(Unit* target, uint32 type, bool textEmote)
 {
     if (target && !sServerFacade.IsInFront(bot, target, sPlayerbotAIConfig.sightDistance, M_PI_F))
@@ -129,6 +133,7 @@ bool EmoteActionBase::Emote(Unit* target, uint32 type, bool textEmote)
     return true;
 }
 
+/// 获取当前动作的目标单位（表情动作基类）
 Unit* EmoteActionBase::GetTarget()
 {
     Unit* target = NULL;
@@ -147,6 +152,7 @@ Unit* EmoteActionBase::GetTarget()
     return target;
 }
 
+/// 接收周围玩家做出的表情并给予相应回应
 bool EmoteActionBase::ReceiveEmote(Player* requester, Player* source, uint32 emote, bool verbal)
 {
     uint32 emoteId = 0;
@@ -650,9 +656,11 @@ bool EmoteActionBase::ReceiveEmote(Player* requester, Player* source, uint32 emo
     return true;
 }
 
+/// 执行动作主逻辑（表情表演动作）
 bool EmoteAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
+    // 解析事件携带的网络封包数据
     WorldPacket p(event.getPacket());
     uint32 emote = 0;
     Player* pSource = NULL;
@@ -743,10 +751,10 @@ bool EmoteAction::Execute(Event& event)
     if (isReact && !emote)
         return false;
 
-    // less often emotes
+    // less often emotes (降低表情触发频率)
     if (isReact && pSource)
     {
-        // try to always reply to real player
+        // try to always reply to real player (尽量始终回复真实玩家的聊天消息)
         time_t lastEmote = AI_VALUE2(time_t, "last emote", qualifier);
         bool isPaused = time(0) < lastEmote;
         bool shouldReply = true;
@@ -754,7 +762,7 @@ bool EmoteAction::Execute(Event& event)
         uint32 accountId = pSource->GetSession()->GetAccountId();
         isRandomBot = sPlayerbotAIConfig.IsInRandomAccountList(accountId);
 
-        // random bot speaks, emote CD
+        // random bot speaks, emote CD (随机机器人发言与表情冷却)
         if (isRandomBot && isPaused)
             shouldReply = false;
 
@@ -822,6 +830,7 @@ bool EmoteAction::Execute(Event& event)
     return Emote(GetTarget(), emote);
 }
 
+/// 判断当前状态下该动作是否可用/有效（表情表演动作）
 bool EmoteAction::isUseful()
 {
     if (!ai->AllowActivity())
@@ -832,6 +841,7 @@ bool EmoteAction::isUseful()
 }
 
 
+/// 执行动作主逻辑（闲聊动作）
 bool TalkAction::Execute(Event& event)
 {
     Unit* target = ai->GetUnit(AI_VALUE(ObjectGuid, "talk target"));
@@ -865,6 +875,7 @@ bool TalkAction::Execute(Event& event)
     return false;
 }
 
+/// 随机挑选一个与当前语境匹配的表情 ID
 uint32 TalkAction::GetRandomEmote(Unit* unit, bool textEmote)
 {
     std::vector<uint32> types;
@@ -872,7 +883,7 @@ uint32 TalkAction::GetRandomEmote(Unit* unit, bool textEmote)
     {
         if (!urand(0, 20))
         {
-            // expressions
+            // expressions (表达式集合)
             types.push_back(TEXTEMOTE_BOW);
             types.push_back(TEXTEMOTE_RUDE);
             types.push_back(TEXTEMOTE_CRY);
@@ -884,7 +895,7 @@ uint32 TalkAction::GetRandomEmote(Unit* unit, bool textEmote)
         }
         else
         {
-            // talk
+            // talk (对话交流)
             types.push_back(TEXTEMOTE_TALK);
             types.push_back(TEXTEMOTE_TALKEX);
             types.push_back(TEXTEMOTE_TALKQ);
@@ -898,7 +909,7 @@ uint32 TalkAction::GetRandomEmote(Unit* unit, bool textEmote)
 
     if (!urand(0, 20))
     {
-        // expressions
+        // expressions (表达式集合)
         types.push_back(EMOTE_ONESHOT_BOW);
         types.push_back(EMOTE_ONESHOT_RUDE);
         types.push_back(EMOTE_ONESHOT_CRY);
@@ -909,7 +920,7 @@ uint32 TalkAction::GetRandomEmote(Unit* unit, bool textEmote)
     }
     else
     {
-        // talk
+        // talk (对话交流)
         types.push_back(EMOTE_ONESHOT_TALK);
         types.push_back(EMOTE_ONESHOT_EXCLAMATION);
         types.push_back(EMOTE_ONESHOT_QUESTION);
@@ -921,9 +932,10 @@ uint32 TalkAction::GetRandomEmote(Unit* unit, bool textEmote)
     return types[urand(0, types.size() - 1)];
 }
 
+/// 获取指定表情动作可用的随机变体数量
 uint32 EmoteActionBase::GetNumberOfEmoteVariants(TextEmotes emote, uint8 Race, uint8 Gender)
 {
-    if (emote == 304) // Incoming
+    if (emote == 304) // Incoming (来袭)
     {
         switch (Race)
         {
@@ -953,7 +965,7 @@ uint32 EmoteActionBase::GetNumberOfEmoteVariants(TextEmotes emote, uint8 Race, u
         }
         }
     }
-    else if (emote == 305) // Charge
+    else if (emote == 305) // Charge (冲锋)
     {
         switch (Race)
         {
@@ -983,7 +995,7 @@ uint32 EmoteActionBase::GetNumberOfEmoteVariants(TextEmotes emote, uint8 Race, u
         }
         }
     }
-    else if (emote == 306) // Flee
+    else if (emote == 306) // Flee (逃跑撤退)
     {
         switch (Race)
         {
@@ -1035,11 +1047,11 @@ uint32 EmoteActionBase::GetNumberOfEmoteVariants(TextEmotes emote, uint8 Race, u
         }
         }
     }
-    else if (emote == 323) // OOM
+    else if (emote == 323) // OOM (法力耗尽（OOM）)
     {
         return 2;
     }
-    else if (emote == 324) // Follow
+    else if (emote == 324) // Follow (跟随)
     {
         switch (Race)
         {
@@ -1066,7 +1078,7 @@ uint32 EmoteActionBase::GetNumberOfEmoteVariants(TextEmotes emote, uint8 Race, u
         }
         }
     }
-    else if (emote == 325) // Wait
+    else if (emote == 325) // Wait (等待)
     {
         switch (Race)
         {
@@ -1091,7 +1103,7 @@ uint32 EmoteActionBase::GetNumberOfEmoteVariants(TextEmotes emote, uint8 Race, u
         }
         }
     }
-    else if (emote == 326) // Heal me
+    else if (emote == 326) // Heal me (请求治疗)
     {
         switch (Race)
         {
@@ -1388,11 +1400,13 @@ uint32 EmoteActionBase::GetNumberOfEmoteVariants(TextEmotes emote, uint8 Race, u
     return 1;
 }
 
+/// 判断当前状态下该动作是否可用/有效（坐骑动作表演动作）
 bool MountAnimAction::isUseful()
 {
     return AI_VALUE2(bool, "mounted", "self target") && !AI_VALUE2(bool, "moving", "self target");
 }
 
+/// 执行动作主逻辑（坐骑动作表演动作）
 bool MountAnimAction::Execute(Event& event)
 {
     WorldPacket p;

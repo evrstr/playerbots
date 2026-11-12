@@ -1,3 +1,4 @@
+// 策略值实现：StatsValues（单位生命、资源、背包空间、装备耐久与战斗状态计算）
 
 #include "playerbot/playerbot.h"
 #include "StatsValues.h"
@@ -7,6 +8,7 @@
 
 using namespace ai;
 
+// 获取目标单位当前生命值百分比
 uint8 HealthValue::Calculate()
 {
     Unit* target = GetTarget();
@@ -15,6 +17,7 @@ uint8 HealthValue::Calculate()
     return (static_cast<float> (target->GetHealth()) / target->GetMaxHealth()) * 100;
 }
 
+// 检查目标单位是否已死亡
 bool IsDeadValue::Calculate()
 {
     Unit* target = GetTarget();
@@ -23,6 +26,7 @@ bool IsDeadValue::Calculate()
     return sServerFacade.GetDeathState(target) != ALIVE;
 }
 
+// 查询数据库宠物状态判断是否已有宠物且处于死亡状态
 bool PetIsDeadValue::Calculate()
 {
 #ifdef MANGOSBOT_ZERO
@@ -46,6 +50,7 @@ bool PetIsDeadValue::Calculate()
     return bot->GetPet() && sServerFacade.GetDeathState(bot->GetPet()) != ALIVE;
 }
 
+// 检查当前召唤猎人宠物的快乐度是否达到最高档（HAPPY）
 bool PetIsHappyValue::Calculate()
 {
 #ifdef MANGOSBOT_ZERO
@@ -60,6 +65,7 @@ bool PetIsHappyValue::Calculate()
 }
 
 
+// 读取单位当前怒气值并换算为标准 0-100 刻度
 uint8 RageValue::Calculate()
 {
     Unit* target = GetTarget();
@@ -68,6 +74,7 @@ uint8 RageValue::Calculate()
     return (target->GetPower(POWER_RAGE) / 10.0f);
 }
 
+// 读取单位当前能量值
 uint8 EnergyValue::Calculate()
 {
     Unit* target = GetTarget();
@@ -76,6 +83,7 @@ uint8 EnergyValue::Calculate()
     return (static_cast<float> (target->GetPower(POWER_ENERGY)));
 }
 
+// 计算单位当前法力值百分比
 uint8 ManaValue::Calculate()
 {
     Unit* target = GetTarget();
@@ -84,6 +92,7 @@ uint8 ManaValue::Calculate()
     return (static_cast<float> (target->GetPower(POWER_MANA)) / target->GetMaxPower(POWER_MANA)) * 100;
 }
 
+// 检查单位是否具备法力值上限且未处于无蓝变形状态
 bool HasManaValue::Calculate()
 {
     Unit* target = GetTarget();
@@ -93,15 +102,17 @@ bool HasManaValue::Calculate()
 }
 
 
+// 读取机器人当前保存的连击点数
 uint8 ComboPointsValue::Calculate()
 {
     Unit *target = GetTarget();
-	if (!target || target->GetObjectGuid() != bot->GetComboTargetGuid())
-		return 0;
+    if (!target || target->GetObjectGuid() != bot->GetComboTargetGuid())
+        return 0;
 
     return bot->GetComboPoints();
 }
 
+// 检查单位是否骑乘或处于德鲁伊飞行形态
 bool IsMountedValue::Calculate()
 {
     Unit* target = GetTarget();
@@ -118,6 +129,7 @@ bool IsMountedValue::Calculate()
 }
 
 
+// 判断单位自身或其队伍成员是否正在战斗中
 bool IsInCombatValue::Calculate()
 {
     Unit* target = GetTarget();
@@ -146,6 +158,7 @@ bool IsInCombatValue::Calculate()
     return false;
 }
 
+// 统计主背包及装备背包总格数与已用格数，返回占用百分比
 uint8 BagSpaceValue::Calculate()
 {
     uint32 totalused = 0, total = 16;
@@ -173,6 +186,7 @@ uint8 BagSpaceValue::Calculate()
     return (static_cast<float> (totalused) / total) * 100;
 }
 
+// 统计个人银行主栏位及银行背包已用比例
 uint8 BankSpaceValue::Calculate()
 {
     uint32 totalused = 0, total = 16;
@@ -199,6 +213,7 @@ uint8 BankSpaceValue::Calculate()
     return (static_cast<float>(totalused) / total) * 100;
 }
 
+// 统计已装备栏位所有有耐久装备的总当前耐久与最大耐久百分比
 uint8 DurabilityValue::Calculate()
 {
     uint32 totalMax = 0, total = 0;
@@ -228,6 +243,7 @@ uint8 DurabilityValue::Calculate()
     return (static_cast<float> (total) / totalMax) * 100;
 }
 
+// 统计身上及背包内所有可修理物品的总体耐久百分比
 uint8 DurabilityInventoryValue::Calculate()
 {
     uint32 totalMax = 0, total = 0;
@@ -257,6 +273,7 @@ uint8 DurabilityInventoryValue::Calculate()
     return (static_cast<float> (total) / totalMax) * 100;
 }
 
+// 查找身上已装备物品中最低的单件耐久百分比
 uint8 LowestDurabilityValue::Calculate()
 {
     uint32 durabilityPercent, minDurabilityPercent = 100;
@@ -284,6 +301,7 @@ uint8 LowestDurabilityValue::Calculate()
     return minDurabilityPercent;
 }
 
+// 计算目标当前地面跑速相对于标准速度（7.0）的百分比
 uint8 SpeedValue::Calculate()
 {
     Unit* target = GetTarget();

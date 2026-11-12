@@ -1,3 +1,4 @@
+// 策略值实现：CollisionValue（周围单位碰撞半径检测）
 
 #include "playerbot/playerbot.h"
 #include "CollisionValue.h"
@@ -10,6 +11,7 @@
 
 using namespace ai;
 
+// 搜索接触距离内的可见单位，判断机器人与其平面距离是否小于目标碰撞半径
 bool CollisionValue::Calculate()
 {
     Unit* target = ai->GetUnit(AI_VALUE(ObjectGuid, qualifier));

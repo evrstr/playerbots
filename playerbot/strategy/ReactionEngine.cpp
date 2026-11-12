@@ -6,6 +6,7 @@
 
 using namespace ai;
 
+// 绑定反应动作并初始化持续时间
 void Reaction::SetAction(Action* inAction)
 {
     if (inAction)
@@ -15,6 +16,7 @@ void Reaction::SetAction(Action* inAction)
     }
 }
 
+// 扣减反应剩余持续时间，结束时返回 true
 bool Reaction::Update(uint32 elapsed)
 {
     // Update remaining duration
@@ -27,6 +29,7 @@ bool Reaction::Update(uint32 elapsed)
     return !IsActive();
 }
 
+// 构造反应引擎实例
 ReactionEngine::ReactionEngine(PlayerbotAI* ai, AiObjectContext* factory, BotState engineState) 
 : Engine(ai, factory, engineState)
 , aiReactionUpdateDelay(0U)
@@ -34,6 +37,7 @@ ReactionEngine::ReactionEngine(PlayerbotAI* ai, AiObjectContext* factory, BotSta
     
 }
 
+// 当没有进行中的反应时，轮询触发器与队列选出最佳可用反应动作
 bool ReactionEngine::FindReaction(bool isStunned)
 {
     // Don't find a new reaction if the previous reaction is still running
@@ -136,6 +140,7 @@ bool ReactionEngine::FindReaction(bool isStunned)
     return false;
 }
 
+// 执行已选定的待触发反应动作并转入 ongoingReaction
 bool ReactionEngine::StartReaction()
 {
     bool reactionExecuted = false;
@@ -156,6 +161,7 @@ bool ReactionEngine::StartReaction()
     return reactionExecuted;
 }
 
+// 结束当前进行中的反应并重置延迟
 void ReactionEngine::StopReaction()
 {
     ongoingReaction.Reset();
@@ -165,6 +171,7 @@ void ReactionEngine::StopReaction()
     // ...
 }
 
+// 反应引擎周期更新：推进当前反应计时、启动待执行反应或搜索新反应
 bool ReactionEngine::Update(uint32 elapsed, bool minimal, bool isStunned, bool& reactionFound)
 {
     aiReactionUpdateDelay = aiReactionUpdateDelay > elapsed ? aiReactionUpdateDelay - elapsed : 0U;
@@ -215,6 +222,7 @@ bool ReactionEngine::Update(uint32 elapsed, bool minimal, bool isStunned, bool& 
     return HasIncomingReaction() || IsReacting();
 }
 
+// 执行反应动作并向监听器及调试者汇报持续时间
 bool ReactionEngine::ListenAndExecute(Action* action, Event& event)
 {
     bool actionExecuted = false;
@@ -258,6 +266,7 @@ bool ReactionEngine::ListenAndExecute(Action* action, Event& event)
     return actionExecuted;
 }
 
+// 初始化动作并标记为反应模式
 ai::Action* ReactionEngine::InitializeAction(ActionNode* actionNode)
 {
     Action* action = actionNode->getAction();
@@ -275,6 +284,7 @@ ai::Action* ReactionEngine::InitializeAction(ActionNode* actionNode)
     return action;
 }
 
+// 同步更新当前或待启动反应的持续时间
 void ReactionEngine::SetReactionDuration(const Action* action)
 {
     if (action && (IsReacting() || HasIncomingReaction()))
@@ -290,6 +300,7 @@ void ReactionEngine::SetReactionDuration(const Action* action)
     }
 }
 
+// 重置进行中与待启动的反应状态
 void ReactionEngine::Reset()
 {
     ongoingReaction.Reset();
@@ -297,6 +308,7 @@ void ReactionEngine::Reset()
     aiReactionUpdateDelay = 0U;
 }
 
+// 检查冷却延迟、在世界状态及非传送状态以判断是否可更新反应
 bool ReactionEngine::CanUpdateAIReaction() const
 {
     Player* bot = ai->GetBot();
@@ -305,6 +317,7 @@ bool ReactionEngine::CanUpdateAIReaction() const
            !bot->IsBeingTeleported();
 }
 
+// 获取当前活跃（进行中或即将执行）的反应对象指针
 const Reaction* ReactionEngine::GetReaction() const
 {
     const Reaction* reaction = nullptr;

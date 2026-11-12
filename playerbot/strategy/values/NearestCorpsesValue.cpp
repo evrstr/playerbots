@@ -1,3 +1,4 @@
+// 策略值实现：NearestCorpsesValue（网格搜索附近已死亡单位）
 
 #include "playerbot/playerbot.h"
 #include "NearestCorpsesValue.h"
@@ -10,6 +11,7 @@
 using namespace ai;
 using namespace MaNGOS;
 
+// 网格搜索过滤器：匹配距离内所有非存活状态的 Unit 对象
 class AnyDeadUnitInObjectRangeCheck
 {
 public:
@@ -24,6 +26,7 @@ private:
     float i_range;
 };
 
+// 使用 AnyDeadUnitInObjectRangeCheck 扫描周围死亡单位
 void NearestCorpsesValue::FindUnits(std::list<Unit*> &targets)
 {
     AnyDeadUnitInObjectRangeCheck u_check(bot,  range);
@@ -31,6 +34,7 @@ void NearestCorpsesValue::FindUnits(std::list<Unit*> &targets)
     Cell::VisitAllObjects(bot, searcher, range);
 }
 
+// 默认接受所有找到的死亡单位
 bool NearestCorpsesValue::AcceptUnit(Unit* unit)
 {
     return true;

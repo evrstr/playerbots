@@ -5,6 +5,7 @@
 
 using namespace ai;
 
+/// 执行动作主逻辑（汇报声望指令动作）
 bool TellReputationAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();

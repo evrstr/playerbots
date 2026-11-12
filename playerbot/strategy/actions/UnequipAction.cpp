@@ -8,6 +8,7 @@ using namespace ai;
 
 std::vector<std::string> split(const std::string &s, char delim);
 
+/// 执行动作主逻辑（卸下装备指令动作）
 bool UnequipAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -21,14 +22,16 @@ bool UnequipAction::Execute(Event& event)
     return true;
 }
 
+/// 卸下指定装备栏位或名称的已穿戴装备
 void UnequipAction::UnequipItem(Player* requester, FindItemVisitor* visitor)
 {
     IterateItemsMask mask = IterateItemsMask((uint8)IterateItemsMask::ITERATE_ITEMS_IN_BAGS | (uint8)IterateItemsMask::ITERATE_ITEMS_IN_EQUIP);
     ai->InventoryIterateItems(visitor, mask);
     std::list<Item*> items = visitor->GetResult();
-	if (!items.empty()) UnequipItem(ai, requester, *items.begin());
+    if (!items.empty()) UnequipItem(ai, requester, *items.begin());
 }
 
+/// 卸下指定装备栏位或名称的已穿戴装备
 void UnequipAction::UnequipItem(PlayerbotAI* ai, Player* requester, Item* item, bool silent)
 {
     Player* bot = ai->GetBot();

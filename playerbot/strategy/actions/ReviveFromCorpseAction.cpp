@@ -10,13 +10,14 @@
 
 using namespace ai;
 
+/// 执行动作主逻辑（跑尸复活动作）
 bool ReviveFromCorpseAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
     Player* master = ai->GetGroupMaster();
     Corpse* corpse = bot->GetCorpse();
 
-    // follow master when master revives
+    // follow master when master revives (主人复活后恢复跟随主人)
     WorldPacket& p = event.getPacket();
     if (!p.empty() && p.GetOpcode() == CMSG_RECLAIM_CORPSE && master && !corpse && sServerFacade.IsAlive(bot))
     {
@@ -41,7 +42,7 @@ bool ReviveFromCorpseAction::Execute(Event& event)
 
     if (master)
     {
-        //Revive with master.
+        // Revive with master. (跟随主人一同复活。)
         if (bot != master && sServerFacade.UnitIsDead(master) && master->GetCorpse() && sServerFacade.IsDistanceLessThan(AI_VALUE2(float, "distance", "master target"), sPlayerbotAIConfig.farDistance))
             return false;
     }
@@ -58,6 +59,7 @@ bool ReviveFromCorpseAction::Execute(Event& event)
     return true;
 }
 
+/// 执行动作主逻辑（寻找尸体动作）
 bool FindCorpseAction::Execute(Event& event)
 {
     if (bot->InBattleGround())
@@ -80,16 +82,16 @@ bool FindCorpseAction::Execute(Event& event)
     float reclaimDist = CORPSE_RECLAIM_RADIUS - 5.0f;
     float corpseDist = botPos.distance(corpsePos);
 
-    if (!corpsePos) //Corpse is at 0,0,0,0
+    if (!corpsePos) // Corpse is at 0,0,0,0 (尸体坐标异常位于原点 (0,0,0,0))
         return false;
 
-    //If player fell through terrain move corpse to player position.
+    // If player fell through terrain move corpse to player position. (若玩家掉落穿模地形，将尸体坐标移动至玩家当前位置。)
     if (bot->isRealPlayer() && botPos.getMapId() == moveToPos.getMapId())
     {
-        //Try to correct the position upward.
+        // Try to correct the position upward. (尝试向上修正坐标高度。)
         if (!moveToPos.ClosestCorrectPoint(5.0f, 500.0f, bot->GetInstanceId()))
         {
-            //Revive in place.
+            // Revive in place. (原地复活。)
             corpse->Relocate(botPos.getX(), botPos.getY(), botPos.getZ());
             corpsePos = corpse;
             corpseDist = botPos.distance(corpsePos);
@@ -106,26 +108,26 @@ bool FindCorpseAction::Execute(Event& event)
 
     bool moveToMaster = master && master != bot && masterPos.fDist(corpsePos) < reclaimDist;
 
-    //Should we ressurect? If so, return false.
+    // Should we ressurect? If so, return false. (若需要优先执行复活流程，则返回 false。)
     if (corpseDist < reclaimDist)
     {
-        if (moveToMaster) //We are near master.
+        if (moveToMaster) // We are near master. (当前正位于主人附近。)
         {
             if (botPos.fDist(masterPos) < sPlayerbotAIConfig.spellDistance)
                 return false;
         }
-        else if (deadTime > 8 * MINUTE) //We have walked too long already.
+        else if (deadTime > 8 * MINUTE) // We have walked too long already. (步行耗时已过长。)
             return false;
         else
         {
             std::list<ObjectGuid> units = AI_VALUE(std::list<ObjectGuid>, "possible targets no los");
 
-            if (botPos.getUnitsAggro(units, bot) == 0) //There are no mobs near.
+            if (botPos.getUnitsAggro(units, bot) == 0) // There are no mobs near. (附近没有敌对怪物。)
                 return false;
         }
     }
 
-    //If we are getting close move to a save ressurrection spot instead of just the corpse.
+    // If we are getting close move to a save ressurrection spot instead of just the corpse. (接近尸体时优先寻找安全复活位置而非直接站在尸体正上方。)
     if (corpseDist < sPlayerbotAIConfig.reactDistance)
     {
         if (moveToMaster)
@@ -178,13 +180,13 @@ bool FindCorpseAction::Execute(Event& event)
         }
     }
 
-    //Actual mobing part.
+    // Actual mobing part. (实际移动执行部分。)
     bool moved = false;
 
     if (!ai->AllowActivity(DETAILED_MOVE_ACTIVITY) && !ai->HasPlayerNearby(moveToPos))
     {
-        uint32 delay = sServerFacade.GetDistance2d(bot, corpse) / bot->GetSpeed(MOVE_RUN); //Time a bot would take to travel to it's corpse.
-        delay = std::min(delay, uint32(10 * MINUTE)); //Cap time to get to corpse at 10 minutes.
+        uint32 delay = sServerFacade.GetDistance2d(bot, corpse) / bot->GetSpeed(MOVE_RUN); // Time a bot would take to travel to it's corpse. (估算机器人跑回自身尸体所需的耗时。)
+        delay = std::min(delay, uint32(10 * MINUTE)); // Cap time to get to corpse at 10 minutes. (将跑尸超时上限设为 10 分钟。)
 
         if (deadTime > delay)
         {
@@ -210,7 +212,7 @@ bool FindCorpseAction::Execute(Event& event)
 
             moved = MoveTo(moveToPos.getMapId(), moveToPos.getX(), moveToPos.getY(), moveToPos.getZ(), false, false);
 
-            if (!moved && !ai->HasActivePlayerMaster()) //We could not move to coprse. Try spirithealer instead.
+            if (!moved && !ai->HasActivePlayerMaster()) // We could not move to coprse. Try spirithealer instead. (无法跑尸到达尸体位置，改为寻找灵魂医者复活。)
             {
                 moved = ai->DoSpecificAction("spirit healer", Event(), true);
             }
@@ -220,6 +222,7 @@ bool FindCorpseAction::Execute(Event& event)
     return moved;
 }
 
+/// 判断当前状态下该动作是否可用/有效（寻找尸体动作）
 bool FindCorpseAction::isUseful()
 {
     if (bot->InBattleGround())
@@ -228,6 +231,7 @@ bool FindCorpseAction::isUseful()
     return bot->GetCorpse();
 }
 
+/// 执行动作主逻辑（灵魂医者复活动作）
 bool SpiritHealerAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -241,10 +245,10 @@ bool SpiritHealerAction::Execute(Event& event)
     uint32 dCount = AI_VALUE(uint32, "death count");
     GuidPosition grave = AI_VALUE(GuidPosition, "best graveyard");
 
-    //something went wrong
+    // something went wrong (处理过程发生异常)
     if (!grave)
     {
-        //prevent doing weird stuff OR GOING TO 0,0,0
+        // prevent doing weird stuff OR GOING TO 0,0,0 (防止异常行为或错误前往原点 (0,0,0))
         sLog.outDetail(
             "ERROR: no graveyard in SpiritHealerAction for bot #%d %s:%d <%s>, evacuating to prevent weird behavior",
             bot->GetGUIDLow(),
@@ -259,6 +263,7 @@ bool SpiritHealerAction::Execute(Event& event)
     if (grave && grave.fDist(bot) < sPlayerbotAIConfig.sightDistance)
     {
         bool foundSpiritHealer = false;
+        // 遍历附近 NPC 列表
         std::list<ObjectGuid> npcs = AI_VALUE(std::list<ObjectGuid>, "nearest npcs");
         for (std::list<ObjectGuid>::iterator i = npcs.begin(); i != npcs.end(); i++)
         {
@@ -296,16 +301,16 @@ bool SpiritHealerAction::Execute(Event& event)
 
     const int64 deadTime = time(nullptr) - corpse->GetGhostTime();
 
-    // Prevent taking too long to go to corpse (10 mins)
-    // no need to wait longer, because bot is probably stuck in navigating issues
+    // Prevent taking too long to go to corpse (10 mins) (防止跑尸耗时过长（上限 10 分钟）)
+    // no need to wait longer, because bot is probably stuck in navigating issues (无需继续等待，机器人可能已陷入寻路卡死)
     shouldTeleportToGY = deadTime > uint32(10 * MINUTE);
 
-    // Check if we can teleport to the graveyard when nobody is looking
+    // Check if we can teleport to the graveyard when nobody is looking (检查附近无玩家注视时能否直接传送至墓地)
     if (!shouldTeleportToGY && !ai->AllowActivity(DETAILED_MOVE_ACTIVITY) && !ai->HasPlayerNearby(WorldPosition(grave)))
     {
-        //Time a bot would take to travel to it's corpse.
+        // Time a bot would take to travel to it's corpse. (估算机器人跑回自身尸体所需的耗时。)
         uint32 delay = sServerFacade.GetDistance2d(bot, corpse) / bot->GetSpeed(MOVE_RUN);
-        //Cap time to get to corpse at 10 minutes.
+        // Cap time to get to corpse at 10 minutes. (将跑尸超时上限设为 10 分钟。)
         delay = std::min(delay, uint32(10 * MINUTE));
 
         shouldTeleportToGY = deadTime > delay;
@@ -332,6 +337,7 @@ bool SpiritHealerAction::Execute(Event& event)
     }
 }
 
+/// 判断当前状态下该动作是否可用/有效（灵魂医者复活动作）
 bool SpiritHealerAction::isUseful()
 {
     if (bot->InBattleGround())

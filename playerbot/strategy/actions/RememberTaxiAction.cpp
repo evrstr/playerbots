@@ -5,10 +5,12 @@
 
 using namespace ai;
 
+/// 执行动作主逻辑（记录飞行点动作）
 bool RememberTaxiAction::Execute(Event& event)
 {
 
 
+    // 解析事件携带的网络封包数据
     WorldPacket p(event.getPacket());
     p.rpos(0);
 

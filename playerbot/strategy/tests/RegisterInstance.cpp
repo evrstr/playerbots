@@ -1,3 +1,4 @@
+/// 测试生成器：地下城与团队副本走图/清杂/Boss 遭遇测试注册实现
 #include "playerbot/playerbot.h"
 #include "TestRegistry.h"
 #include "playerbot/TravelMgr.h"
@@ -15,6 +16,7 @@ namespace
 {
     using ScenarioParams = std::map<std::string, std::string>;
 
+/// 从旅行节点地图中解析指定副本入口位置并注册为命名地点
     bool ResolveInstanceEntry(const MapEntry* mapEntry, std::string& mapName, GuidPosition& entry)
     {
 
@@ -56,6 +58,7 @@ namespace
     }
 }
 
+/// 替换单行测试脚本中的场景参数占位符
 std::string TestRegistry::ApplyScenarioParams(const std::string& line, const std::map<std::string, std::string>& params)
 {
     std::string expanded = line;
@@ -73,6 +76,7 @@ std::string TestRegistry::ApplyScenarioParams(const std::string& line, const std
     return expanded;
 }
 
+/// 批量替换多行测试脚本中的场景参数占位符
 std::vector<std::string> TestRegistry::ApplyScenarioParams(const std::vector<std::string>& script,
     const std::map<std::string, std::string>& params)
 {
@@ -86,8 +90,9 @@ std::vector<std::string> TestRegistry::ApplyScenarioParams(const std::vector<std
 
 namespace
 {
-    // File-local duplicate of the (private) TestRegistry::ApplyScenarioParams line expansion;
+    // File-local duplicate of the (private) TestRegistry::ApplyScenarioParams line expansion; | 文件内复用的参数展开辅助函数（避免修改头文件私有接口）
     // kept here so the header stays untouched.
+/// 文件作用域辅助函数：展开测试脚本单行中的参数占位符
     std::string ExpandScenarioLine(const std::string& line, const ScenarioParams& params)
     {
         std::string expanded = line;
@@ -105,13 +110,14 @@ namespace
         return expanded;
     }
 
-    // Encounter-teleport approach point (operator request, 2026-09-30): instead of dropping the raid
+    // Encounter-teleport approach point (operator request, 2026-09-30): instead of dropping the raid | 计算 Boss 遭遇战接近点：沿 Boss 通往副本出口的路径退后 1.5 倍警戒半径，避免直接空降在 Boss 头上
     // on top of the boss, place it 1.5x the boss's aggro radius away, on the travel-node path from
     // the boss toward an instance exit (i.e. where a group arriving through the instance would stand).
     // Aggro radius mirrors the core's documented model (Unit::GetAttackDistance): 18 yd at equal
     // level, -1 yd per player level above the mob, floored at 5 yd, scaled by the aggro rate config.
     // Returns the point as a "mapId;x;y;z;0" string; falls back to the boss position itself when no
     // route/exit can be resolved (with a [TESTGEN] note).
+/// 计算 Boss 战前接近站位坐标（沿路径向副本出口方向退后 1.5 倍警戒半径）
     std::string ComputeBossApproachCoords(const MapEntry* mapEntry, const WorldPosition& bossPos,
                                           uint32 bossLevel, uint32 botLevel)
     {
@@ -129,7 +135,7 @@ namespace
             return out.str();
         };
 
-        // Boss node: nearest travel node on the instance map. Exit node: name contains "exit".
+        // Boss node: nearest travel node on the instance map. Exit node: name contains "exit". | Boss 节点取最近旅行节点，出口节点匹配名称包含 "exit" 的节点
         TravelNode* bossNode = nullptr;
         TravelNode* exitNode = nullptr;
         float bossNodeDist = FLT_MAX;
@@ -177,7 +183,7 @@ namespace
         if (!exitNode || !bossNode)
             return formatCoords(bossPos);
 
-        // Polyline: boss position -> (route node positions) -> exit node position.
+        // Polyline: boss position -> (route node positions) -> exit node position. | 构建折线路径：Boss 坐标 -> 途径旅行节点 -> 出口节点
         std::vector<WorldPosition> line;
         line.push_back(bossPos);
 
@@ -196,7 +202,7 @@ namespace
 
         line.push_back(*exitNode->getPosition());
 
-        // Walk the polyline from the boss and interpolate where the approach distance is crossed.
+        // Walk the polyline from the boss and interpolate where the approach distance is crossed. | 沿折线从 Boss 出发插值寻找接近距离点
         float travelled = 0.0f;
         for (size_t i = 0; i + 1 < line.size(); ++i)
         {
@@ -219,7 +225,7 @@ namespace
             travelled += segLen;
         }
 
-        // Route shorter than the approach distance: use its midpoint (still on the real path).
+        // Route shorter than the approach distance: use its midpoint (still on the real path). | 若整条路径短于接近距离，则取路径中点
         static std::set<uint32> loggedShort;
         if (loggedShort.insert(mapEntry->MapID).second)
             sLog.outError("[TESTGEN] approach distance %.1f exceeds route on map %u (%s) - using route midpoint",
@@ -228,7 +234,7 @@ namespace
         return formatCoords(line[line.size() / 2]);
     }
 
-    // Difficulty variants (operator request, 2026-09-30): every instance scenario registers three
+    // Difficulty variants (operator request, 2026-09-30): every instance scenario registers three | 为每个副本场景注册 _min（最低进入等级）、默认（+10级）与 _max（满级）三种难度变体
     // times, differing only in the bots' level:
     //   MIN   = the dungeon's levelMin            -> test name gets a "_min" suffix
     //   BOOST = levelMin + 10 (the old default)   -> keeps the untagged name, so existing test
@@ -237,6 +243,7 @@ namespace
     //           (DEFAULT_MAX_LEVEL is 60/70/80 across classic/tbc/wotlk trees)
     // MIN is the only variant that fights the content at true level (the other two outlevel it);
     // expect the trash templates' pass monitors (dead mobs / party xp) to be the hard ones there.
+/// 为指定 Boss 注册三个难度等级变体测试（最低等级 _min、默认 +10 级、满级 _max）
     void RegisterInstanceScenario(const char* prefix, const std::string& bossName,
                                   const std::vector<std::string>& tmpl, const ScenarioParams& params, uint32 levelMin,
                                   const std::function<void(ScenarioParams&, uint32 botLevel)>& adjustPerVariant = {})
@@ -269,9 +276,10 @@ namespace
     }
 }
 
+/// 遍历所有副本与 Boss 生成副本跑图清杂（Walk / Clear Trash）测试脚本
 void TestRegistry::GenerateBossWalkTest()
 {
-    // maxDistance 0: the generator uses an EMPTY PlayerTravelInfo whose center is the map-0 origin
+    // maxDistance 0: the generator uses an EMPTY PlayerTravelInfo whose center is the map-0 origin | maxDistance=0：测试通过传送进本，不应因距离世界原点 (0,0,0) 超过 10000 码而过滤掉祖尔格拉布等副本
     // (0,0,0). The default maxDistance of 10000 yd then silently dropped every destination whose
     // portal was farther than that from the origin - Zul'Gurub (map 309) bosses were all >10000 and
     // generated no tests at all (BL-45). The generator teleports bots to the instance, so travel
@@ -289,7 +297,7 @@ void TestRegistry::GenerateBossWalkTest()
         "gm off",
         "wait group $(group_size) 180",
         "teleport $(instance_entry)",
-        // BL-42 follow-up: a lost mgroup join used to surface as the group-size monitor's
+        // BL-42 follow-up: a lost mgroup join used to surface as the group-size monitor's | BL-42 后续：使用 teleport group expect=<n> 在人数不足时立即中止并报错
         // misleading "Group dissolved" (party formed one short but otherwise healthy).
         // Abort honestly at delivery time instead: "group never formed (size 4 < expected 5)".
         "teleport group expect=$(group_size)",
@@ -374,9 +382,10 @@ void TestRegistry::GenerateBossWalkTest()
     }
 }
 
+/// 遍历所有副本与 Boss 生成直接进战击杀（Encounter）测试脚本
 void TestRegistry::GenerateBossEncounterTest()
 {
-    // maxDistance 0: the generator uses an EMPTY PlayerTravelInfo whose center is the map-0 origin
+    // maxDistance 0: the generator uses an EMPTY PlayerTravelInfo whose center is the map-0 origin | maxDistance=0：同上，避免距离原点过远的副本 Boss 被错误跳过
     // (0,0,0). The default maxDistance of 10000 yd then silently dropped every destination whose
     // portal was farther than that from the origin - Zul'Gurub (map 309) bosses were all >10000 and
     // generated no tests at all (BL-45). The generator teleports bots to the instance, so travel
@@ -467,7 +476,7 @@ void TestRegistry::GenerateBossEncounterTest()
             std::replace(bossName.begin(), bossName.end(), '\'', '_');
             std::transform(bossName.begin(), bossName.end(), bossName.begin(), ::tolower);
 
-            // Encounter tests drop the raid on the boss -> replaced by the approach point
+            // Encounter tests drop the raid on the boss -> replaced by the approach point | 遭遇战直接传送至计算好的 1.5 倍警戒半径外接近点开战
             // (1.5x aggro radius from the boss, on the path toward an instance exit).
             RegisterInstanceScenario("scenario_boss_", bossName, bossEncounterTemplate, ScenarioParams{
                 {"timeout_s",        "600"                                          },
@@ -484,10 +493,11 @@ void TestRegistry::GenerateBossEncounterTest()
     }
 }
 
-// BL-45 part 2: the layer-2 reach test. The trash template observes clearing, the encounter
+// BL-45 part 2: the layer-2 reach test. The trash template observes clearing, the encounter | BL-45 第二部分：Reach 测试验证从副本入口寻路行进至 Boss 附近的全过程
 // template teleports next to the boss and fights - but "enter the dungeon and TRAVEL to the boss
 // (alive)" had no coverage. The reach template enters at the instance entry, sets the boss as the
 // travel destination and passes when the party is near the boss while it is still alive.
+/// 遍历所有副本与 Boss 生成从副本入口长途跋涉抵达 Boss 身边（Reach）测试脚本
 void TestRegistry::GenerateBossReachTest()
 {
     DestinationList bossDestinations = sTravelMgr.GetDestinations(PlayerTravelInfo(), (uint32)TravelDestinationPurpose::Boss, {}, false, 0);
@@ -507,7 +517,7 @@ void TestRegistry::GenerateBossReachTest()
         "gm off",
         "wait group $(group_size) 180",
         "teleport $(instance_entry)",
-        // BL-42 follow-up: see instanceGroupTemplate - abort honestly on a short group.
+        // BL-42 follow-up: see instanceGroupTemplate - abort honestly on a short group. | BL-42 后续：小队未满员时直接中止测试
         "teleport group expect=$(group_size)",
         "wait 10",
         "$(start_command)",
@@ -558,7 +568,7 @@ void TestRegistry::GenerateBossReachTest()
 
             std::string bossName = mapEntry->name[0] + std::string("_") + bossInfo->Name;
             std::replace(bossName.begin(), bossName.end(), ' ', '_');
-            std::replace(bossName.begin(), bossName.end(), 39, 95); // 39 = apostrophe, 95 = underscore
+            std::replace(bossName.begin(), bossName.end(), 39, 95); // 39 = apostrophe, 95 = underscore | ASCII 39 为单引号，95 为下划线
             std::transform(bossName.begin(), bossName.end(), bossName.begin(), ::tolower);
 
             RegisterNamedLocation(bossName, GuidPosition(ObjectGuid(), *point));
@@ -577,6 +587,7 @@ void TestRegistry::GenerateBossReachTest()
         }
     }
 }
+/// 统一注册全部副本走图、遭遇与抵达测试套件
 void TestRegistry::RegisterInstanceTests()
 {
     GenerateBossWalkTest();

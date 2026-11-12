@@ -1,5 +1,6 @@
 #pragma once
 
+/// 按通配符(*)、区间(a-b)或逗号列表筛选向量中的元素
 template<typename T>
 std::map<int, T> filterList(std::vector<T> src, std::string filter)
 {

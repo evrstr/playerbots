@@ -19,6 +19,7 @@ char * strstri (const char* str1, const char* str2);
 
 CategoryList CategoryList::instance;
 
+// 注册所有基础装备、消耗品、配方、任务及各商业技能材料与成品分类
 CategoryList::CategoryList()
 {
     Add(new Equip());
@@ -65,6 +66,7 @@ CategoryList::CategoryList()
 #endif
 }
 
+// 为给定基础分类生成普通至传说品质的包装分类并加入列表
 void CategoryList::Add(Category* category)
 {
     for (uint32 quality = ITEM_QUALITY_NORMAL; quality <= ITEM_QUALITY_LEGENDARY; ++quality)
@@ -85,9 +87,10 @@ ItemBag::ItemBag()
     }
 }
 
+// 初始化物品包：加载物品并在非静默模式下执行随机洗牌与数量统计
 void ItemBag::Init(bool silent)
 {
-    // test skip ahbot loading at start
+    // test skip ahbot loading at start (测试用：跳过启动时加载 ahbot)
     // return;
 
     if (silent)
@@ -99,15 +102,15 @@ void ItemBag::Init(bool silent)
     sLog.outString("Loading/Scanning %s...", GetName().c_str());
 
     Load();
-	uint32 ahcounter = 0;
+    uint32 ahcounter = 0;
     for (int i = 0; i < CategoryList::instance.size(); i++)
     {
         Category* category = CategoryList::instance[i];
         Shuffle(content[category]);
         sLog.outDetail("loaded %zu %s items", content[category].size(), category->GetDisplayName().c_str());
-		ahcounter += content[category].size();
+        ahcounter += content[category].size();
     }
-	sLog.outString("Loaded %u items", ahcounter);
+    sLog.outString("Loaded %u items", ahcounter);
 }
 
 int32 ItemBag::GetCount(Category* category, uint32 item)
@@ -124,6 +127,7 @@ int32 ItemBag::GetCount(Category* category, uint32 item)
     return count;
 }
 
+// 过滤绑定、限时、召唤、测试/废弃及忽略列表中的物品，并归类存入对应分类桶
 bool ItemBag::Add(ItemPrototype const* proto)
 {
     if (!proto ||
@@ -137,8 +141,8 @@ bool ItemBag::Add(ItemPrototype const* proto)
     if (proto->Duration > 0)
         return false;
 
-    // The server only refuses conjured items in the player's sell request
-    // (AuctionHouseHandler); the bot adds auctions directly, so it filters them here
+    // The server only refuses conjured items in the player's sell request | 服务端仅在玩家出售请求中拦截召唤物
+    // (AuctionHouseHandler); the bot adds auctions directly, so it filters them here | 机器人直接上架拍卖，因此需在此手动过滤
     if (proto->Flags & ITEM_FLAG_CONJURED)
         return false;
 
@@ -170,6 +174,7 @@ bool ItemBag::Add(ItemPrototype const* proto)
     return contains;
 }
 
+// 从 npc_vendor 读取无限量商人商品作为排除基线，遍历物品库加载可拍卖物品
 void AvailableItemsBag::Load()
 {
     std::set<uint32> vendorItems;
@@ -195,6 +200,7 @@ void AvailableItemsBag::Load()
 
 }
 
+// 扫描指定拍卖行当前在售的所有物品并按分类汇总
 void InAuctionItemsBag::Load()
 {
     AuctionHouseEntry const* ahEntry = sAuctionHouseStore.LookupEntry(auctionId);

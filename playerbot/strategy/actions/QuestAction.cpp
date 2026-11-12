@@ -6,6 +6,7 @@
 
 using namespace ai;
 
+/// 执行动作主逻辑（任务交互基类动作）
 bool QuestAction::Execute(Event& event)
 {
     ObjectGuid guid = event.getObject();
@@ -30,6 +31,7 @@ bool QuestAction::Execute(Event& event)
     }
 
     bool result = false;
+    // 遍历附近 NPC 列表
     std::list<ObjectGuid> npcs = AI_VALUE(std::list<ObjectGuid>, "nearest npcs");
     for (std::list<ObjectGuid>::iterator i = npcs.begin(); i != npcs.end(); i++)
     {
@@ -37,6 +39,7 @@ bool QuestAction::Execute(Event& event)
         if (unit && bot->GetDistance(unit) <= INTERACTION_DISTANCE)
             result |= ProcessQuests(unit);
     }
+    // 遍历附近游戏对象列表
     std::list<ObjectGuid> gos = AI_VALUE(std::list<ObjectGuid>, "nearest game objects no los");
     for (std::list<ObjectGuid>::iterator i = gos.begin(); i != gos.end(); i++)
     {
@@ -48,17 +51,18 @@ bool QuestAction::Execute(Event& event)
     return result;
 }
 
+/// 向服务端发送完成并交付任务封包
 bool QuestAction::CompleteQuest(Player* player, uint32 entry)
 {
     Quest const* pQuest = sObjectMgr.GetQuestTemplate(entry);
 
-    // If player doesn't have the quest
+    // If player doesn't have the quest (若玩家尚未接取该任务)
     if (!pQuest || player->GetQuestStatus(entry) == QUEST_STATUS_NONE)
     {
         return false;
     }
 
-    // Add quest items for quests that require items
+    // Add quest items for quests that require items (为需要收集物品的任务添加相关任务道具)
     for (uint8 x = 0; x < QUEST_ITEM_OBJECTIVES_COUNT; ++x)
     {
         uint32 id = pQuest->ReqItemId[x];
@@ -79,7 +83,7 @@ bool QuestAction::CompleteQuest(Player* player, uint32 entry)
         }
     }
 
-    // All creature/GO slain/casted (not required, but otherwise it will display "Creature slain 0/10")
+    // All creature/GO slain/casted (not required, but otherwise it will display "Creature slain 0/10") (所有生物/物体击杀或交互进度（非必需，否则会显示“击杀 0/10”）)
     for (uint8 i = 0; i < QUEST_OBJECTIVES_COUNT; ++i)
     {
         int32 creature = pQuest->ReqCreatureOrGOId[i];
@@ -109,7 +113,7 @@ bool QuestAction::CompleteQuest(Player* player, uint32 entry)
         }
     }
 
-    // If the quest requires reputation to complete
+    // If the quest requires reputation to complete (若该任务要求达到特定声望才能完成)
     if (uint32 repFaction = pQuest->GetRepObjectiveFaction())
     {
         uint32 repValue = pQuest->GetRepObjectiveValue();
@@ -127,7 +131,7 @@ bool QuestAction::CompleteQuest(Player* player, uint32 entry)
         }
     }
 
-    // If the quest requires money
+    // If the quest requires money (若该任务要求缴纳金币)
     int32 ReqOrRewMoney = pQuest->GetRewOrReqMoney();
     if (ReqOrRewMoney < 0)
     {
@@ -138,6 +142,7 @@ bool QuestAction::CompleteQuest(Player* player, uint32 entry)
     return true;
 }
 
+/// 遍历附近或指定对象的可交互任务并逐个处理
 bool QuestAction::ProcessQuests(ObjectGuid questGiver)
 {
     GameObject *gameObject = ai->GetGameObject(questGiver);
@@ -155,6 +160,7 @@ bool QuestAction::ProcessQuests(ObjectGuid questGiver)
     return false;
 }
 
+/// 遍历附近或指定对象的可交互任务并逐个处理
 bool QuestAction::ProcessQuests(WorldObject* questGiver)
 {
     ObjectGuid guid = questGiver->GetObjectGuid();
@@ -194,6 +200,7 @@ bool QuestAction::ProcessQuests(WorldObject* questGiver)
     return hasAccept;
 }
 
+/// 向服务端发送接受任务封包并触发接取处理
 bool QuestAction::AcceptQuest(Player* requester, Quest const* quest, uint64 questGiver)
 {
     bool success = false;
@@ -238,7 +245,7 @@ bool QuestAction::AcceptQuest(Player* requester, Quest const* quest, uint64 ques
         {
             Object* pObject = bot->GetObjectByTypeMask((ObjectGuid)questGiver, TYPEMASK_CREATURE_GAMEOBJECT_PLAYER_OR_ITEM);
             if (quest->HasQuestFlag(QUEST_FLAGS_PARTY_ACCEPT))
-                bot->AddQuest(quest, nullptr); //prevent double dbscript call if player is doing it
+                bot->AddQuest(quest, nullptr); // prevent double dbscript call if player is doing it (若玩家正在交互则防止重复触发 DB 脚本)
             else
                 bot->AddQuest(quest, pObject );
         }
@@ -264,6 +271,7 @@ bool QuestAction::AcceptQuest(Player* requester, Quest const* quest, uint64 ques
 */
 bool QuestUpdateAddKillAction::Execute(Event& event)
 {
+    // 解析事件携带的网络封包数据
     WorldPacket p(event.getPacket());
     p.rpos(0);
 
@@ -316,8 +324,10 @@ bool QuestUpdateAddKillAction::Execute(Event& event)
     return false;
 }
 
+/// 执行动作主逻辑（任务物品进度更新动作）
 bool QuestUpdateAddItemAction::Execute(Event& event)
 {
+    // 解析事件携带的网络封包数据
     WorldPacket p(event.getPacket());
     p.rpos(0);
 
@@ -367,14 +377,17 @@ bool QuestUpdateAddItemAction::Execute(Event& event)
     return false;
 }
 
+/// 执行动作主逻辑（任务失败处理动作）
 bool QuestUpdateFailedAction::Execute(Event& event)
 {
-    //opcode SMSG_QUESTUPDATE_FAILED is never sent...(yet?)
+    // opcode SMSG_QUESTUPDATE_FAILED is never sent...(yet?) (服务端操作码 SMSG_QUESTUPDATE_FAILED 尚未发送（可能未实现）)
     return false;
 }
 
+/// 执行动作主逻辑（任务计时失败处理动作）
 bool QuestUpdateFailedTimerAction::Execute(Event& event)
 {
+    // 解析事件携带的网络封包数据
     WorldPacket p(event.getPacket());
     p.rpos(0);
 
@@ -402,15 +415,17 @@ bool QuestUpdateFailedTimerAction::Execute(Event& event)
         ai->TellPlayer(requester, BOT_TEXT2("Failed timer for %quest_id", placeholders), PlayerbotSecurityLevel::PLAYERBOT_SECURITY_ALLOW_ALL, false);
     }
 
-    //drop quest
+    // drop quest (放弃任务)
     bot->GetPlayerbotAI()->DropQuest(questId);
 
     sPlayerbotAIConfig.logEvent(ai, "QuestUpdateFailedTimerAction", std::to_string(questId), "FailedTimer");
     return false;
 }
 
+/// 执行动作主逻辑（任务完成处理动作）
 bool QuestUpdateCompleteAction::Execute(Event& event)
 {
+    // 解析事件携带的网络封包数据
     WorldPacket p(event.getPacket());
     p.rpos(0);
 

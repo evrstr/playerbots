@@ -60,6 +60,7 @@
 
 namespace ai
 {
+    /// 全局通用/战斗/副本/Boss 策略注册上下文
     class StrategyContext : public NamedObjectContext<Strategy>
     {
     public:
@@ -108,7 +109,7 @@ namespace ai
             creators["rpg jump"] = [](PlayerbotAI* ai) { return new RpgJumpStrategy(ai); };
             creators["follow jump"] = [](PlayerbotAI* ai) { return new FollowJumpStrategy(ai); };
             creators["chase jump"] = [](PlayerbotAI* ai) { return new ChaseJumpStrategy(ai); };
-			creators["travel"] = [](PlayerbotAI* ai) { return new TravelStrategy(ai); };
+            creators["travel"] = [](PlayerbotAI* ai) { return new TravelStrategy(ai); };
             creators["travel once"] = [](PlayerbotAI* ai) { return new TravelOnceStrategy(ai); };
             creators["explore"] = [](PlayerbotAI* ai) { return new ExploreStrategy(ai); };
             creators["map"] = [](PlayerbotAI* ai) { return new MapStrategy(ai); };
@@ -168,7 +169,7 @@ namespace ai
             creators["glyph"] = [](PlayerbotAI* ai) { return new GlyphStrategy(ai); };
             creators["ai chat"] = [](PlayerbotAI* ai) { return new AIChatStrategy(ai); };
 
-            // Dungeon Strategies
+            // Dungeon Strategies | 地下城通用与副本策略
             creators["dungeon"] = [](PlayerbotAI* ai) { return new DungeonStrategy(ai); };
             creators["onyxias lair"] = [](PlayerbotAI* ai) { return new OnyxiasLairDungeonStrategy(ai); };
             creators["molten core"] = [](PlayerbotAI* ai) { return new MoltenCoreDungeonStrategy(ai); };
@@ -177,7 +178,7 @@ namespace ai
             creators["naxxramas"] = [](PlayerbotAI* ai) { return new NaxxramasDungeonStrategy(ai); };
             creators["mechanar"] = [](PlayerbotAI* ai) { return new MechanarDungeonStrategy(ai); };
 
-            // Dungeon Boss Strategies
+            // Dungeon Boss Strategies | 特定首领战斗策略
             creators["onyxia"] = [](PlayerbotAI* ai) { return new OnyxiaFightStrategy(ai); };
             creators["magmadar"] = [](PlayerbotAI* ai) { return new MagmadarFightStrategy(ai); };
             creators["suppression room"] = [](PlayerbotAI* ai) { return new SuppressionRoomStrategy(ai); };
@@ -194,6 +195,7 @@ namespace ai
         }
     };
 
+    /// 移动行为互斥策略上下文（跟随/停留/逃跑/警戒/自由等）
     class MovementStrategyContext : public NamedObjectContext<Strategy>
     {
     public:
@@ -209,6 +211,7 @@ namespace ai
         }
     };
 
+    /// 协助攻击互斥策略上下文（DPS 集火/AOE/坦克协助）
     class AssistStrategyContext : public NamedObjectContext<Strategy>
     {
     public:
@@ -220,6 +223,7 @@ namespace ai
         }
     };
 
+    /// 任务接取与执行互斥策略上下文
     class QuestStrategyContext : public NamedObjectContext<Strategy>
     {
     public:
@@ -230,6 +234,7 @@ namespace ai
         }
     };
 
+    /// 钓鱼互斥策略上下文
     class FishStrategyContext : public NamedObjectContext<Strategy>
     {
     public:

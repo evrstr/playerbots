@@ -1,8 +1,10 @@
+/// 黑翼之巢（BWL）团队副本与陷阱房策略实现
 #include "playerbot/playerbot.h"
 #include "BlackwingLairDungeonStrategies.h"
 
 using namespace ai;
 
+/// 初始化黑翼之巢战斗触发器：盗贼靠近压制装置时进行拆除
 void BlackwingLairDungeonStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     triggers.push_back(new TriggerNode(
@@ -10,6 +12,7 @@ void BlackwingLairDungeonStrategy::InitCombatTriggers(std::list<TriggerNode*>& t
         NextAction::array(0, new NextAction("disarm suppression device", 80.0f), NULL)));
 }
 
+/// 初始化黑翼之巢非战斗触发器：盗贼潜行接近并拆除压制装置
 void BlackwingLairDungeonStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     triggers.push_back(new TriggerNode(
@@ -25,6 +28,7 @@ void BlackwingLairDungeonStrategy::InitNonCombatTriggers(std::list<TriggerNode*>
         NextAction::array(0, new NextAction("disarm suppression device", ACTION_HIGH + 4), NULL)));
 }
 
+/// 乘数：陷阱房（Suppression Room）期间屏蔽盗贼的常规战斗动作，专注潜行拆陷阱
 class SuppressionRoomPassiveMultiplier : public Multiplier
 {
 public:
@@ -40,7 +44,7 @@ public:
 
         const std::string& name = action->getName();
 
-        // Enable only the following strats for suppression room to avoid regular combat breaking logic
+        // Enable only the following strats for suppression room to avoid regular combat breaking logic | 在陷阱房内仅启用以下拆陷阱及必要控制动作，避免常规战斗逻辑打断节奏
         if (name == "stealth for suppression device" ||
             name == "move to suppression device" ||
             name == "disarm suppression device" ||
@@ -88,6 +92,7 @@ public:
     }
 };
 
+/// 初始化陷阱房战斗触发器：脱战消失潜行并接近拆除压制装置
 void SuppressionRoomStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     triggers.push_back(new TriggerNode(
@@ -103,6 +108,7 @@ void SuppressionRoomStrategy::InitCombatTriggers(std::list<TriggerNode*>& trigge
         NextAction::array(0, new NextAction("disarm suppression device", 90.0f), NULL)));
 }
 
+/// 初始化陷阱房非战斗触发器：保持潜行并依次拆除沿途压制装置
 void SuppressionRoomStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     triggers.push_back(new TriggerNode(
@@ -118,16 +124,19 @@ void SuppressionRoomStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& tri
         NextAction::array(0, new NextAction("disarm suppression device", ACTION_MOVE + 2), NULL)));
 }
 
+/// 注册陷阱房战斗动作屏蔽乘数
 void SuppressionRoomStrategy::InitCombatMultipliers(std::list<Multiplier*>& multipliers)
 {
     multipliers.push_back(new SuppressionRoomPassiveMultiplier(ai));
 }
 
+/// 注册陷阱房非战斗动作屏蔽乘数
 void SuppressionRoomStrategy::InitNonCombatMultipliers(std::list<Multiplier*>& multipliers)
 {
     multipliers.push_back(new SuppressionRoomPassiveMultiplier(ai));
 }
 
+/// 启用陷阱房策略时自动为盗贼关闭避怪与躲 AoE 策略以免干扰路线
 void SuppressionRoomStrategy::OnStrategyAdded(BotState state)
 {
     if (ai->GetBot()->getClass() == CLASS_ROGUE)

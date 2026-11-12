@@ -1,8 +1,10 @@
+// 牧师 - 神圣牧师策略头文件 (HolyPriestStrategy.h)
 #pragma once
 #include "PriestStrategy.h"
 
 namespace ai
 {
+    // 神圣牧师专精占位策略：用于专精识别与占位的策略类
     class HolyPriestPlaceholderStrategy : public SpecPlaceholderStrategy
     {
     public:
@@ -11,6 +13,7 @@ namespace ai
         std::string getName() override { return "holy"; }
     };
 
+    // 神圣牧师策略：定义该专精/场景下的触发器与默认行为
     class HolyPriestStrategy : public PriestStrategy
     {
     public:
@@ -23,6 +26,7 @@ namespace ai
         virtual void InitDeadTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 神圣牧师PVE策略：定义该专精/场景下的触发器与默认行为
     class HolyPriestPveStrategy : public HolyPriestStrategy
     {
     public:
@@ -36,6 +40,7 @@ namespace ai
         void InitDeadTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 神圣牧师PVP策略：定义该专精/场景下的触发器与默认行为
     class HolyPriestPvpStrategy : public HolyPriestStrategy
     {
     public:
@@ -49,6 +54,7 @@ namespace ai
         void InitDeadTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 神圣牧师团队副本策略：定义该专精/场景下的触发器与默认行为
     class HolyPriestRaidStrategy : public HolyPriestStrategy
     {
     public:
@@ -62,6 +68,7 @@ namespace ai
         void InitDeadTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 神圣牧师AOE群体策略：定义该专精/场景下的触发器与默认行为
     class HolyPriestAoeStrategy : public PriestAoeStrategy
     {
     public:
@@ -72,6 +79,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 神圣牧师AOE群体PVE策略：定义该专精/场景下的触发器与默认行为
     class HolyPriestAoePveStrategy : public HolyPriestAoeStrategy
     {
     public:
@@ -83,6 +91,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 神圣牧师AOE群体PVP策略：定义该专精/场景下的触发器与默认行为
     class HolyPriestAoePvpStrategy : public HolyPriestAoeStrategy
     {
     public:
@@ -94,6 +103,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 神圣牧师AOE群体团队副本策略：定义该专精/场景下的触发器与默认行为
     class HolyPriestAoeRaidStrategy : public HolyPriestAoeStrategy
     {
     public:
@@ -105,6 +115,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 神圣牧师增益Buff策略：定义该专精/场景下的触发器与默认行为
     class HolyPriestBuffStrategy : public PriestBuffStrategy
     {
     public:
@@ -115,6 +126,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 神圣牧师增益BuffPVE策略：定义该专精/场景下的触发器与默认行为
     class HolyPriestBuffPveStrategy : public HolyPriestBuffStrategy
     {
     public:
@@ -126,6 +138,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 神圣牧师增益BuffPVP策略：定义该专精/场景下的触发器与默认行为
     class HolyPriestBuffPvpStrategy : public HolyPriestBuffStrategy
     {
     public:
@@ -137,6 +150,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 神圣牧师增益Buff团队副本策略：定义该专精/场景下的触发器与默认行为
     class HolyPriestBuffRaidStrategy : public HolyPriestBuffStrategy
     {
     public:
@@ -148,6 +162,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 神圣牧师爆发增益策略：定义该专精/场景下的触发器与默认行为
     class HolyPriestBoostStrategy : public PriestBoostStrategy
     {
     public:
@@ -158,6 +173,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 神圣牧师爆发增益PVE策略：定义该专精/场景下的触发器与默认行为
     class HolyPriestBoostPveStrategy : public HolyPriestBoostStrategy
     {
     public:
@@ -169,6 +185,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 神圣牧师爆发增益PVP策略：定义该专精/场景下的触发器与默认行为
     class HolyPriestBoostPvpStrategy : public HolyPriestBoostStrategy
     {
     public:
@@ -180,6 +197,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 神圣牧师爆发增益团队副本策略：定义该专精/场景下的触发器与默认行为
     class HolyPriestBoostRaidStrategy : public HolyPriestBoostStrategy
     {
     public:
@@ -191,6 +209,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 神圣牧师控制(CC)策略：定义该专精/场景下的触发器与默认行为
     class HolyPriestCcStrategy : public PriestCcStrategy
     {
     public:
@@ -201,6 +220,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 神圣牧师控制(CC)PVE策略：定义该专精/场景下的触发器与默认行为
     class HolyPriestCcPveStrategy : public HolyPriestCcStrategy
     {
     public:
@@ -212,6 +232,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 神圣牧师控制(CC)PVP策略：定义该专精/场景下的触发器与默认行为
     class HolyPriestCcPvpStrategy : public HolyPriestCcStrategy
     {
     public:
@@ -223,6 +244,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 神圣牧师控制(CC)团队副本策略：定义该专精/场景下的触发器与默认行为
     class HolyPriestCcRaidStrategy : public HolyPriestCcStrategy
     {
     public:
@@ -234,6 +256,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 神圣牧师驱散净化策略：定义该专精/场景下的触发器与默认行为
     class HolyPriestCureStrategy : public PriestCureStrategy
     {
     public:
@@ -244,6 +267,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 神圣牧师驱散净化PVE策略：定义该专精/场景下的触发器与默认行为
     class HolyPriestCurePveStrategy : public HolyPriestCureStrategy
     {
     public:
@@ -255,6 +279,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 神圣牧师驱散净化PVP策略：定义该专精/场景下的触发器与默认行为
     class HolyPriestCurePvpStrategy : public HolyPriestCureStrategy
     {
     public:
@@ -266,6 +291,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 神圣牧师驱散净化团队副本策略：定义该专精/场景下的触发器与默认行为
     class HolyPriestCureRaidStrategy : public HolyPriestCureStrategy
     {
     public:

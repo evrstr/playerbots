@@ -1,8 +1,10 @@
+// 策略值头文件：PositionValue（坐标点存储、当前位置历史、主控位置与自定义标记点）
 #pragma once
 #include "playerbot/strategy/Value.h"
 
 namespace ai
 {
+    // 命名坐标点结构：保存地图 ID 与三维坐标及是否已设置标记
     class PositionEntry
     {
     public:
@@ -24,17 +26,19 @@ namespace ai
 
     typedef std::map<std::string, PositionEntry> PositionMap;
 
+    // 手动设置值：管理机器人保存的命名坐标字典，支持存档读取
     class PositionValue : public ManualSetValue<PositionMap&>
-	{
-	public:
+    {
+    public:
         PositionValue(PlayerbotAI* ai, std::string name = "position");
         virtual std::string Save() override;
         virtual bool Load(std::string value) override;
 
-	private:
+    private:
         PositionMap positions;
     };
 
+    // 位置计算器：读取/设置/重置指定名称的单个坐标点（如拉怪点/集合点）
     class SinglePositionValue : public CalculatedValue<PositionEntry>, public Qualified
     {
     public: 
@@ -44,6 +48,7 @@ namespace ai
         virtual void Reset() override;
     };
 
+    // 日志位置计算器：定期记录机器人当前世界坐标位置
     class CurrentPositionValue : public LogCalculatedValue<WorldPosition>
     {
     public:
@@ -52,6 +57,7 @@ namespace ai
         virtual WorldPosition Calculate() override { return WorldPosition(bot); };
     };  
 
+    // 记忆位置计算器：记录并返回主控玩家最近的世界坐标
     class MasterPositionValue : public MemoryCalculatedValue<WorldPosition>
     {
     public:
@@ -60,6 +66,7 @@ namespace ai
         virtual WorldPosition Calculate() override { Player* master = GetMaster();  if (master) return WorldPosition(master); return WorldPosition(); };
     };
 
+    // 手动设置值：存储支持限定符的自定义世界坐标
     class CustomPositionValue : public ManualSetValue<WorldPosition>, public Qualified
     {
     public:

@@ -12,7 +12,7 @@
 
 using namespace ai;
 
-// common bg positions
+// common bg positions (通用战场战术点位)
 Position const WS_WAITING_POS_HORDE_1 = { 944.981f, 1423.478f, 345.434f, 6.18f };
 Position const WS_WAITING_POS_HORDE_2 = { 948.488f, 1459.834f, 343.066f, 6.27f };
 Position const WS_WAITING_POS_ALLIANCE_1 = { 1510.502f, 1493.385f, 351.995f, 3.1f };
@@ -68,6 +68,7 @@ Position const IC_CANNON_POS_HORDE2 = { 1139.695f, -686.574f, 88.173f, 3.95f };
 Position const IC_CANNON_POS_ALLIANCE1 = { 424.860f, -855.795f, 87.96f, 0.44f };
 Position const IC_CANNON_POS_ALLIANCE2 = { 425.525f, -779.538f, 87.717f, 5.88f };
 
+/// 战歌峡谷等待点位枚举：定义战歌峡谷防守或集结等待的战术点位
 enum BattleBotWsgWaitSpot
 {
     BB_WSG_WAIT_SPOT_SPAWN,
@@ -97,6 +98,7 @@ BG_IC_GO_BANNER_HANGAR, BG_IC_GO_BANNER_HANGAR_A, BG_IC_GO_BANNER_HANGAR_H, BG_I
 BG_IC_GO_BANNER_REFINERY, BG_IC_GO_BANNER_REFINERY_A, BG_IC_GO_BANNER_REFINERY_H, BG_IC_GO_BANNER_REFINERY_A_GREY, BG_IC_GO_BANNER_REFINERY_H_GREY,
 BG_IC_GO_BANNER_QUARRY, BG_IC_GO_BANNER_QUARRY_A, BG_IC_GO_BANNER_QUARRY_H, BG_IC_GO_BANNER_QUARRY_A_GREY, BG_IC_GO_BANNER_QUARRY_H_GREY};
 
+/// 征服之岛旗帜信息结构体：记录征服之岛各据点旗帜的节点索引与坐标
 struct IsleBanners
 {
     uint32 entryNeutral;
@@ -117,9 +119,9 @@ static const IsleBanners isleBanners[] =
 };
 #endif
 
-// BG Waypoints (vmangos)
+// BG Waypoints (vmangos) (战场路径点（源自 vmangos）)
 
-// Horde Flag Room to Horde Graveyard
+// Horde Flag Room to Horde Graveyard (从部落旗帜房前往部落墓地)
 BattleBotPath vPath_WSG_HordeFlagRoom_to_HordeGraveyard =
 {
     { 933.331f, 1433.72f, 345.536f, nullptr },
@@ -131,7 +133,7 @@ BattleBotPath vPath_WSG_HordeFlagRoom_to_HordeGraveyard =
     { 1016.42f, 1402.33f, 341.352f, nullptr },
     { 1029.14f, 1387.49f, 340.836f, nullptr },
 };
-// Horde Graveyard to Horde Tunnel
+// Horde Graveyard to Horde Tunnel (从部落墓地前往部落隧道)
 BattleBotPath vPath_WSG_HordeGraveyard_to_HordeTunnel =
 {
     { 1029.14f, 1387.49f, 340.836f, nullptr },
@@ -152,7 +154,7 @@ BattleBotPath vPath_WSG_HordeGraveyard_to_HordeTunnel =
     { 1126.45f, 1487.4f, 314.136f, nullptr },
     { 1124.37f, 1462.28f, 315.853f, nullptr },
 };
-// Horde Tunnel to Horde Flag Room
+// Horde Tunnel to Horde Flag Room (从部落隧道前往部落旗帜房)
 BattleBotPath vPath_WSG_HordeTunnel_to_HordeFlagRoom =
 {
     { 1124.37f, 1462.28f, 315.853f, nullptr },
@@ -170,7 +172,7 @@ BattleBotPath vPath_WSG_HordeTunnel_to_HordeFlagRoom =
     { 937.479f, 1451.12f, 345.553f, nullptr },
     { 933.331f, 1433.72f, 345.536f, nullptr },
 };
-// Horde Tunnel to Alliance Tunnel 1
+// Horde Tunnel to Alliance Tunnel 1 (从部落隧道前往联盟隧道 1)
 BattleBotPath vPath_WSG_HordeTunnel_to_AllianceTunnel_1 =
 {
     { 1124.37f, 1462.28f, 315.853f, nullptr },
@@ -188,7 +190,7 @@ BattleBotPath vPath_WSG_HordeTunnel_to_AllianceTunnel_1 =
     { 1329.8f, 1461.24f, 320.267f, nullptr },
     { 1348.02f, 1461.06f, 323.167f, nullptr },
 };
-// Horde Tunnel to Alliance Tunnel 2
+// Horde Tunnel to Alliance Tunnel 2 (从部落隧道前往联盟隧道 2)
 BattleBotPath vPath_WSG_HordeTunnel_to_AllianceTunnel_2 =
 {
     { 1124.37f, 1462.28f, 315.853f, nullptr },
@@ -207,7 +209,7 @@ BattleBotPath vPath_WSG_HordeTunnel_to_AllianceTunnel_2 =
     { 1329.76f, 1457.36f, 320.37f, nullptr },
     { 1348.02f, 1461.06f, 323.167f, nullptr },
 };
-// Horde GY Jump to Horde Tunnel
+// Horde GY Jump to Horde Tunnel (从部落墓地跳点前往部落隧道)
 BattleBotPath vPath_WSG_HordeGYJump_to_HordeTunnel =
 {
     { 1077.87f, 1400.27f, 323.153f, nullptr },
@@ -218,7 +220,7 @@ BattleBotPath vPath_WSG_HordeGYJump_to_HordeTunnel =
     { 1125.26f, 1442.56f, 313.996f, nullptr },
     { 1124.37f, 1462.28f, 315.853f, nullptr },
 };
-// Horde GY Jump to Alliance Tunnel
+// Horde GY Jump to Alliance Tunnel (从部落墓地跳点前往联盟隧道)
 BattleBotPath vPath_WSG_HordeGYJump_to_AllianceTunnel =
 {
     { 1077.87f, 1400.27f, 323.153f, nullptr },
@@ -238,7 +240,7 @@ BattleBotPath vPath_WSG_HordeGYJump_to_AllianceTunnel =
     { 1330.63f, 1460.27f, 320.435f, nullptr },
     { 1348.02f, 1461.06f, 323.167f, nullptr },
 };
-// Alliance Flag Room to Alliance Graveyard
+// Alliance Flag Room to Alliance Graveyard (从联盟旗帜房前往联盟墓地)
 BattleBotPath vPath_WSG_AllianceFlagRoom_to_AllianceGraveyard =
 {
     { 1519.53f, 1481.87f, 352.024f, nullptr },
@@ -254,7 +256,7 @@ BattleBotPath vPath_WSG_AllianceFlagRoom_to_AllianceGraveyard =
     { 1422.88f, 1552.37f, 342.751f, nullptr },
     { 1415.33f, 1554.79f, 343.156f, nullptr },
 };
-// Alliance Graveyard to Alliance Tunnel
+// Alliance Graveyard to Alliance Tunnel (从联盟墓地前往联盟隧道)
 BattleBotPath vPath_WSG_AllianceGraveyard_to_AllianceTunnel =
 {
     { 1415.33f, 1554.79f, 343.156f, nullptr },
@@ -278,7 +280,7 @@ BattleBotPath vPath_WSG_AllianceGraveyard_to_AllianceTunnel =
     { 1350.36f, 1444.43f, 323.388f, nullptr },
     { 1348.02f, 1461.06f, 323.167f, nullptr },
 };
-// Alliance Tunnel to Alliance Flag Room
+// Alliance Tunnel to Alliance Flag Room (从联盟隧道前往联盟旗帜房)
 BattleBotPath vPath_WSG_AllianceTunnel_to_AllianceFlagRoom =
 {
     { 1348.02f, 1461.06f, 323.167f, nullptr },
@@ -297,7 +299,7 @@ BattleBotPath vPath_WSG_AllianceTunnel_to_AllianceFlagRoom =
     { 1517.53f, 1468.79f, 352.033f, nullptr },
     { 1519.53f, 1481.87f, 352.024f, nullptr },
 };
-// Alliance GY Jump to Alliance Tunnel
+// Alliance GY Jump to Alliance Tunnel (从联盟墓地跳点前往联盟隧道)
 BattleBotPath vPath_WSG_AllianceGYJump_to_AllianceTunnel =
 {
     { 1387.85f, 1538.06f, 321.854f, nullptr },
@@ -308,7 +310,7 @@ BattleBotPath vPath_WSG_AllianceGYJump_to_AllianceTunnel =
     { 1351.58f, 1482.36f, 324.189f, nullptr },
     { 1348.02f, 1461.06f, 323.167f, nullptr },
 };
-// Alliance GY Jump to Horde Tunnel
+// Alliance GY Jump to Horde Tunnel (从联盟墓地跳点前往部落隧道)
 BattleBotPath vPath_WSG_AllianceGYJump_to_HordeTunnel =
 {
     { 1387.85f, 1538.06f, 321.855f, nullptr },
@@ -336,7 +338,7 @@ BattleBotPath vPath_WSG_AllianceGYJump_to_HordeTunnel =
     { 1135.4f, 1465.54f, 315.622f, nullptr },
     { 1124.37f, 1462.28f, 315.853f, nullptr },
 };
-// Horde GY Jump to Alliance Flag Room through Side Entrance
+// Horde GY Jump to Alliance Flag Room through Side Entrance (从部落墓地跳点前往从侧门前往联盟旗帜房)
 BattleBotPath vPath_WSG_HordeGYJump_to_AllianceFlagRoom =
 {
     { 1077.87f, 1400.27f, 323.153f, nullptr },
@@ -375,7 +377,7 @@ BattleBotPath vPath_WSG_HordeGYJump_to_AllianceFlagRoom =
     { 1502.97f, 1493.87f, 352.199f, nullptr },
     { 1519.53f, 1481.87f, 352.024f, nullptr },
 };
-// Alliance GY Jump to Horde Flag Room through Side Entrance
+// Alliance GY Jump to Horde Flag Room through Side Entrance (从联盟墓地跳点前往从侧门前往部落旗帜房)
 BattleBotPath vPath_WSG_AllianceGYJump_to_HordeFlagRoom =
 {
     { 1387.85f, 1538.06f, 321.855f, nullptr },
@@ -409,7 +411,7 @@ BattleBotPath vPath_WSG_AllianceGYJump_to_HordeFlagRoom =
     { 953.017f, 1423.3f, 345.835f, nullptr },
     { 933.331f, 1433.72f, 345.536f, nullptr },
 };
-// Horde Tunnel to Horde Base Roof
+// Horde Tunnel to Horde Base Roof (从部落隧道前往部落基地屋顶)
 BattleBotPath vPath_WSG_HordeTunnel_to_HordeBaseRoof =
 {
     { 1124.37f, 1462.28f, 315.853f, nullptr },
@@ -439,7 +441,7 @@ BattleBotPath vPath_WSG_HordeTunnel_to_HordeBaseRoof =
     { 952.778f, 1433.0f, 367.604f, nullptr },
     { 952.708f, 1445.01f, 367.604f, nullptr },
 };
-// Alliance Tunnel to Alliance Base Roof
+// Alliance Tunnel to Alliance Base Roof (从联盟隧道前往联盟基地屋顶)
 BattleBotPath vPath_WSG_AllianceTunnel_to_AllianceBaseRoof =
 {
     { 1348.02f, 1461.06f, 323.167f, nullptr },
@@ -472,7 +474,7 @@ BattleBotPath vPath_WSG_AllianceTunnel_to_AllianceBaseRoof =
     { 1499.37f, 1489.02f, 373.718f, nullptr },
     { 1500.63f, 1472.89f, 373.707f, nullptr },
 };
-// Alliance Base to Stables
+// Alliance Base to Stables (从联盟基地前往兽栏)
 BattleBotPath vPath_AB_AllianceBase_to_Stables =
 {
     { 1285.67f, 1282.14f, -15.8466f, nullptr },
@@ -484,7 +486,7 @@ BattleBotPath vPath_AB_AllianceBase_to_Stables =
     { 1177.17f, 1210.21f, -56.4593f, nullptr },
     { 1167.98f, 1202.9f, -56.4743f, nullptr },
 };
-// Blacksmith to Lumber Mill
+// Blacksmith to Lumber Mill (从铁匠铺前往伐木场)
 BattleBotPath vPath_AB_Blacksmith_to_LumberMill =
 {
     { 967.04f, 1039.03f, -45.091f, nullptr },
@@ -496,7 +498,7 @@ BattleBotPath vPath_AB_Blacksmith_to_LumberMill =
     { 793.17f, 1107.21f, 5.5663f, nullptr },
     { 848.98f, 1155.9f, 11.3453f, nullptr },
 };
-// Blacksmith to GoldMine
+// Blacksmith to GoldMine (从铁匠铺前往GoldMine)
 BattleBotPath vPath_AB_Blacksmith_to_GoldMine =
 {
     { 1035.98f, 1015.66f, -46.0278f, nullptr },
@@ -508,7 +510,7 @@ BattleBotPath vPath_AB_Blacksmith_to_GoldMine =
     { 1162.93f, 908.92f, -108.6703f, nullptr },
     { 1144.94f, 860.09f, -111.2100f, nullptr },
 };
-// Farm to Stables
+// Farm to Stables (从农场前往兽栏)
 BattleBotPath vPath_AB_Farm_to_Stable =
 {
     { 749.88f, 878.23f, -55.1523f, nullptr },
@@ -523,7 +525,7 @@ BattleBotPath vPath_AB_Farm_to_Stable =
     { 1146.02f, 1226.34f, -53.8979f, nullptr },
     { 1167.10f, 1204.31f, -56.55f, nullptr },
 };
-// Alliance Base to Gold Mine
+// Alliance Base to Gold Mine (从联盟基地前往金矿)
 BattleBotPath vPath_AB_AllianceBase_to_GoldMine =
 {
     { 1285.67f, 1282.14f, -15.8466f, nullptr },
@@ -544,7 +546,7 @@ BattleBotPath vPath_AB_AllianceBase_to_GoldMine =
     { 1148.89f, 871.391f, -111.96f, nullptr },
     { 1145.24f, 850.82f, -110.514f, nullptr },
 };
-// Alliance Base to Lumber Mill
+// Alliance Base to Lumber Mill (从联盟基地前往伐木场)
 BattleBotPath vPath_AB_AllianceBase_to_LumberMill =
 {
     { 1285.67f, 1282.14f, -15.8466f, nullptr },
@@ -568,7 +570,7 @@ BattleBotPath vPath_AB_AllianceBase_to_LumberMill =
     { 864.74f, 1163.78f, 12.385f, nullptr },
     { 859.165f, 1148.84f, 11.5289f, nullptr },
 };
-// Stables to Blacksmith
+// Stables to Blacksmith (从兽栏前往铁匠铺)
 BattleBotPath vPath_AB_Stables_to_Blacksmith =
 {
     { 1169.52f, 1198.71f, -56.2742f, nullptr },
@@ -594,7 +596,7 @@ BattleBotPath vPath_AB_Stables_to_Blacksmith =
     { 990.89f, 1039.3f, -42.7659f, nullptr },
     { 978.269f, 1043.84f, -44.4588f, nullptr },
 };
-// Horde Base to Farm
+// Horde Base to Farm (从部落基地前往农场)
 BattleBotPath vPath_AB_HordeBase_to_Farm =
 {
     { 707.259f, 707.839f, -17.5318f, nullptr },
@@ -611,7 +613,7 @@ BattleBotPath vPath_AB_HordeBase_to_Farm =
     { 785.123f, 869.103f, -54.2089f, nullptr },
     { 804.429f, 874.961f, -55.2691f, nullptr },
 };
-// Horde Base to Gold Mine
+// Horde Base to Gold Mine (从部落基地前往金矿)
 BattleBotPath vPath_AB_HordeBase_to_GoldMine =
 {
     { 707.259f, 707.839f, -17.5318f, nullptr },
@@ -636,7 +638,7 @@ BattleBotPath vPath_AB_HordeBase_to_GoldMine =
     { 1117.56f, 853.686f, -110.716f, nullptr },
     { 1144.9f, 850.049f, -110.522f, nullptr },
 };
-// Horde Base to Lumber Mill
+// Horde Base to Lumber Mill (从部落基地前往伐木场)
 BattleBotPath vPath_AB_HordeBase_to_LumberMill =
 {
     { 707.259f, 707.839f, -17.5318f, nullptr },
@@ -669,7 +671,7 @@ BattleBotPath vPath_AB_HordeBase_to_LumberMill =
     { 842.646f, 1143.51f, 11.9984f, nullptr },
     { 857.674f, 1146.16f, 11.529f, nullptr },
 };
-// Farm to Blacksmith
+// Farm to Blacksmith (从农场前往铁匠铺)
 BattleBotPath vPath_AB_Farm_to_Blacksmith =
 {
     { 803.826f, 874.909f, -55.2547f, nullptr },
@@ -688,7 +690,7 @@ BattleBotPath vPath_AB_Farm_to_Blacksmith =
     { 961.55f, 1030.81f, -45.814f, nullptr },
     { 978.122f, 1043.87f, -44.4682f, nullptr },
 };
-// Stables to Gold Mine
+// Stables to Gold Mine (从兽栏前往金矿)
 BattleBotPath vPath_AB_Stables_to_GoldMine =
 {
     { 1169.52f, 1198.71f, -56.2742f, nullptr },
@@ -712,7 +714,7 @@ BattleBotPath vPath_AB_Stables_to_GoldMine =
     { 1149.32f, 874.429f, -112.142f, nullptr },
     { 1145.34f, 849.824f, -110.523f, nullptr },
 };
-// Stables to Lumber Mill
+// Stables to Lumber Mill (从兽栏前往伐木场)
 BattleBotPath vPath_AB_Stables_to_LumberMill =
 {
     { 1169.52f, 1198.71f, -56.2742f, nullptr },
@@ -737,7 +739,7 @@ BattleBotPath vPath_AB_Stables_to_LumberMill =
     { 851.803f, 1166.3f, 10.4423f, nullptr },
     { 853.921f, 1150.92f, 11.543f, nullptr },
 };
-// Farm to Gold Mine
+// Farm to Gold Mine (从农场前往金矿)
 BattleBotPath vPath_AB_Farm_to_GoldMine =
 {
     { 803.826f, 874.909f, -55.2547f, nullptr },
@@ -770,7 +772,7 @@ BattleBotPath vPath_AB_Farm_to_GoldMine =
     { 1128.22f, 851.928f, -111.078f, nullptr },
     { 1145.14f, 849.895f, -110.523f, nullptr },
 };
-// Farm to Lumber Mill
+// Farm to Lumber Mill (从农场前往伐木场)
 BattleBotPath vPath_AB_Farm_to_LumberMill =
 {
     { 803.826f, 874.909f, -55.2547f, nullptr },
@@ -809,7 +811,7 @@ BattleBotPath vPath_AV_Horde_Cave_to_Tower_Point_Crossroad =
     { -711.436f, -362.86f, 66.7543f,  nullptr },
 };
 
-// 2.4 + Horde cave is moved
+// 2.4 + Horde cave is moved (2.4 及以上版本部落洞穴位置已移动)
 #ifdef MANGOSBOT_ZERO
 BattleBotPath vPath_AV_Horde_Cave_to_Frostwolf_Graveyard_Flag =
 {
@@ -2129,7 +2131,7 @@ std::vector<BattleBotPath*> const vPaths_AB =
     &vPath_AB_Stables_to_LumberMill,
     &vPath_AB_Farm_to_GoldMine,
     &vPath_AB_Farm_to_LumberMill,
-	&vPath_AB_Blacksmith_to_LumberMill,
+    &vPath_AB_Blacksmith_to_LumberMill,
     &vPath_AB_Blacksmith_to_GoldMine,
     &vPath_AB_Farm_to_Stable,
 };
@@ -2285,7 +2287,7 @@ std::vector<BattleBotPath*> const vPaths_HordeMine =
 
 static std::pair<uint32, uint32> AB_AttackObjectives[] =
 {
-    // Attack
+    // Attack (攻击)
     { BG_AB_NODE_STABLES, BG_AB_BANNER_STABLE },
     { BG_AB_NODE_BLACKSMITH, BG_AB_BANNER_BLACKSMITH },
     { BG_AB_NODE_FARM, BG_AB_BANNER_FARM },
@@ -2303,11 +2305,12 @@ static uint32  EY_AttackObjectives[] =
 };
 #endif
 //
-// old wsg waypoints
+// old wsg waypoints (旧版战歌峡谷路径点)
 //
 
-//cross the BattleGround to get to flags or flag carriers
+// cross the BattleGround to get to flags or flag carriers (横穿战场前往夺旗或拦截扛旗手)
 
+/// 初始化并处理战歌峡谷各据点之间的自定义战术路径
 bool BGTactics::wsgPaths()
 {
     BattleGround *bg = bot->GetBattleGround();
@@ -2321,16 +2324,16 @@ bool BGTactics::wsgPaths()
     bool atAllyGY = bot->GetPositionX() > 1388.f && bot->GetPositionY() > 1515.f && bot->GetPositionZ() > 335.0f;
     bool atHordeGY = bot->GetPositionY() < 1400.0f && bot->GetPositionX() < 1075.0f && bot->GetPositionZ() > 330.0f;
 
-    if (pos.x > bot->GetPositionX()) //He's somewhere at the alliance side
+    if (pos.x > bot->GetPositionX()) // He's somewhere at the alliance side (目标大致位于联盟半场区域)
     {
-        if (Preference < 4 && !atHordeGY) //preference < 4 = move through tunnel (< 6 becuse GY disabled)
+        if (Preference < 4 && !atHordeGY) // preference < 4 = move through tunnel (< 6 becuse GY disabled) (偏好值 <4 时走隧道（墓地禁用时 <6）)
         {
-            if (bot->GetPositionX() < 1006.f) //to the fasty
+            if (bot->GetPositionX() < 1006.f) // to the fasty (前往速攻点)
             {
                 MoveTo(bg->GetMapId(), 1006.590210f, 1450.435059f, 335.721283f);
                 return  true;
             }
-            else if (bot->GetPositionX() < 1125.f) //to the horde entrance
+            else if (bot->GetPositionX() < 1125.f) // to the horde entrance (前往部落入口)
             {
                 if (bot->GetPositionY() < 1400.f)
                     MoveTo(bg->GetMapId(), 1125.778076f, bot->GetPositionY(), 316.567047f);
@@ -2339,50 +2342,50 @@ bool BGTactics::wsgPaths()
                 return  true;
             }
         }
-        else if (Preference < 7 || (atHordeGY && urand(0, 2))) { // preference < 7 = move through graveyard (BUGGED)
-            if (bot->GetPositionX() < 985.f) //to the gate at the upper tunnel
+        else if (Preference < 7 || (atHordeGY && urand(0, 2))) { // preference < 7 = move through graveyard (BUGGED) (偏好值 <7 时走墓地（存在已知异常）)
+            if (bot->GetPositionX() < 985.f) // to the gate at the upper tunnel (前往上层隧道大门)
             {
                 MoveTo(bg->GetMapId(), 985.940125f, 1423.260254f, 345.418121f);
                 return  true;
             }
-            else if (bot->GetPositionX() < 1054.5f) //to the gate at the upper tunnel
+            else if (bot->GetPositionX() < 1054.5f) // to the gate at the upper tunnel (前往上层隧道大门)
             {
                 MoveTo(bg->GetMapId(), 1055.182251f, 1396.967529f, 339.361511f);
                 return  true;
             }
-            else if (bot->GetPositionX() < 1070.f) //to the horde entrance
+            else if (bot->GetPositionX() < 1070.f) // to the horde entrance (前往部落入口)
             {
                 MoveTo(bg->GetMapId(), 1076.778076f, 1396.0f, 324.0f, false, false, true);
                 return  true;
             }
-            else if (bot->GetPositionX() < 1125.f) //to the horde entrance
+            else if (bot->GetPositionX() < 1125.f) // to the horde entrance (前往部落入口)
             {
                 MoveTo(bg->GetMapId(), 1125.778076f, bot->GetPositionY(), 316.567047f);
                 return  true;
             }
         }
-        else if (!atHordeGY || urand(0, 2)){ //all other preference: run down the ramp 
-            if (bot->GetPositionX() < 985.f) //to the gate at the upper tunnel
+        else if (!atHordeGY || urand(0, 2)){ // all other preference: run down the ramp (其余情况偏好：沿斜坡向下行进)
+            if (bot->GetPositionX() < 985.f) // to the gate at the upper tunnel (前往上层隧道大门)
             {
                 MoveTo(bg->GetMapId(), 985.940125f, 1423.260254f, 345.418121f);
                 return  true;
             }
-            else if (bot->GetPositionX() < 1031.f) //to the first step of the ramp from the tunnel
+            else if (bot->GetPositionX() < 1031.f) // to the first step of the ramp from the tunnel (从隧道前往斜坡第一段)
             {
                 MoveTo(bg->GetMapId(), 1031.764282f, 1454.516235f, 343.337860f);
                 return  true;
             }
-            else if (bot->GetPositionX() < 1051.f && bot->GetPositionY() < 1494.f) //to the second step of the ramp from the tunnel
+            else if (bot->GetPositionX() < 1051.f && bot->GetPositionY() < 1494.f) // to the second step of the ramp from the tunnel (从隧道前往斜坡第二段)
             {
                 MoveTo(bg->GetMapId(), 1051.304810f, 1494.917725f, 342.043518f);
                 return  true;
             }
-            else if (bot->GetPositionX() < 1050.f && bot->GetPositionY() < 1538.f) //down the ramp
+            else if (bot->GetPositionX() < 1050.f && bot->GetPositionY() < 1538.f) // down the ramp (沿斜坡向下)
             {
                 MoveTo(bg->GetMapId(), 1050.089478f, 1538.054443f, 332.460388f);
                 return  true;
             }
-            else if (bot->GetPositionX() < 1098.f) //at the ground now
+            else if (bot->GetPositionX() < 1098.f) // at the ground now (当前已到达地面)
             {
                 MoveTo(bg->GetMapId(), 1098.716797f, 1535.618652f, 315.727539f);
                 return  true;
@@ -2393,7 +2396,7 @@ bool BGTactics::wsgPaths()
                 return  true;
             }
         }
-        if (bot->GetPositionX() < 1227.f) //move to a more random location in the middle part
+        if (bot->GetPositionX() < 1227.f) // move to a more random location in the middle part (前往中段较为随机的位置)
         {
             if (bot->GetPositionY() < 1400.f)
                 MoveTo(bg->GetMapId(), 1269.962158f, 1382.655640f + frand(-2, +2), 308.545288f);
@@ -2401,66 +2404,66 @@ bool BGTactics::wsgPaths()
                 MoveTo(bg->GetMapId(), 1227.446289f, 1476.235718f + frand(-2, +2), 307.484589f);
             return  true;
         }
-        if (Preference < 5) //through the tunnel
+        if (Preference < 5) // through the tunnel (穿过隧道)
         {
-            if (bot->GetPositionX() < 1351.f) //move to the alliance entrance
+            if (bot->GetPositionX() < 1351.f) // move to the alliance entrance (移动到联盟入口)
             {
                 MoveTo(bg->GetMapId(), 1351.759155f + frand(0, 2), 1462.368042f + frand(-2, +2), 323.673737f);
                 return  true;
             }
-            else if (bot->GetPositionX() < 1449.f) //move to the alliance fasty
+            else if (bot->GetPositionX() < 1449.f) // move to the alliance fasty (移动到联盟速攻点)
             {
                 MoveTo(bg->GetMapId(), 1449.574219f, 1470.698608f, 342.675476f);
                 return  true;
             }
-            else { //move to the flag position
+            else { // move to the flag position (移动到旗帜位置)
                 MoveTo(bg->GetMapId(), 1538.387207f, 1480.903198f, 352.576385f);
                 return  true;
             }
         }
-        else { //up the ramp
-            if (bot->GetPositionX() < 1360.f) //gate at the ramp
+        else { // up the ramp (沿斜坡向上)
+            if (bot->GetPositionX() < 1360.f) // gate at the ramp (斜坡处城门)
             {
                 MoveTo(bg->GetMapId(), 1360.088501f, 1393.451660f + frand(-2, +2), 326.183624f);
                 return  true;
             }
-            if (bot->GetPositionX() < 1399.f) //half way up
+            if (bot->GetPositionX() < 1399.f) // half way up (半山腰/半途向上)
             {
                 MoveTo(bg->GetMapId(), 1399.362061f, 1405.105347f + frand(-2, +2), 341.481476f);
                 return  true;
             }
-            if (bot->GetPositionX() < 1417.f) //first halway
+            if (bot->GetPositionX() < 1417.f) // first halway (第一条走廊)
             {
                 MoveTo(bg->GetMapId(), 1417.096191f, 1459.552368f + frand(-2, +2), 349.591827f);
                 return  true;
             }
-            if (bot->GetPositionX() < 1500.2f) //gate to the flag room
+            if (bot->GetPositionX() < 1500.2f) // gate to the flag room (通往旗帜房的大门)
             {
                 MoveTo(bg->GetMapId(), 1505.045654f, 1493.787231f, 352.017670f);
                 return  true;
             }
-            else { //move to the flag position
+            else { // move to the flag position (移动到旗帜位置)
                 MoveTo(bg->GetMapId(), 1538.387207f, 1480.903198f, 352.576385f);
                 return  true;
             }
         }
     }
-    else //move towards horde base
+    else // move towards horde base (向部落基地方向移动)
     {
-        if (Preference < 4 && !atAllyGY) //through the tunnel
+        if (Preference < 4 && !atAllyGY) // through the tunnel (穿过隧道)
         {
-            if (bot->GetPositionX() > 1449.7f) //to the fasty
+            if (bot->GetPositionX() > 1449.7f) // to the fasty (前往速攻点)
             {
                 MoveTo(bg->GetMapId(), 1449.574219f, 1470.698608f, 342.675476f);
                 return  true;
             }
-            else if (bot->GetPositionX() > 1443.9f) { // moving from the fasty to the gate directly is bugged.. moving back to the tunnel first
+            else if (bot->GetPositionX() > 1443.9f) { // moving from the fasty to the gate directly is bugged.. moving back to the tunnel first (从速攻点直接前往大门寻路异常，先折返隧道再行进)
                 MoveTo(bg->GetMapId(), 1443.761963f, 1459.581909f, 342.115417f);
             }
-            else if (bot->GetPositionX() > 1380.9f) { // move into the tunnel
+            else if (bot->GetPositionX() > 1380.9f) { // move into the tunnel (进入隧道)
                 MoveTo(bg->GetMapId(), 1380.761963f, 1457.581909f, 329.115417f);
             }
-            else if (bot->GetPositionX() > 1351.9f) //to the alliance entrance
+            else if (bot->GetPositionX() > 1351.9f) // to the alliance entrance (前往联盟入口)
             {
                 if (bot->GetPositionY() > 1500.f)
                     MoveTo(bg->GetMapId(), 1125.778076f, bot->GetPositionY(), 315.698883f);
@@ -2468,7 +2471,7 @@ bool BGTactics::wsgPaths()
                     MoveTo(bg->GetMapId(), 1125.778076f, 1452.059937f, 315.698883f);
                 return  true;
             }
-            if (bot->GetPositionX() > 1240.f) //move to a more random location in the middle part
+            if (bot->GetPositionX() > 1240.f) // move to a more random location in the middle part (前往中段较为随机的位置)
             {
                 if (bot->GetPositionY() > 1500.f)
                     MoveTo(bg->GetMapId(), 1239.085693f, 1541.408569f + frand(-2, +2), 306.491791f);
@@ -2477,29 +2480,29 @@ bool BGTactics::wsgPaths()
                 return  true;
             }
         }
-        else if (Preference < 7 || (atAllyGY && urand(0, 2))) // through the graveyard
+        else if (Preference < 7 || (atAllyGY && urand(0, 2))) // through the graveyard (穿过墓地)
         {
-            if (bot->GetPositionX() > 1510.2f) //To the first gate
+            if (bot->GetPositionX() > 1510.2f) // To the first gate (前往第一道大门)
             {
                 MoveTo(bg->GetMapId(), 1500.045654f, 1493.787231f, 352.017670f);
                 return  true;
             }
-            else if (bot->GetPositionX() > 1460.f) //to the second gate
+            else if (bot->GetPositionX() > 1460.f) // to the second gate (前往第二道大门)
             {
                 MoveTo(bg->GetMapId(), 1459.490234f, 1494.175072f, 351.565155f);
                 return  true;
             }
-            else if (bot->GetPositionX() > 1424.f || (bot->GetPositionX() > 1388.f && bot->GetPositionY() > 1530.f && bot->GetPositionZ() > 335.0f)) //to the graveyard
+            else if (bot->GetPositionX() > 1424.f || (bot->GetPositionX() > 1388.f && bot->GetPositionY() > 1530.f && bot->GetPositionZ() > 335.0f)) // to the graveyard (前往墓地)
             {
                 MoveTo(bg->GetMapId(), 1422.106201f, 1529.851196f, 342.0f);
                 return  true;
             }
-            else if (bot->GetPositionX() > 1400.f) // to the field (jump down)
+            else if (bot->GetPositionX() > 1400.f) // to the field (jump down) (跳下前往中场)
             {
                 MoveTo(bg->GetMapId(), 1398.7f, 1534.6f, 322.5f, false, false, true);
                 return  true;
             }
-            else if (bot->GetPositionX() > 1345.f) // to the field
+            else if (bot->GetPositionX() > 1345.f) // to the field (前往中场)
             {
                 MoveTo(bg->GetMapId(), 1344.334595f + frand(-2, +2), 1514.917236f, 319.081726f);
                 return  true;
@@ -2507,61 +2510,61 @@ bool BGTactics::wsgPaths()
         }
         else if (!atAllyGY || urand(0, 2))
         {
-            if (bot->GetPositionX() > 1505.2f) //To the first gate
+            if (bot->GetPositionX() > 1505.2f) // To the first gate (前往第一道大门)
             {
             MoveTo(bg->GetMapId(), 1500.045654f, 1493.787231f, 352.017670f);
             return  true;
             }
-            else if (bot->GetPositionX() > 1460.f) //to the second gate
+            else if (bot->GetPositionX() > 1460.f) // to the second gate (前往第二道大门)
             {
             MoveTo(bg->GetMapId(), 1459.490234f, 1494.175072f, 351.565155f);
             return  true;
             }
-            else if (bot->GetPositionX() > 1418.f) //half on the upper ramp
+            else if (bot->GetPositionX() > 1418.f) // half on the upper ramp (上层斜坡半途位置)
             {
             MoveTo(bg->GetMapId(), 1417.096191f, 1459.552368f, 349.591827f);
             return  true;
             }
-            else if (bot->GetPositionX() > 1400.f) //middle down the ramp
+            else if (bot->GetPositionX() > 1400.f) // middle down the ramp (斜坡中下段)
             {
             MoveTo(bg->GetMapId(), 1399.362061f, 1405.105347f, 341.481476f);
             return  true;
             }
-            else if (bot->GetPositionX() > 1357.f) //at the gate
+            else if (bot->GetPositionX() > 1357.f) // at the gate (位于大门处)
             {
             MoveTo(bg->GetMapId(), 1356.088501f, 1393.451660f, 326.183624f);
             return  true;
             }
-            else if (bot->GetPositionX() > 1270.f) // run the gate side way to the middle field
+            else if (bot->GetPositionX() > 1270.f) // run the gate side way to the middle field (沿大门侧路奔向中场)
             {
                 MoveTo(bg->GetMapId(), 1269.962158f, 1398.655640f + frand(-2, +2), 309.945288f);
             //MoveTo(bg->GetMapId(), 1269.962158f, 1382.655640f + frand(-2, +2), 308.545288f);
             return true;
             }
         }
-        if (Preference < 5) //horde ramp
+        if (Preference < 5) // horde ramp (部落斜坡)
         {
-            if (bot->GetPositionX() > 1099.f) //move to the horde ramp gate
+            if (bot->GetPositionX() > 1099.f) // move to the horde ramp gate (移动到部落斜坡门口)
             {
                 MoveTo(bg->GetMapId(), 1096.716797f, 1535.618652f, 315.727539f);
                 return  true;
             }
-            if (bot->GetPositionX() > 1071.f) //move the ramp up a piece
+            if (bot->GetPositionX() > 1071.f) // move the ramp up a piece (沿斜坡向上移动一段距离)
             {
                 MoveTo(bg->GetMapId(), 1070.089478f, 1538.054443f, 332.460388f);
                 return  true;
             }
-            if (bot->GetPositionX() > 1050.2f) //move the ramp up a piece
+            if (bot->GetPositionX() > 1050.2f) // move the ramp up a piece (沿斜坡向上移动一段距离)
             {
                 MoveTo(bg->GetMapId(), 1050.089478f, 1538.054443f, 332.460388f);
                 return  true;
             }
-            if (bot->GetPositionX() > 1032.f) //up in front of first entrance
+            if (bot->GetPositionX() > 1032.f) // up in front of first entrance (上方第一入口前)
             {
                 MoveTo(bg->GetMapId(), 1031.764282f, 1454.516235f, 343.337860f);
                 return  true;
             }
-            if (bot->GetPositionX() > 986.f) //up in front of first entrance
+            if (bot->GetPositionX() > 986.f) // up in front of first entrance (上方第一入口前)
             {
                 MoveTo(bg->GetMapId(), 985.940125f, 1423.260254f, 345.418121f);
                 return  true;
@@ -2569,19 +2572,19 @@ bool BGTactics::wsgPaths()
             MoveTo(bg->GetMapId(), 919.161316f, 1433.871338f, 345.902771f);
             return  true;
         }
-        else { //horde tunnel
+        else { // horde tunnel (部落隧道)
 
-            if (bot->GetPositionX() > 1127.9f) //move to the horde entrance
+            if (bot->GetPositionX() > 1127.9f) // move to the horde entrance (移动到部落入口)
             {
                 MoveTo(bg->GetMapId(), 1127.778076f, 1462.059937f, 315.698883f);
                 return  true;
             }
-            else if (bot->GetPositionX() > 1006.7f) //move to the horde fasty
+            else if (bot->GetPositionX() > 1006.7f) // move to the horde fasty (移动到部落速攻点)
             {
                 MoveTo(bg->GetMapId(), 1006.590210f, 1450.435059f, 335.721283f);
                 return  true;
             }
-            else { //move to the flag position
+            else { // move to the flag position (移动到旗帜位置)
                 MoveTo(bg->GetMapId(), 919.161316f, 1433.871338f, 345.902771f);
                 return  true;
             }
@@ -2590,6 +2593,7 @@ bool BGTactics::wsgPaths()
     return false;
 }
 
+/// 执行战歌峡谷旗帜房顶跳下隧道或墓地的快捷跳跃动作
 bool BGTactics::wsgRoofJump()
 {
     BattleGround* bg = bot->GetBattleGround();
@@ -2608,7 +2612,7 @@ bool BGTactics::wsgRoofJump()
 
     if (atHordeRoof && (!inCombat || (pos.z < 365.f && pos.x > 987.f)))
     {
-        // not at jump point
+        // not at jump point (未到达起跳点)
         if (bot->GetPositionX() > 933.f || bot->GetPositionY() > 1450.f)
             return MoveTo(bg->GetMapId(), WS_FLAG_HORDE_ROOF_JUMP_UPPER.x, WS_FLAG_HORDE_ROOF_JUMP_UPPER.y, WS_FLAG_HORDE_ROOF_JUMP_UPPER.z);
         else
@@ -2617,7 +2621,7 @@ bool BGTactics::wsgRoofJump()
 
     if (atAllianceRoof && (!inCombat || (pos.z < 372.f && pos.x < 1465.f)))
     {
-        // not at jump point
+        // not at jump point (未到达起跳点)
         if (bot->GetPositionX() < 1521.f || bot->GetPositionY() > 1467.f)
             return MoveTo(bg->GetMapId(), WS_FLAG_ALLIANCE_ROOF_JUMP_UPPER.x, WS_FLAG_ALLIANCE_ROOF_JUMP_UPPER.y, WS_FLAG_ALLIANCE_ROOF_JUMP_UPPER.z);
         else
@@ -2626,7 +2630,7 @@ bool BGTactics::wsgRoofJump()
 
     if (atHordeSecondFloorJump && (!inCombat || (pos.z < 354.f && pos.x > 933.f)))
     {
-        // not at jump point
+        // not at jump point (未到达起跳点)
         if (bot->GetPositionY() > 1452.f)
             return MoveTo(bg->GetMapId(), WS_FLAG_HORDE_FLOOR_JUMP_UPPER.x, WS_FLAG_HORDE_FLOOR_JUMP_UPPER.y, WS_FLAG_HORDE_FLOOR_JUMP_UPPER.z);
         else
@@ -2635,7 +2639,7 @@ bool BGTactics::wsgRoofJump()
 
     if (atAllianceSecondFloorJump && (!inCombat || (pos.z < 361.f && pos.x < 1421.f)))
     {
-        // not at jump point
+        // not at jump point (未到达起跳点)
         if (bot->GetPositionY() < 1468.f)
             return MoveTo(bg->GetMapId(), WS_FLAG_ALLIANCE_FLOOR_JUMP_UPPER.x, WS_FLAG_ALLIANCE_FLOOR_JUMP_UPPER.y, WS_FLAG_ALLIANCE_FLOOR_JUMP_UPPER.z);
         else
@@ -2644,7 +2648,7 @@ bool BGTactics::wsgRoofJump()
     return false;
 }
 
-// eots jump logic
+// eots jump logic (风暴之眼跳跃逻辑)
 bool BGTactics::eotsJump()
 {
     BattleGround* bg = bot->GetBattleGround();
@@ -2660,10 +2664,10 @@ bool BGTactics::eotsJump()
 
     if (bot->GetTeam() == ALLIANCE)
     {
-        if (atAllyIsle) // move to island end
+        if (atAllyIsle) // move to island end (移动到浮岛边缘末端)
             return urand(0, 1) ? MoveTo(bg->GetMapId(), 2492.0f, 1597.0f + frand(-2, +2), 1255.0f) : MoveTo(bg->GetMapId(), 2495.0f, 1604.0f + frand(-2, +2), 1256.0f);
 
-        if (bot->GetPositionX() < 2500.f && bot->GetPositionZ() > 1245.0f) // jump on first island
+        if (bot->GetPositionX() < 2500.f && bot->GetPositionZ() > 1245.0f) // jump on first island (跳上第一个浮岛)
         {
             if (role < 7)
             {
@@ -2687,7 +2691,7 @@ bool BGTactics::eotsJump()
             return true;
         }
 
-        if (bot->GetPositionX() > 2470.f && bot->GetPositionZ() > 1230.0f) // jump on ground
+        if (bot->GetPositionX() > 2470.f && bot->GetPositionZ() > 1230.0f) // jump on ground (向地面跳跃)
         {
             if (bot->GetPositionX() > 2480.f)
             {
@@ -2713,10 +2717,10 @@ bool BGTactics::eotsJump()
     }
     else
     {
-        if (atHordeIsle) // move to island end
+        if (atHordeIsle) // move to island end (移动到浮岛边缘末端)
             return urand(0, 1) ? MoveTo(bg->GetMapId(), 1835.0f, 1544.0f + frand(-2, +2), 1255.0f) : MoveTo(bg->GetMapId(), 1835.0f, 1534.0f + frand(-2, +2), 1254.0f);
 
-        if (bot->GetPositionX() > 1830.f && bot->GetPositionZ() > 1250.0f) // jump on first island
+        if (bot->GetPositionX() > 1830.f && bot->GetPositionZ() > 1250.0f) // jump on first island (跳上第一个浮岛)
         {
             if (role < 7)
             {
@@ -2740,7 +2744,7 @@ bool BGTactics::eotsJump()
             return true;
         }
 
-        if (bot->GetPositionX() < 1859.f && bot->GetPositionZ() > 1230.0f) // jump on ground
+        if (bot->GetPositionX() < 1859.f && bot->GetPositionZ() > 1230.0f) // jump on ground (向地面跳跃)
         {
             if (bot->GetPositionY() > 1535.f)
             {
@@ -2769,9 +2773,10 @@ bool BGTactics::eotsJump()
 }
 
 //
-// actual bg tactics below
+// actual bg tactics below (以下为实际战场战术实现)
 //
 
+/// 执行动作主逻辑（战场战术动作）
 bool BGTactics::Execute(Event& event)
 {
     BattleGround *bg = bot->GetBattleGround();
@@ -2792,7 +2797,7 @@ bool BGTactics::Execute(Event& event)
     }
 #endif
 
-    // disable buffin during BG to save mana
+    // disable buffin during BG to save mana (战场期间减少无谓补 Buff 以节省法力)
     if (bg->GetStatus() == STATUS_IN_PROGRESS)
         ai->ChangeStrategy("-buff", BotState::BOT_STATE_NON_COMBAT);
 
@@ -2816,7 +2821,7 @@ bool BGTactics::Execute(Event& event)
     case BATTLEGROUND_AV:
     {
         vPaths = &vPaths_AV;
-        // AV flags are handled in CheckFlagAv()
+        // AV flags are handled in CheckFlagAv() (奥特兰克山谷旗帜由 CheckFlagAv() 处理)
         break;
     }
     case BATTLEGROUND_WS:
@@ -2892,7 +2897,7 @@ bool BGTactics::Execute(Event& event)
         else
             return true;
 
-        // bot with flag should only move to objective
+        // bot with flag should only move to objective (携带旗帜的机器人应只向交付目标点移动)
 #ifdef MANGOSBOT_ZERO
         if (bot->HasAura(BG_WS_SPELL_WARSONG_FLAG) || bot->HasAura(BG_WS_SPELL_SILVERWING_FLAG))
 #else
@@ -2934,6 +2939,7 @@ bool BGTactics::Execute(Event& event)
     return false;
 }
 
+/// 控制机器人移动至战场或竞技场开局等待位置
 bool BGTactics::moveToStart(bool force)
 {
     BattleGround *bg = bot->GetBattleGround();
@@ -3037,6 +3043,7 @@ bool BGTactics::moveToStart(bool force)
     return true;
 }
 
+/// 根据战场实时战况与角色分工选择新的进攻或防守目标
 bool BGTactics::selectObjective(bool reset)
 {
     BattleGround *bg = bot->GetBattleGround();
@@ -3085,7 +3092,7 @@ bool BGTactics::selectObjective(bool reset)
     }
     case BATTLEGROUND_WS:
     {
-        // test free roam
+        // test free roam (测试自由漫游)
         // if (!flagTaken() && !teamFlagTaken())
         //     break;
 
@@ -3174,7 +3181,7 @@ bool BGTactics::selectObjective(bool reset)
                 }
                 else
                 {
-                    if (role > 9)  // test patrol
+                    if (role > 9)  // test patrol (测试巡逻移动)
                     {
                         float rx, ry, rz;
                         bot->GetRandomPoint(1227.446f, 1476.235f, 307.484f, 150.0f, rx, ry, rz);
@@ -3206,7 +3213,7 @@ bool BGTactics::selectObjective(bool reset)
     }
     case BATTLEGROUND_AB:
     {
-        // Common setup for both HORDE and ALLIANCE
+        // Common setup for both HORDE and ALLIANCE (联盟与部落双方通用的初始化设置)
         uint32 role = context->GetValue<uint32>("bg role")->Get();
         bool defender = role < 5;
         uint32 botGUID = bot->GetGUIDLow();
@@ -3216,7 +3223,7 @@ bool BGTactics::selectObjective(bool reset)
         if (isDead && (botSelectedObjectives[botGUID] != nullptr))
         {
             bot->Say("I'm dead, guess I'll reset my objective.", LANG_UNIVERSAL);
-            botSelectedObjectives[botGUID] = nullptr; // Reset objective if we die... maybe more lucky elsewhere -- wait I don't think this is executed on dead bots so it's never triggered? Try something else
+            botSelectedObjectives[botGUID] = nullptr; // Reset objective if we die... maybe more lucky elsewhere -- wait I don't think this is executed on dead bots so it's never triggered? Try something else (死亡时重置目标以换个位置尝试（注：死亡机器人可能未触发此分支）)
             botObjectiveSelectionTime[botGUID] = 0;
         }
 
@@ -3230,12 +3237,12 @@ bool BGTactics::selectObjective(bool reset)
             bool isContested = (bot->GetTeam() == HORDE) ? bg->IsActiveEvent(objective.first, BG_AB_NODE_STATUS_ALLY_CONTESTED) : bg->IsActiveEvent(objective.first, BG_AB_NODE_STATUS_HORDE_CONTESTED);
             bool isFriendly = (bot->GetTeam() == HORDE) ? bg->IsActiveEvent(objective.first, BG_AB_NODE_STATUS_HORDE_OCCUPIED) || bg->IsActiveEvent(objective.first, BG_AB_NODE_STATUS_HORDE_CONTESTED) : bg->IsActiveEvent(objective.first, BG_AB_NODE_STATUS_ALLY_OCCUPIED) || bg->IsActiveEvent(objective.first, BG_AB_NODE_STATUS_ALLY_CONTESTED);
 
-            // If we're a defender, target friendly, neutral or under attack objectives (maybe remove the under attack ones?). if we're an attacker, target enemy, neutral or under attack objectives. 
+            // If we're a defender, target friendly, neutral or under attack objectives (maybe remove the under attack ones?). if we're an attacker, target enemy, neutral or under attack objectives. (防守方选择己方、中立或受攻击目标；进攻方选择敌方、中立或争夺中目标。)
             if ((defender && (isActiveNeutral || isFriendly || isContested)) || (!defender && (isActiveNeutral || isContested || isOccupied)))
             {
                 if (GameObject* pGO = bot->GetMap()->GetGameObject(bg->GetSingleGameObjectGuid(objective.first, BG_AB_NODE_STATUS_NEUTRAL)))
                 {
-                    // Add it to the list if it's valid.
+                    // Add it to the list if it's valid. (若目标有效则将其加入列表。)
                     uniqueObjectives.insert(pGO);
                 }
             }
@@ -3245,12 +3252,12 @@ bool BGTactics::selectObjective(bool reset)
 
 
 
-        // Check if the bot has previously selected an objective and if it's still valid
+        // Check if the bot has previously selected an objective and if it's still valid (检查机器人此前选择的战场目标是否仍然有效)
         if (botSelectedObjectives.find(botGUID) != botSelectedObjectives.end() &&
             uniqueObjectives.find(botSelectedObjectives[botGUID]) != uniqueObjectives.end())
         {
             uint32 elapsedTime = WorldTimer::getMSTime() - botObjectiveSelectionTime[botGUID];
-            float probabilityToKeepSameObjective = 1.0f; // Start at 100% then lower over time
+            float probabilityToKeepSameObjective = 1.0f; // Start at 100% then lower over time (初始按 100% 权重计算，随后随时间推移逐步降低)
 
             GameObject* lastObj = botSelectedObjectives[botGUID];
             float const lastObjDist = bot->GetDistance(lastObj);
@@ -3259,8 +3266,8 @@ bool BGTactics::selectObjective(bool reset)
             {
                 if (elapsedTime > 60000)
                 {
-                    uint32 extraTime = (elapsedTime - 60000) / 1000; // Calculate seconds past the 60 seconds mark
-                    probabilityToKeepSameObjective -= (0.01f * extraTime); // Decrease by 1% for each second past 40 seconds
+                    uint32 extraTime = (elapsedTime - 60000) / 1000; // Calculate seconds past the 60 seconds mark (计算超过 60 秒标记的秒数)
+                    probabilityToKeepSameObjective -= (0.01f * extraTime); // Decrease by 1% for each second past 40 seconds (超过 40 秒后每秒递减 1%)
                 }
 
                 float randomValue = float(rand() % 101) / 100.0f;
@@ -3275,8 +3282,8 @@ bool BGTactics::selectObjective(bool reset)
             {
                 if (elapsedTime > 40000)
                 {
-                    uint32 extraTime = (elapsedTime - 40000) / 1000; // Calculate seconds past the 40 seconds mark
-                    probabilityToKeepSameObjective -= (0.01f * extraTime); // Decrease by 1% for each second past 40 seconds
+                    uint32 extraTime = (elapsedTime - 40000) / 1000; // Calculate seconds past the 40 seconds mark (计算超过 40 秒标记的秒数)
+                    probabilityToKeepSameObjective -= (0.01f * extraTime); // Decrease by 1% for each second past 40 seconds (超过 40 秒后每秒递减 1%)
                 }
 
                 float randomValue = float(rand() % 101) / 100.0f;
@@ -3289,15 +3296,15 @@ bool BGTactics::selectObjective(bool reset)
             }
         }
 
-        // If BgObjective is still nullptr at this point, select a new one
+        // If BgObjective is still nullptr at this point, select a new one (若此时 BgObjective 仍为空，则重新挑选一个新目标)
         if (!BgObjective && !uniqueObjectives.empty())
         {
             std::vector<GameObject*> objectives(uniqueObjectives.begin(), uniqueObjectives.end());
 
-            // Select a random objective from your unique objectives
+            // Select a random objective from your unique objectives (从自身专属可选目标中随机挑选一个战术目标)
             BgObjective = objectives[urand(0, objectives.size() - 1)];
-            botSelectedObjectives[botGUID] = BgObjective; // Remember this objective for the bot
-            botObjectiveSelectionTime[botGUID] = WorldTimer::getMSTime(); // Remember the time of selection
+            botSelectedObjectives[botGUID] = BgObjective; // Remember this objective for the bot (为机器人记录当前选择的战场目标)
+            botObjectiveSelectionTime[botGUID] = WorldTimer::getMSTime(); // Remember the time of selection (记录目标选中的时间戳)
         }
 
         if (BgObjective)
@@ -3312,7 +3319,7 @@ bool BGTactics::selectObjective(bool reset)
             else if (std::abs(pos.x - 1166.79) <= 10.0) ObjVerbose = "Stables";
             else if (std::abs(pos.x - 1146.92) <= 10.0) ObjVerbose = "Gold Mine";
 
-            // DEBUG SAY
+            // DEBUG SAY (调试发言输出)
             //ostringstream out;
             //if(defender) out << "Defending " + ObjVerbose;
             //else out << "Attacking " + ObjVerbose;
@@ -3324,9 +3331,9 @@ bool BGTactics::selectObjective(bool reset)
         break;
     }
 #ifndef MANGOSBOT_ZERO
-    case BATTLEGROUND_EY: //Role < 4: Defender, else Attacker. In the beginning split for all points. Afterwards pick random strategies
+    case BATTLEGROUND_EY: // Role < 4: Defender, else Attacker. In the beginning split for all points. Afterwards pick random strategies (角色值 <4 为防守方，否则为进攻方；开局分散占点，随后随机切换战术)
     {
-        //Variables
+        // Variables (变量列表)
         uint8 rootTeamIndex = TEAM_INDEX_NEUTRAL;
         uint32 role = context->GetValue<uint32>("bg role")->Get();
 
@@ -3337,7 +3344,7 @@ bool BGTactics::selectObjective(bool reset)
         Team rootTeam = bot->GetTeam();
         uint8 maxTry = 0;
 
-        //Set attackobjectives for teams
+        // Set attackobjectives for teams (为队伍设置进攻目标)
         if (rootTeam == HORDE)
         {
             attackObjectivesFront[0] = EY_AttackObjectives[0];
@@ -3357,23 +3364,23 @@ bool BGTactics::selectObjective(bool reset)
 
         WorldObject* BgObjective = nullptr;
 
-        //Get BgObjective if not set
+        // Get BgObjective if not set (若未设置战场目标则获取一个新目标)
         if (!bot->HasAura(EY_SPELL_NETHERSTORM_FLAG))
         {
-            if (role == 1) //Harass left back
+            if (role == 1) // Harass left back (左后方骚扰点位)
             {
                 BgObjective = bot->GetMap()->GetGameObject(bg->GetSingleGameObjectGuid(attackObjectivesBack[0], 0));
             }
-            else if (role == 2) //Harass right back
+            else if (role == 2) // Harass right back (右后方骚扰点位)
             {
                 BgObjective = bot->GetMap()->GetGameObject(bg->GetSingleGameObjectGuid(attackObjectivesBack[1], 0));
             }
-            else if (role < 8) //Attack and Defend
+            else if (role < 8) // Attack and Defend (攻防兼顾)
             {
                 while (BgObjective == nullptr)
                 {
                     if (!bg->IsActiveEvent(attackObjectivesFront[0], rootTeamIndex) || !bg->IsActiveEvent(attackObjectivesFront[1], rootTeamIndex))
-                    { //Capture front objectives before attacking back objectives
+                    { // Capture front objectives before attacking back objectives (先占领前线据点再进攻后方目标)
                         //sLog.outDetail("Bot #%d %s:%d <%s>: Get Front Objectives", bot->GetGUIDLow(), bot->GetTeam() == ALLIANCE ? "A" : "H", bot->getLevel(), bot->GetName());
                         if (role < 6) {
                             BgObjective = bot->GetMap()->GetGameObject(bg->GetSingleGameObjectGuid(attackObjectivesFront[0], 0));
@@ -3384,7 +3391,7 @@ bool BGTactics::selectObjective(bool reset)
                         }
                     }
                     else
-                    { //Now capture all objectives with priority on back
+                    { // Now capture all objectives with priority on back (优先夺取后方据点并全面占领目标)
                         //sLog.outDetail("Bot #%d %s:%d <%s>: Get All Objectives", bot->GetGUIDLow(), bot->GetTeam() == ALLIANCE ? "A" : "H", bot->getLevel(), bot->GetName());
                         if (role < 4)
                         {
@@ -3416,7 +3423,7 @@ bool BGTactics::selectObjective(bool reset)
                     maxTry++;
                 }
             }
-            else if (role < 10) { //Get the flag or defend flag carrier
+            else if (role < 10) { // Get the flag or defend flag carrier (抢夺敌方旗帜或护卫己方扛旗手)
                 Unit* teamFC = ai->GetUnit(AI_VALUE(ObjectGuid, "team flag carrier"));
                 if (teamFC)
                 {
@@ -3452,7 +3459,7 @@ bool BGTactics::selectObjective(bool reset)
             BgObjective = nullptr;
 
             if (!bg->IsActiveEvent(attackObjectivesFront[0], rootTeamIndex) && !bg->IsActiveEvent(attackObjectivesFront[1], rootTeamIndex) && !bg->IsActiveEvent(attackObjectivesBack[0], rootTeamIndex) && !bg->IsActiveEvent(attackObjectivesBack[1], rootTeamIndex))
-            { //Retreat with flag
+            { // Retreat with flag (携带旗帜撤退)
                 //sLog.outDetail("Bot #%d %s:%d <%s>: Retreat with flag", bot->GetGUIDLow(), bot->GetTeam() == ALLIANCE ? "A" : "H", bot->getLevel(), bot->GetName());
                 if (rootTeam == HORDE)
                 {
@@ -3466,7 +3473,7 @@ bool BGTactics::selectObjective(bool reset)
                 }
             }
             else
-            { //Deliver flag
+            { // Deliver flag (护送/交付旗帜)
                 //sLog.outDetail("Bot #%d %s:%d <%s>: Deliver flag", bot->GetGUIDLow(), bot->GetTeam() == ALLIANCE ? "A" : "H", bot->getLevel(), bot->GetName());
                 if (bg->IsActiveEvent(EY_AttackObjectives[0], rootTeamIndex))
                 {
@@ -3522,18 +3529,18 @@ bool BGTactics::selectObjective(bool reset)
         bool controlsVehicle = ai->IsInVehicle(true);
         uint32 vehicleId = inVehicle ? bot->GetTransportInfo()->GetTransport()->GetEntry() : 0;
 
-        // skip if not the driver
+        // skip if not the driver (若非载具驾驶员则跳过)
         if (inVehicle && !controlsVehicle)
             return false;
 
         /* TACTICS */
-        if (bot->GetTeam() == HORDE) // HORDE
+        if (bot->GetTeam() == HORDE) // HORDE (部落)
         {
-            // If all bases are captured, go to enemy boss
+            // If all bases are captured, go to enemy boss (若所有据点均已占领，则前往敌方首领位置)
             bool allCaptured = true;
             for (uint8 i = 0; i < BG_IC_MAX_OBJECTIVES; ++i)
             {
-                // skip quarry and keep
+                // skip quarry and keep (跳过采石场与要塞)
                 if (i == BG_IC_OBJECTIVE_QUARY || i == BG_IC_OBJECTIVE_KEEP_HORDE || i == BG_IC_OBJECTIVE_REFINERY)
                     continue;
 
@@ -3559,7 +3566,7 @@ bool BGTactics::selectObjective(bool reset)
                     break;
                 }
             }
-            if (allCaptured) // target enemy boss
+            if (allCaptured) // target enemy boss (以敌方首领为目标)
             {
                 if (Creature* allyboss = bg->GetSingleCreatureFromStorage(BG_IC_NPC_COMMANDER_WYRMBANE))
                 {
@@ -3574,12 +3581,12 @@ bool BGTactics::selectObjective(bool reset)
             }
 
 
-            // If main bases are not captured, split tasks
+            // If main bases are not captured, split tasks (若主要据点尚未占领，则分兵各自执行目标)
             if (!BgObjective)
             {
                 bool foundTask = false;
-                // mount defensive cannons
-                if (role == 9) // disabled
+                // mount defensive cannons (操作防御火炮)
+                if (role == 9) // disabled (已禁用)
                 {
                     uint32 firstTower = getDefendersCount(IC_CANNON_POS_HORDE1, 10.0f);
                     uint32 secondTower = getDefendersCount(IC_CANNON_POS_HORDE2, 10.0f);
@@ -3597,9 +3604,9 @@ bool BGTactics::selectObjective(bool reset)
                         return true;
                     }
                 }
-                if (role < 3) // Capture Side base or Docks
+                if (role < 3) // Capture Side base or Docks (占领侧翼据点或码头)
                 {
-                    // Capture Quarry/Refinery
+                    // Capture Quarry/Refinery (占领采石场/精炼厂)
                     bool isCapping = false;
                     if (GameObject* pGO = bg->GetSingleGameObjectFromStorage(isleBanners[BG_IC_OBJECTIVE_REFINERY].entryHorde))
                     {
@@ -3625,9 +3632,9 @@ bool BGTactics::selectObjective(bool reset)
                         }
                     }
                 }
-                if (!BgObjective && role < 6 && urand(0, 1)) // Capture Docks
+                if (!BgObjective && role < 6 && urand(0, 1)) // Capture Docks (占领码头)
                 {
-                    // Capture Docks
+                    // Capture Docks (占领码头)
                     bool isCapping = false;
                     if (GameObject* pGO = bg->GetSingleGameObjectFromStorage(isleBanners[BG_IC_OBJECTIVE_DOCKS].entryHorde))
                     {
@@ -3653,7 +3660,7 @@ bool BGTactics::selectObjective(bool reset)
                         }
                     }
                 }
-                // If docks/side capped, help capture workshop
+                // If docks/side capped, help capture workshop (若码头或侧翼已占领，则支援夺取车间)
                 if (!BgObjective && role < 3)
                 {
                     bool isCapping = false;
@@ -3681,7 +3688,7 @@ bool BGTactics::selectObjective(bool reset)
                         }
                     }
                 }
-                if (!BgObjective && role < 6) // Capture Hangar
+                if (!BgObjective && role < 6) // Capture Hangar (占领飞艇库)
                 {
                     bool isCapping = false;
                     if (GameObject* pGO = bg->GetSingleGameObjectFromStorage(isleBanners[BG_IC_OBJECTIVE_HANGAR].entryHorde))
@@ -3708,9 +3715,9 @@ bool BGTactics::selectObjective(bool reset)
                     }
                 }
                 bool gateOpen = false;
-                if (!BgObjective || controlsVehicle) // Check gates
+                if (!BgObjective || controlsVehicle) // Check gates (检查城门状态)
                 {
-                    // Keep Gates open if any wall is destroyed, check it
+                    // Keep Gates open if any wall is destroyed, check it (若任意城墙被摧毁则城门视为开启，检查该状态)
                     if (GameObject* pGO = bg->GetSingleGameObjectFromStorage(BG_IC_GO_PORTCULLIS_KEEP_A1))
                     {
                         if (sServerFacade.isSpawned(pGO) && pGO->GetLootState() == GO_ACTIVATED)
@@ -3723,18 +3730,18 @@ bool BGTactics::selectObjective(bool reset)
                             {
                                 if (controlsVehicle)
                                 {
-                                    // come close to gate if siege engine
+                                    // come close to gate if siege engine (若驾驶攻城车则靠近城门位置)
                                     if (vehicleId == BG_IC_VEHICLE_SIEGE_ENGINE_H)
                                     {
                                         BgObjective = gate;
                                     }
                                     else
                                     {
-                                        // take a siege position
+                                        // take a siege position (占据攻城位置)
                                         pos.Set(506.782f + frand(-5, +5), -828.594f + frand(-5, +5), 24.313f, bot->GetMapId());
                                         posMap["bg objective"] = pos;
 
-                                        // set siege position
+                                        // set siege position (设置攻城器械站位)
                                         ai::PositionEntry siegePos = context->GetValue<ai::PositionMap&>("position")->Get()["bg siege"];
                                         siegePos.Set(gate->GetPositionX(), gate->GetPositionY(), gate->GetPositionZ(), bot->GetMapId());
                                         posMap["bg siege"] = siegePos;
@@ -3752,9 +3759,9 @@ bool BGTactics::selectObjective(bool reset)
                         }
                     }
                 }
-                if (!BgObjective && gateOpen) // Capture Keep
+                if (!BgObjective && gateOpen) // Capture Keep (占领要塞)
                 {
-                    // reset siege position
+                    // reset siege position (重置攻城站位)
                     ai::PositionEntry siegePos = context->GetValue<ai::PositionMap&>("position")->Get()["bg siege"];
                     siegePos.Reset();
                     posMap["bg siege"] = siegePos;
@@ -3789,13 +3796,13 @@ bool BGTactics::selectObjective(bool reset)
             }
         }
 
-        if (bot->GetTeam() == ALLIANCE) // ALLIANCE
+        if (bot->GetTeam() == ALLIANCE) // ALLIANCE (联盟)
         {
-            // If all bases are captured, go to enemy boss
+            // If all bases are captured, go to enemy boss (若所有据点均已占领，则前往敌方首领位置)
             bool allCaptured = true;
             for (uint8 i = 0; i < BG_IC_MAX_OBJECTIVES; ++i)
             {
-                // skip refinery and keep
+                // skip refinery and keep (跳过精炼厂与要塞)
                 if (i == BG_IC_OBJECTIVE_REFINERY || i == BG_IC_OBJECTIVE_KEEP_ALLY || i == BG_IC_OBJECTIVE_QUARY)
                     continue;
 
@@ -3821,7 +3828,7 @@ bool BGTactics::selectObjective(bool reset)
                     break;
                 }
             }
-            if (allCaptured) // target enemy boss
+            if (allCaptured) // target enemy boss (以敌方首领为目标)
             {
                 if (Creature* hordeboss = bg->GetSingleCreatureFromStorage(BG_IC_NPC_OVERLORD_AGMAR))
                 {
@@ -3835,12 +3842,12 @@ bool BGTactics::selectObjective(bool reset)
                 }
             }
 
-            // If main bases are not captured, split tasks
+            // If main bases are not captured, split tasks (若主要据点尚未占领，则分兵各自执行目标)
             if (!BgObjective)
             {
                 bool foundTask = false;
-                // mount defensive cannons
-                if (role > 10) // disabled
+                // mount defensive cannons (操作防御火炮)
+                if (role > 10) // disabled (已禁用)
                 {
                     uint32 firstTower = getDefendersCount(IC_CANNON_POS_ALLIANCE1, 10.0f);
                     uint32 secondTower = getDefendersCount(IC_CANNON_POS_ALLIANCE2, 10.0f);
@@ -3858,9 +3865,9 @@ bool BGTactics::selectObjective(bool reset)
                         return true;
                     }
                 }
-                if (role < 3) // Capture Side base or Docks
+                if (role < 3) // Capture Side base or Docks (占领侧翼据点或码头)
                 {
-                    // Capture Quarry/Refinery
+                    // Capture Quarry/Refinery (占领采石场/精炼厂)
                     bool isCapping = false;
                     if (GameObject* pGO = bg->GetSingleGameObjectFromStorage(isleBanners[BG_IC_OBJECTIVE_QUARY].entryAlly))
                     {
@@ -3886,7 +3893,7 @@ bool BGTactics::selectObjective(bool reset)
                         }
                     }
                 }
-                // take position at cannon
+                // take position at cannon (前往火炮操控位)
                 /*if (!BgObjective)
                 {
                     if (GameObject* pGO =  bg->interactwith(BG_IC_VEHICLE_KEEP_CANNON))
@@ -3897,7 +3904,7 @@ bool BGTactics::selectObjective(bool reset)
                 }*/
                 if (!BgObjective && role < 6 && urand(0, 1))
                 {
-                    // Capture Docks
+                    // Capture Docks (占领码头)
                     bool isCapping = false;
                     if (GameObject* pGO = bg->GetSingleGameObjectFromStorage(isleBanners[BG_IC_OBJECTIVE_DOCKS].entryAlly))
                     {
@@ -3923,7 +3930,7 @@ bool BGTactics::selectObjective(bool reset)
                         }
                     }
                 }
-                // If docks/side capped, help capture workshop
+                // If docks/side capped, help capture workshop (若码头或侧翼已占领，则支援夺取车间)
                 if (!BgObjective && role < 3)
                 {
                     bool isCapping = false;
@@ -3951,7 +3958,7 @@ bool BGTactics::selectObjective(bool reset)
                         }
                     }
                 }
-                if (!BgObjective && role < 6) // Capture Hangar
+                if (!BgObjective && role < 6) // Capture Hangar (占领飞艇库)
                 {
                     bool isCapping = false;
                     if (GameObject* pGO = bg->GetSingleGameObjectFromStorage(isleBanners[BG_IC_OBJECTIVE_HANGAR].entryAlly))
@@ -3979,9 +3986,9 @@ bool BGTactics::selectObjective(bool reset)
                     }
                 }
                 bool gateOpen = false;
-                if (!BgObjective || controlsVehicle) // Check gates
+                if (!BgObjective || controlsVehicle) // Check gates (检查城门状态)
                 {
-                    // Keep Gates open if any wall is destroyed, check it
+                    // Keep Gates open if any wall is destroyed, check it (若任意城墙被摧毁则城门视为开启，检查该状态)
                     if (GameObject* pGO = bg->GetSingleGameObjectFromStorage(BG_IC_GO_PORTCULLIS_KEEP_H))
                     {
                         if (sServerFacade.isSpawned(pGO) && pGO->GetLootState() == GO_ACTIVATED)
@@ -3994,18 +4001,18 @@ bool BGTactics::selectObjective(bool reset)
                             {
                                 if (controlsVehicle)
                                 {
-                                    // come close to gate if siege engine
+                                    // come close to gate if siege engine (若驾驶攻城车则靠近城门位置)
                                     if (vehicleId == BG_IC_VEHICLE_SIEGE_ENGINE_A)
                                     {
                                         BgObjective = gate;
                                     }
                                     else
                                     {
-                                        // take a siege position
+                                        // take a siege position (占据攻城位置)
                                         pos.Set(1091.273f + frand(-5, +5), -763.619f + frand(-5, +5), 42.352f, bot->GetMapId());
                                         posMap["bg objective"] = pos;
 
-                                        // set siege position
+                                        // set siege position (设置攻城器械站位)
                                         ai::PositionEntry siegePos = context->GetValue<ai::PositionMap&>("position")->Get()["bg siege"];
                                         siegePos.Set(gate->GetPositionX(), gate->GetPositionY(), gate->GetPositionZ(), bot->GetMapId());
                                         posMap["bg siege"] = siegePos;
@@ -4017,16 +4024,16 @@ bool BGTactics::selectObjective(bool reset)
                                     pos.Set(1091.273f + frand(-5, +5), -763.619f + frand(-5, +5), 42.352f, bot->GetMapId());
                                     posMap["bg objective"] = pos;
                                     return true;
-                                    // take a siege position
+                                    // take a siege position (占据攻城位置)
                                     //BgObjective = gate;
                                 }
                             }
                         }
                     }
                 }
-                if (!BgObjective && gateOpen) // Capture Keep
+                if (!BgObjective && gateOpen) // Capture Keep (占领要塞)
                 {
-                    // reset siege position
+                    // reset siege position (重置攻城站位)
                     ai::PositionEntry siegePos = context->GetValue<ai::PositionMap&>("position")->Get()["bg siege"];
                     siegePos.Reset();
                     posMap["bg siege"] = siegePos;
@@ -4075,6 +4082,7 @@ bool BGTactics::selectObjective(bool reset)
     return false;
 }
 
+/// 控制机器人向当前选定的战场战术目标点移动
 bool BGTactics::moveToObjective()
 {
     BattleGround *bg = bot->GetBattleGround();
@@ -4093,7 +4101,7 @@ bool BGTactics::moveToObjective()
     else
     {
 #ifdef MANGOSBOT_TWO
-        // Use portals in Isle of Conquest Base
+        // Use portals in Isle of Conquest Base (使用征服之岛基地内的传送门)
         if (bgType == BATTLEGROUND_IC)
         {
             if (IsLockedInsideKeep())
@@ -4112,7 +4120,7 @@ bool BGTactics::moveToObjective()
             if (wsgPaths())
                 return true;*/
 
-        // don't try to move if already close
+        // don't try to move if already close (已经足够接近时不再尝试移动)
         if (sqrt(bot->GetDistance(pos.x, pos.y, pos.z, DIST_CALC_NONE)) < 5.0f)
         {
             resetObjective();
@@ -4123,7 +4131,7 @@ bool BGTactics::moveToObjective()
         //ostringstream out; out << "Moving to objective " << pos.x << ", " << pos.y << ", Distance: " << sServerFacade.GetDistance2d(bot, pos.x, pos.y);
         //bot->Say(out.str(), LANG_UNIVERSAL);
 
-        // more precise position for wsg
+        // more precise position for wsg (战歌峡谷更精确的点位坐标)
         if (bgType == BATTLEGROUND_WS)
             return MoveTo(bot->GetMapId(), pos.x, pos.y, pos.z);
         else
@@ -4132,6 +4140,7 @@ bool BGTactics::moveToObjective()
     return false;
 }
 
+/// 为当前战场目标选定合适的路径点引导序列
 bool BGTactics::selectObjectiveWp(std::vector<BattleBotPath*> const& vPaths)
 {
     BattleGround *bg = bot->GetBattleGround();
@@ -4149,7 +4158,7 @@ bool BGTactics::selectObjectiveWp(std::vector<BattleBotPath*> const& vPaths)
     if (!pos.isSet())
         return false;
 
-    // use Rym's waypoints for WSG
+    // use Rym's waypoints for WSG (使用 Rym 设计的战歌峡谷路径点)
     if (bgType == BATTLEGROUND_WS/* && (bot->HasAura(BG_WS_SPELL_WARSONG_FLAG) || bot->HasAura(BG_WS_SPELL_SILVERWING_FLAG))*/)
     {
         if (wsgRoofJump())
@@ -4159,7 +4168,7 @@ bool BGTactics::selectObjectiveWp(std::vector<BattleBotPath*> const& vPaths)
     }
 
 #ifndef MANGOSBOT_ZERO
-    // Eye of the Storm jump
+    // Eye of the Storm jump (风暴之眼跳跃点)
     if (bgType == BATTLEGROUND_EY)
         if (eotsJump())
             return true;
@@ -4177,7 +4186,7 @@ bool BGTactics::selectObjectiveWp(std::vector<BattleBotPath*> const& vPaths)
 
     for (const auto& pPath : vPaths)
     {
-        // skip mine paths of own faction
+        // skip mine paths of own faction (跳过己方阵营占领矿洞的路径)
         if (bot->GetTeam() == ALLIANCE && std::find(vPaths_AllyMine.begin(), vPaths_AllyMine.end(), pPath) != vPaths_AllyMine.end())
             continue;
         if (bot->GetTeam() == HORDE && std::find(vPaths_HordeMine.begin(), vPaths_HordeMine.end(), pPath) != vPaths_HordeMine.end())
@@ -4206,11 +4215,11 @@ bool BGTactics::selectObjectiveWp(std::vector<BattleBotPath*> const& vPaths)
             }
         }
 
-        // skip no reverse paths
+        // skip no reverse paths (跳过禁止反向通行的路径)
         if (std::find(vPaths_NoReverseAllowed.begin(), vPaths_NoReverseAllowed.end(), pPath) != vPaths_NoReverseAllowed.end())
             continue;
 
-        // skip mine paths of own faction
+        // skip mine paths of own faction (跳过己方阵营占领矿洞的路径)
         if (bot->GetTeam() == ALLIANCE && std::find(vPaths_AllyMine.begin(), vPaths_AllyMine.end(), pPath) != vPaths_AllyMine.end())
             continue;
         if (bot->GetTeam() == HORDE && std::find(vPaths_HordeMine.begin(), vPaths_HordeMine.end(), pPath) != vPaths_HordeMine.end())
@@ -4243,8 +4252,8 @@ bool BGTactics::selectObjectiveWp(std::vector<BattleBotPath*> const& vPaths)
     if (!pClosestPath)
         return false;
 
-    // Prevent picking last point of path.
-    // It means we are already there.
+    // Prevent picking last point of path. (避免直接选取路径的最后一个末端点。)
+    // It means we are already there. (表示机器人已经到达目的地。)
     if (reverse)
     {
         if (closestPoint == 0)
@@ -4264,13 +4273,14 @@ bool BGTactics::selectObjectiveWp(std::vector<BattleBotPath*> const& vPaths)
     return false;
 }
 
+/// 清除当前战场战术目标以便重新分配
 bool BGTactics::resetObjective()
 {
     BattleGround *bg = bot->GetBattleGround();
     if (!bg)
         return false;
 
-    // sometimes change role
+    // sometimes change role (偶尔随机切换职业职责)
 #ifdef MANGOSBOT_ZERO
     if (!urand(0, 3) && !(bot->HasAura(BG_WS_SPELL_WARSONG_FLAG) || bot->HasAura(BG_WS_SPELL_SILVERWING_FLAG)))
 #else
@@ -4280,7 +4290,7 @@ bool BGTactics::resetObjective()
 
     ai::PositionMap& posMap = context->GetValue<ai::PositionMap&>("position")->Get();
     ai::PositionEntry pos = context->GetValue<ai::PositionMap&>("position")->Get()["bg objective"];
-    // do not switch hiding spots - disabled for now until hiding spots reimplemented since it causes bots to stop moving
+    // do not switch hiding spots - disabled for now until hiding spots reimplemented since it causes bots to stop moving (暂不切换隐蔽点（已禁用以免导致机器人停步不动）)
     if (teamFlagTaken() && (bot->HasAura(BG_WS_SPELL_WARSONG_FLAG) || bot->HasAura(BG_WS_SPELL_SILVERWING_FLAG)))
     {
         if (pos.x != WS_FLAG_POS_HORDE.x && pos.x != WS_FLAG_POS_ALLIANCE.x && pos.y != WS_FLAG_POS_HORDE.y && pos.y != WS_FLAG_POS_ALLIANCE.y)
@@ -4292,6 +4302,7 @@ bool BGTactics::resetObjective()
     return selectObjective(true);
 }
 
+/// 沿着通往当前战场目标的预设路径点序列逐步推进
 bool BGTactics::moveToObjectiveWp(BattleBotPath* const& currentPath, uint32 currentPoint, bool reverse)
 {
     if (!currentPath)
@@ -4306,7 +4317,7 @@ bool BGTactics::moveToObjectiveWp(BattleBotPath* const& currentPath, uint32 curr
         (bot->IsInCombat() && !(bot->HasAura(BG_WS_SPELL_WARSONG_FLAG) || bot->HasAura(BG_WS_SPELL_SILVERWING_FLAG) || bot->HasAura(EY_SPELL_NETHERSTORM_FLAG))) || !bot->IsAlive())
 #endif
     {
-        // Path is over.
+        // Path is over. (路径已走完。)
         //ostringstream out; out << "Reached path end!";
         //bot->Say(out.str(), LANG_UNIVERSAL);
         resetObjective();
@@ -4334,6 +4345,7 @@ bool BGTactics::moveToObjectiveWp(BattleBotPath* const& currentPath, uint32 curr
     return MoveTo(bot->GetMapId(), nextPoint.x + frand(-2, 2), nextPoint.y + frand(-2, 2), nextPoint.z);
 }
 
+/// 从起点的第一个路径点开始沿预设战场路径行进
 bool BGTactics::startNewPathBegin(std::vector<BattleBotPath*> const& vPaths)
 {
     BattleGround* bg = bot->GetBattleGround();
@@ -4350,6 +4362,7 @@ bool BGTactics::startNewPathBegin(std::vector<BattleBotPath*> const& vPaths)
         return false;
 #endif
 
+    /// 可用路径结构体：表示战场节点间一条可通行的路径段及其方向属性
     struct AvailablePath
     {
         AvailablePath(BattleBotPath* pPath_, bool reverse_) : pPath(pPath_), reverse(reverse_) {}
@@ -4360,7 +4373,7 @@ bool BGTactics::startNewPathBegin(std::vector<BattleBotPath*> const& vPaths)
 
     for (const auto& pPath : vPaths)
     {
-        // skip mine paths of own faction
+        // skip mine paths of own faction (跳过己方阵营占领矿洞的路径)
         if (bot->GetTeam() == ALLIANCE && std::find(vPaths_AllyMine.begin(), vPaths_AllyMine.end(), pPath) != vPaths_AllyMine.end())
             continue;
         if (bot->GetTeam() == HORDE && std::find(vPaths_HordeMine.begin(), vPaths_HordeMine.end(), pPath) != vPaths_HordeMine.end())
@@ -4370,7 +4383,7 @@ bool BGTactics::startNewPathBegin(std::vector<BattleBotPath*> const& vPaths)
         if (sqrt(bot->GetDistance(pStart->x, pStart->y, pStart->z, DIST_CALC_NONE)) < INTERACTION_DISTANCE)
             availablePaths.emplace_back(AvailablePath(pPath, false));
 
-        // Some paths are not allowed backwards.
+        // Some paths are not allowed backwards. (部分单向路径不允许反向行走。)
         if (std::find(vPaths_NoReverseAllowed.begin(), vPaths_NoReverseAllowed.end(), pPath) != vPaths_NoReverseAllowed.end())
             continue;
 
@@ -4392,6 +4405,7 @@ bool BGTactics::startNewPathBegin(std::vector<BattleBotPath*> const& vPaths)
     return moveToObjectiveWp(currentPath, currentPoint, reverse);
 }
 
+/// 脱离预设路径，直接使用通用寻路前往战场目标
 bool BGTactics::startNewPathFree(std::vector<BattleBotPath*> const& vPaths)
 {
     BattleGround* bg = bot->GetBattleGround();
@@ -4414,7 +4428,7 @@ bool BGTactics::startNewPathFree(std::vector<BattleBotPath*> const& vPaths)
 
     for (const auto& pPath : vPaths)
     {
-        // skip mine paths of own faction
+        // skip mine paths of own faction (跳过己方阵营占领矿洞的路径)
         if (bot->GetTeam() == ALLIANCE && std::find(vPaths_AllyMine.begin(), vPaths_AllyMine.end(), pPath) != vPaths_AllyMine.end())
             continue;
         if (bot->GetTeam() == HORDE && std::find(vPaths_HordeMine.begin(), vPaths_HordeMine.end(), pPath) != vPaths_HordeMine.end())
@@ -4443,6 +4457,7 @@ bool BGTactics::startNewPathFree(std::vector<BattleBotPath*> const& vPaths)
     return moveToObjectiveWp(currentPath, currentPoint, reverse);
 }
 
+/// 判断机器人当前是否正位于旗帜交互点附近
 bool BGTactics::atFlag(std::vector<BattleBotPath*> const& vPaths, std::vector<uint32> const& vFlagIds)
 {
     BattleGround *bg = bot->GetBattleGround();
@@ -4457,7 +4472,7 @@ bool BGTactics::atFlag(std::vector<BattleBotPath*> const& vPaths, std::vector<ui
 
     if (bgType == BATTLEGROUND_AV)
     {
-        // AV is handled in BGTactics::CheckFlagAv
+        // AV is handled in BGTactics::CheckFlagAv (奥特兰克山谷逻辑由 BGTactics::CheckFlagAv 处理)
         return false;
     }
 
@@ -4556,7 +4571,7 @@ bool BGTactics::atFlag(std::vector<BattleBotPath*> const& vPaths, std::vector<ui
             //bot->Say(out.str(), LANG_UNIVERSAL);
             //SetDuration(10000);
 
-            // cast banner spell
+            // cast banner spell (施放插旗/战旗法术)
             ai->StopMoving();
 
             SpellEntry const *spellInfo = sServerFacade.LookupSpellInfo(SPELL_CAPTURE_BANNER);
@@ -4632,7 +4647,7 @@ bool BGTactics::atFlag(std::vector<BattleBotPath*> const& vPaths, std::vector<ui
                 if (bot->IsInDisallowedMountForm())
                     bot->RemoveSpellsCausingAura(SPELL_AURA_MOD_SHAPESHIFT);
 
-                // Flag at center requires casting spell
+                // Flag at center requires casting spell (中心旗帜交互需要读条施法)
                 if (atBase)
                 {
                     SpellEntry const* spellInfo = sServerFacade.LookupSpellInfo(SPELL_CAPTURE_BANNER);
@@ -4649,7 +4664,7 @@ bool BGTactics::atFlag(std::vector<BattleBotPath*> const& vPaths, std::vector<ui
                     return true;
                 }
 
-                // Dropped flag is instant use
+                // Dropped flag is instant use (地面掉落的旗帜可瞬时点击拾取)
                 WorldPacket data(CMSG_GAMEOBJ_USE);
                 data << go->GetObjectGuid();
                 bot->GetSession()->HandleGameObjectUseOpcode(data);
@@ -4670,6 +4685,7 @@ bool BGTactics::atFlag(std::vector<BattleBotPath*> const& vPaths, std::vector<ui
     return false;
 }
 
+/// 判断指定阵营战歌/风暴旗帜当前是否已被夺走
 bool BGTactics::flagTaken()
 {
     BattleGroundWS* bg = (BattleGroundWS *)bot->GetBattleGround();
@@ -4679,6 +4695,7 @@ bool BGTactics::flagTaken()
     return !bg->GetFlagCarrierGuid(GetTeamIndexByTeamId(bg->GetOtherTeam(bot->GetTeam()))).IsEmpty();
 }
 
+/// 判断己方队伍的旗帜是否正被敌方扛走
 bool BGTactics::teamFlagTaken()
 {
     BattleGroundWS* bg = (BattleGroundWS *)bot->GetBattleGround();
@@ -4688,6 +4705,7 @@ bool BGTactics::teamFlagTaken()
     return !bg->GetFlagCarrierGuid(GetTeamIndexByTeamId(bot->GetTeam())).IsEmpty();
 }
 
+/// 在战歌峡谷等模式中靠近并护卫己方扛旗手
 bool BGTactics::protectFC()
 {
     BattleGround *bg = bot->GetBattleGround();
@@ -4701,6 +4719,7 @@ bool BGTactics::protectFC()
     return false;
 }
 
+/// 检查并尝试使用指定的增益消耗品或法术
 bool BGTactics::useBuff()
 {
     BattleGround* bg = bot->GetBattleGround();
@@ -4735,7 +4754,7 @@ bool BGTactics::useBuff()
         if (!sServerFacade.isSpawned(go))
             continue;
 
-        // use speed buff only if close
+        // use speed buff only if close (仅在接近目标时使用加速增益)
         if (sServerFacade.IsDistanceGreaterThan(sServerFacade.GetDistance2d(bot, go), go->GetEntry() == Buff_Entries[0] ? 20.0f : VISIBILITY_DISTANCE_SMALL))
             continue;
 
@@ -4745,7 +4764,7 @@ bool BGTactics::useBuff()
         if (needRegen && go->GetEntry() == Buff_Entries[1])
             foundBuff = true;
 
-        // do not move to Berserk buff if bot is healer or has flag
+        // do not move to Berserk buff if bot is healer or has flag (治疗者或扛旗手不要去捡狂暴增益)
 #ifdef MANGOSBOT_ZERO
         if (!(bot->HasAura(BG_WS_SPELL_WARSONG_FLAG) || bot->HasAura(BG_WS_SPELL_SILVERWING_FLAG)) && !ai->IsHeal(bot) && go->GetEntry() == Buff_Entries[2])
 #else
@@ -4764,6 +4783,7 @@ bool BGTactics::useBuff()
     return false;
 }
 
+/// 统计指定战场据点周围正在防守的己方机器人数量
 uint32 BGTactics::getDefendersCount(Position point, float range, bool combat)
 {
     uint32 defCount = 0;
@@ -4794,7 +4814,7 @@ uint32 BGTactics::getDefendersCount(Position point, float range, bool combat)
     return defCount;
 }
 
-// check Isle of Conquest Keep position
+// check Isle of Conquest Keep position (检查征服之岛要塞位置)
 bool BGTactics::IsLockedInsideKeep()
 {
     BattleGround* bg = bot->GetBattleGround();
@@ -4827,8 +4847,8 @@ bool BGTactics::IsLockedInsideKeep()
     float closestDistance = 100.0f;
     bool gateLock = false;
 
-    // check inner gates status
-    // ALLIANCE
+    // check inner gates status (检查内城门状态)
+    // ALLIANCE (联盟)
     if (bot->GetTeam() == ALLIANCE)
     {
         if (GameObject* go = bg->GetSingleGameObjectFromStorage(BG_IC_GO_PORTCULLIS_GATE_A))
@@ -4843,7 +4863,7 @@ bool BGTactics::IsLockedInsideKeep()
             }
         }
     }
-    // HORDE
+    // HORDE (部落)
     if (bot->GetTeam() == HORDE)
     {
         if (GameObject* go = bg->GetSingleGameObjectFromStorage(BG_IC_GO_PORTCULLIS_GATE_H))
@@ -4865,8 +4885,8 @@ bool BGTactics::IsLockedInsideKeep()
         if (!go)
             continue;
 
-        // ALLIANCE
-        // get closest portal
+        // ALLIANCE (联盟)
+        // get closest portal (获取最近的传送门)
         if (bot->GetTeam() == ALLIANCE && go->GetEntry() == BG_IC_GO_TELEPORTER_INSIDE_A)
         {
             float tempDist = sServerFacade.GetDistance2d(bot, go->GetPositionX(), go->GetPositionY());
@@ -4878,8 +4898,8 @@ bool BGTactics::IsLockedInsideKeep()
             }
         }
 
-        // HORDE
-        // get closest portal
+        // HORDE (部落)
+        // get closest portal (获取最近的传送门)
         if (bot->GetTeam() == HORDE && go->GetEntry() == BG_IC_GO_TELEPORTER_INSIDE_H)
         {
             float tempDist = sServerFacade.GetDistance2d(bot, go->GetPositionX(), go->GetPositionY());
@@ -4892,19 +4912,19 @@ bool BGTactics::IsLockedInsideKeep()
         }
     }
 
-    // portal not found, move closer
+    // portal not found, move closer (未找到传送门，继续靠近)
     if (gateLock && !closestPortal)
         return moveToStart(true);
 
-    // portal not found, move closer
+    // portal not found, move closer (未找到传送门，继续靠近)
     if (!gateLock && !closestPortal)
         return moveToStart(true);
 
-    // nothing found, allow move through
+    // nothing found, allow move through (未发现危险阻挡，允许通过)
     if (!gateLock || !closestPortal)
         return false;
 
-    // portal found
+    // portal found (已找到传送门)
     if (closestPortal)
     {
         // if close
@@ -4927,6 +4947,7 @@ bool BGTactics::IsLockedInsideKeep()
     return false;
 }
 
+/// 执行动作主逻辑（竞技场战术动作）
 bool ArenaTactics::Execute(Event& event)
 {
 #ifndef MANGOSBOT_ZERO
@@ -4950,7 +4971,7 @@ bool ArenaTactics::Execute(Event& event)
     if (!bg)
         return false;
 
-    // startup phase
+    // startup phase (初始准备阶段)
     if (bg->GetStartDelayTime() > 0)
         return false;
 
@@ -4974,6 +4995,7 @@ bool ArenaTactics::Execute(Event& event)
     return true;
 }
 
+/// 引导机器人向战场或竞技场中央区域移动
 bool ArenaTactics::moveToCenter(BattleGround *bg)
 {
 #ifndef MANGOSBOT_ZERO

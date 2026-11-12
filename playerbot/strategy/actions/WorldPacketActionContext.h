@@ -32,9 +32,11 @@
 
 namespace ai
 {
+    /// 网络封包动作上下文：注册由服务端/客户端网络封包事件触发的机器人动作
     class WorldPacketActionContext : public NamedObjectContext<Action>
     {
     public:
+        /// 构造函数：初始化网络封包动作上下文
         WorldPacketActionContext()
         {   
             creators["lfg join"] = [](PlayerbotAI* ai) { return new LfgJoinAction(ai); };

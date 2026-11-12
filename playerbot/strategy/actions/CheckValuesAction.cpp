@@ -10,10 +10,12 @@
 #include "playerbot/strategy/values/LastMovementValue.h"
 using namespace ai;
 
+/// 构造函数：初始化检查状态值动作
 CheckValuesAction::CheckValuesAction(PlayerbotAI* ai) : Action(ai, "check values")
 {
 }
 
+/// 执行动作主逻辑（检查状态值动作）
 bool CheckValuesAction::Execute(Event& event)
 {
     if (ai->HasStrategy("debug move", BotState::BOT_STATE_NON_COMBAT))
@@ -33,8 +35,10 @@ bool CheckValuesAction::Execute(Event& event)
 
     std::list<ObjectGuid> possible_targets = AI_VALUE(std::list<ObjectGuid>, "possible targets");
     std::list<ObjectGuid> all_targets = AI_VALUE(std::list<ObjectGuid>, "all targets");
+    // 遍历附近 NPC 列表
     std::list<ObjectGuid> npcs = AI_VALUE(std::list<ObjectGuid>, "nearest npcs");
     std::list<ObjectGuid> corpses = AI_VALUE(std::list<ObjectGuid>, "nearest corpses");
+    // 遍历附近游戏对象列表
     std::list<ObjectGuid> gos = AI_VALUE(std::list<ObjectGuid>, "nearest game objects no los");
     std::list<ObjectGuid> nfp = AI_VALUE(std::list<ObjectGuid>, "nearest friendly players");
 

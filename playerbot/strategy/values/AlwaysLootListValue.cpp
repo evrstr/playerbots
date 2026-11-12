@@ -1,3 +1,4 @@
+// 策略值实现：AlwaysLootListValue（强制拾取物品列表的序列化与反序列化）
 
 #include "AlwaysLootListValue.h"
 #include "playerbot/playerbot.h"
@@ -6,6 +7,7 @@
 
 using namespace ai;
 
+// 将强制拾取列表中的所有物品 ID 拼接为逗号分隔字符串
 std::string AlwaysLootListValue::Save()
 {
     std::ostringstream out;
@@ -19,6 +21,7 @@ std::string AlwaysLootListValue::Save()
     return out.str();
 }
 
+// 解析逗号分隔的字符串并重新填充强制拾取物品集合
 bool AlwaysLootListValue::Load(std::string text)
 {
     value.clear();

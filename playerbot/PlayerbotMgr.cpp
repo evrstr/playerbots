@@ -23,6 +23,7 @@
 class LoginQueryHolder;
 class CharacterHandler;
 
+// 构造机器人容器并注册全局管理器子命令与单机器人指令处理器映射
 PlayerbotHolder::PlayerbotHolder() : PlayerbotAIBase()
 {
     m_holderHandlers["list"] = &PlayerbotHolder::HandleList;
@@ -94,6 +95,7 @@ PlayerbotHolder::~PlayerbotHolder()
 {
 }
 
+// 线程安全地遍历所有当前受控机器人并执行回调
 void PlayerbotHolder::ForEachPlayerbot(std::function<void(Player*)> callback) const
 {
     for (auto& itr : playerBots)
@@ -211,6 +213,7 @@ void PlayerbotMgr::CancelLogout()
     });
 }
 
+// 将指定机器人登出世界并释放其 Session 资源
 void PlayerbotHolder::LogoutPlayerBot(uint32 guid, bool allowInstant, bool forDelete)
 {
     Player* bot = GetPlayerBot(guid);
@@ -328,6 +331,7 @@ Player* PlayerbotHolder::GetPlayerBot(uint32 playerGuid) const
     return (it == playerBots.end()) ? nullptr : it->second ? it->second : nullptr;
 }
 
+// 让登录的机器人加入世界/综合/交易/防务等默认聊天频道
 void PlayerbotHolder::JoinChatChannels(Player* bot)
 {
     // bots join World chat if not solo oriented
@@ -413,6 +417,7 @@ void PlayerbotHolder::JoinChatChannels(Player* bot)
     }
 }
 
+// 机器人登录世界后初始化其 PlayerbotAI、聊天频道及测试状态
 void PlayerbotHolder::OnBotLogin(Player * const bot)
 {
     if (!sPlayerbotAIConfig.enabled)
@@ -426,7 +431,7 @@ void PlayerbotHolder::OnBotLogin(Player * const bot)
     }
 
     if(!ai->HasRealPlayerMaster())
-	    OnBotLoginInternal(bot);
+        OnBotLoginInternal(bot);
 
     playerBots[bot->GetGUIDLow()] = bot;
 
@@ -586,6 +591,7 @@ bool PlayerbotHolder::ReserveBotAddCost(Player* master, uint32 botGuid, std::str
     return true;
 }
 
+// 对单个机器人执行安全校验并派发控制台/主人指令
 std::string PlayerbotHolder::ProcessBotCommand(std::string cmd, ObjectGuid guid, ObjectGuid masterguid, bool admin, uint32 masterAccountId, uint32 masterGuildId, const std::string param)
 {
     Player* bot = sObjectMgr.GetPlayer(guid);
@@ -635,13 +641,14 @@ std::string PlayerbotHolder::ProcessBotCommand(std::string cmd, ObjectGuid guid,
     return "unknown command";
 }
 
+// 处理游戏内 .bot 聊天管理命令
 bool PlayerbotMgr::HandlePlayerbotMgrCommand(ChatHandler* handler, char const* args)
 {
-	if (!sPlayerbotAIConfig.enabled)
-	{
-		handler->PSendSysMessage("|cffff0000Playerbot system is currently disabled!");
+    if (!sPlayerbotAIConfig.enabled)
+    {
+        handler->PSendSysMessage("|cffff0000Playerbot system is currently disabled!");
         return false;
-	}
+    }
 
     WorldSession *m_session = handler->GetSession();
 
@@ -696,6 +703,7 @@ bool PlayerbotMgr::HandlePlayerbotMgrCommand(ChatHandler* handler, char const* a
     return true;
 }
 
+// 解析 add/remove/list/party/guild/raid/create 等管理器级指令
 std::list<std::string> PlayerbotHolder::HandlePlayerbotCommand(const std::string args, Player* master, AccountTypes security)
 {
     AccountTypes useSecurity = master ? master->GetSession()->GetSecurity() : security;
@@ -1029,6 +1037,7 @@ void PlayerbotMgr::UpdateAIInternal(uint32 elapsed, bool minimal)
     CheckTellErrors(elapsed);
 }
 
+// 将主人玩家的聊天指令广播转发给所有在线小号机器人
 void PlayerbotMgr::HandleCommand(uint32 type, const std::string& text, uint32 lang)
 {
     Player *master = GetMaster();
@@ -1077,6 +1086,7 @@ void PlayerbotMgr::HandleCommand(uint32 type, const std::string& text, uint32 la
     });
 }
 
+// 将主人客户端发往服务端的关键数据包同步给机器人处理
 void PlayerbotMgr::HandleMasterIncomingPacket(const WorldPacket& packet)
 {
     ForEachPlayerbot([&](Player* bot)
@@ -1106,6 +1116,7 @@ void PlayerbotMgr::HandleMasterIncomingPacket(const WorldPacket& packet)
         }
     }
 }
+// 将服务端发往主人客户端的关键数据包转发给机器人
 void PlayerbotMgr::HandleMasterOutgoingPacket(const WorldPacket& packet)
 {
    ForEachPlayerbot([&](Player* bot)
@@ -1123,6 +1134,7 @@ void PlayerbotMgr::HandleMasterOutgoingPacket(const WorldPacket& packet)
     });
 }
 
+// 保存主人名下在线机器人状态到数据库
 void PlayerbotMgr::SaveToDB()
 {
     ForEachPlayerbot([&](Player* bot)
@@ -1144,6 +1156,7 @@ void PlayerbotMgr::OnBotLoginInternal(Player * const bot)
     sLog.outDebug("Bot %s logged in", bot->GetName());
 }
 
+// 真实玩家登录时按配置自动登录其小号机器人或启用 SelfBot
 void PlayerbotMgr::OnPlayerLogin(Player* player)
 {
     if (player->GetSession() != player->GetPlayerMenu()->GetGossipMenu().GetMenuSession())
@@ -1945,6 +1958,7 @@ std::string PlayerbotHolder::HandleBotRemoveLogout(Player* bot, Player* master, 
     return "ok";
 }
 
+// 通过命令行参数在主人账号下创建并初始化指定职业/种族/等级的机器人
 void PlayerbotHolder::CreateBot(Player* master, const std::string param, std::list<std::string>& messages, ObjectGuid& guid)
 {    
     // Allow null master for RA/console usage
@@ -2195,6 +2209,7 @@ std::list<std::string> PlayerbotHolder::HandleCreate(Player* master, const std::
     return messages;
 }
 
+// 批量招募组队、团队、公会或随机类型的机器人加入主人队伍
 std::list<std::string> PlayerbotHolder::HandleGroup(Player* master, const std::string param, AccountTypes security)
 {
     std::list<std::string> messages;
@@ -2720,6 +2735,7 @@ void PlayerbotHolder::OnBotDeleted(uint32 botGuid, uint32 accountId)
 {
 }
 
+// 下线并从数据库永久删除指定机器人角色
 bool PlayerbotHolder::DeleteBot(ObjectGuid guid, bool allowInstant)
 {
     uint32 botAccount = sObjectMgr.GetPlayerAccountIdByGUID(guid);

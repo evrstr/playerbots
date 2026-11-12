@@ -13,6 +13,7 @@ constexpr std::string_view HIGHLIGHT_PARAM = "highlight";
 constexpr std::string_view FILTER_NAME_PARAM = "filter:name:";
 
 
+/// 执行动作主逻辑（汇报视野对象指令动作）
 bool TellLosAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -77,6 +78,7 @@ bool TellLosAction::Execute(Event& event)
     return true;
 }
 
+/// 列出周围或调试目标的单位信息列表
 void TellLosAction::ListUnits(Player* requester, std::string title, std::list<ObjectGuid> units)
 {
     ai->TellPlayer(requester, title);
@@ -90,6 +92,7 @@ void TellLosAction::ListUnits(Player* requester, std::string title, std::list<Ob
 
 }
 
+/// 将 ObjectGuid 列表转换为有效的 GameObject 指针列表
 std::list<GameObject*> TellLosAction::GoGuidListToObjList(PlayerbotAI* ai, const std::list<ObjectGuid>& gos)
 {
    std::list<GameObject*> gameobjects;
@@ -105,6 +108,7 @@ std::list<GameObject*> TellLosAction::GoGuidListToObjList(PlayerbotAI* ai, const
    return gameobjects;
 }
 
+/// 从候选游戏对象列表中过滤掉不可交互或无效的对象
 std::list<GameObject*> TellLosAction::FilterGameObjects(Player* requester, const std::list<GameObject*>& gos, const std::vector<LosModifierStruct>& mods)
 {
    std::list<GameObject*> gameobjects = gos;
@@ -180,6 +184,7 @@ std::list<GameObject*> TellLosAction::FilterGameObjects(Player* requester, const
    return gameobjects;
 }
 
+/// 汇报视野或目标周围符合条件的游戏对象列表
 void TellLosAction::TellGameObjects(Player* requester, std::string title, const std::list<GameObject*>& gos, const std::vector<LosModifierStruct>& mods)
 {
    ai->TellPlayer(requester, title);
@@ -214,6 +219,7 @@ void TellLosAction::TellGameObjects(Player* requester, std::string title, const 
 }
 
 
+/// 解析 los 命令附带的过滤、排序与展示修饰符
 std::vector<LosModifierStruct> TellLosAction::ParseLosModifiers(const std::string& str)
 {
    std::vector<LosModifierStruct> mods;

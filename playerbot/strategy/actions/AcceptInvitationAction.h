@@ -4,11 +4,14 @@
 
 namespace ai
 {
+    /// 接受组队邀请动作：校验权限、取消暂离并接受队伍或团队邀请
     class AcceptInvitationAction : public Action 
     {
     public:
+        /// 构造函数：初始化接受组队邀请动作
         AcceptInvitationAction(PlayerbotAI* ai) : Action(ai, "accept invitation") {}
 
+        /// 执行动作主逻辑（接受组队邀请动作）
         virtual bool Execute(Event& event) override
         {
             Group* grp = bot->GetGroupInvite();
@@ -19,7 +22,7 @@ namespace ai
             if (!inviter)
                 return false;
 
-			if (!ai->GetSecurity()->CheckLevelFor(PlayerbotSecurityLevel::PLAYERBOT_SECURITY_INVITE, false, inviter))
+            if (!ai->GetSecurity()->CheckLevelFor(PlayerbotSecurityLevel::PLAYERBOT_SECURITY_INVITE, false, inviter))
             {
                 WorldPacket data(SMSG_GROUP_DECLINE, 10);
                 data << bot->GetName();
@@ -56,7 +59,7 @@ namespace ai
 
             Player* master = inviter;
 
-            if (master->GetPlayerbotAI()) //Copy formation from bot master.
+            if (master->GetPlayerbotAI()) // Copy formation from bot master. (从机器人主人处复制队伍阵型。)
             {
                 if (sPlayerbotAIConfig.inviteChat && (sRandomPlayerbotMgr.IsFreeBot(bot) || !ai->HasActivePlayerMaster()))
                 {
@@ -89,6 +92,7 @@ namespace ai
             return true;
         }
 
+        /// 判断在被昏迷或控制状态下是否仍可执行该动作（接受组队邀请动作）
         virtual bool isUsefulWhenStunned() override { return true; }
 
 #ifdef GenerateBotHelp

@@ -13,6 +13,7 @@
 using namespace ai;
 using namespace MaNGOS;
 
+/// 执行动作主逻辑（长途旅行动作）
 bool TravelAction::Execute(Event& event)
 {    
     TravelTarget * target = AI_VALUE(TravelTarget *, "travel target");
@@ -24,6 +25,7 @@ bool TravelAction::Execute(Event& event)
     return false;
 }
 
+/// 判断当前状态下该动作是否可用/有效（长途旅行动作）
 bool TravelAction::isUseful()
 {
     if (!AI_VALUE(bool,"travel target active"))
@@ -52,6 +54,7 @@ bool TravelAction::isUseful()
     return false;
 }
 
+/// 执行动作主逻辑（前往黑暗之门动作）
 bool MoveToDarkPortalAction::Execute(Event& event)
 {
     if (bot->GetGroup())
@@ -112,6 +115,7 @@ bool MoveToDarkPortalAction::Execute(Event& event)
     return false;
 }
 
+/// 判断当前状态下该动作是否可用/有效（前往黑暗之门动作）
 bool MoveToDarkPortalAction::isUseful()
 {
 #ifndef MANGOSBOT_ZERO
@@ -120,6 +124,7 @@ bool MoveToDarkPortalAction::isUseful()
     return false;
 }
 
+/// 执行动作主逻辑（穿越黑暗之门（艾泽拉斯侧）动作）
 bool DarkPortalAzerothAction::Execute(Event& event)
 {
 #ifndef MANGOSBOT_ZERO
@@ -134,6 +139,7 @@ bool DarkPortalAzerothAction::Execute(Event& event)
     return false;
 }
 
+/// 判断当前状态下该动作是否可用/有效（穿越黑暗之门（艾泽拉斯侧）动作）
 bool DarkPortalAzerothAction::isUseful()
 {
 #ifndef MANGOSBOT_ZERO
@@ -142,6 +148,7 @@ bool DarkPortalAzerothAction::isUseful()
     return false;
 }
 
+/// 执行动作主逻辑（离开黑暗之门区域动作）
 bool MoveFromDarkPortalAction::Execute(Event& event)
 {
     RESET_AI_VALUE(GuidPosition,"rpg target");

@@ -5,6 +5,7 @@
 
 using namespace ai;
 
+/// 执行动作主逻辑（自定义策略编辑动作）
 bool CustomStrategyEditAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -14,7 +15,7 @@ bool CustomStrategyEditAction::Execute(Event& event)
     std::string name = text.substr(0, pos);
     text = text.substr(pos + 1);
 
-    // The name becomes the strategy id "custom::<name>", so keep it to plain characters
+    // The name becomes the strategy id "custom::<name>", so keep it to plain characters (策略名称将构成策略 ID "custom::<name>"，请仅使用普通字符)
     if (std::find_if(name.begin(), name.end(), [](unsigned char c) { return !isalnum(c) && c != '_'; }) != name.end())
     {
         ai->TellError(requester, "Custom strategy names may only use letters, digits and _");
@@ -29,6 +30,7 @@ bool CustomStrategyEditAction::Execute(Event& event)
     return idx == "?" ? Print(name, requester) : Edit(name, atoi(idx.c_str()), text, requester);
 }
 
+/// 输出指令帮助文档信息
 bool CustomStrategyEditAction::PrintHelp(Player* requester)
 {
     ai->TellPlayer(requester, "=== Custom strategies ===");
@@ -49,6 +51,7 @@ bool CustomStrategyEditAction::PrintHelp(Player* requester)
     return false;
 }
 
+/// 格式化并输出策略或帮助信息文本
 bool CustomStrategyEditAction::Print(std::string name, Player* requester)
 {
     std::ostringstream out; out << "=== " << name << " ===";
@@ -72,10 +75,11 @@ bool CustomStrategyEditAction::Print(std::string name, Player* requester)
     return true;
 }
 
+/// 编辑自定义策略规则中的触发器或动作节点
 bool CustomStrategyEditAction::Edit(std::string name, uint32 idx, std::string command, Player* requester)
 {
     uint32 owner = (uint32)ai->GetBot()->GetGUIDLow();
-    // Both come from chat ("cs <name> <idx> <command>")
+    // Both come from chat ("cs <name> <idx> <command>") (两者均解析自聊天指令（"cs <name> <idx> <command>"）)
     std::string sqlName = name;
     std::string sqlCommand = command;
     CharacterDatabase.escape_string(sqlName);
@@ -113,6 +117,7 @@ bool CustomStrategyEditAction::Edit(std::string name, uint32 idx, std::string co
     return true;
 }
 
+/// 打印单条动作帮助说明行
 bool CustomStrategyEditAction::PrintActionLine(uint32 idx, std::string command, Player* requester)
 {
     std::ostringstream out; out << "#" << idx << " " << command;

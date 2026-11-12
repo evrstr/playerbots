@@ -1,3 +1,4 @@
+/// 网络数据包触发器上下文注册表
 #pragma once
 
 #include "WorldPacketTrigger.h"
@@ -5,9 +6,11 @@
 
 namespace ai
 {
+    /// 网络数据包触发器工厂上下文，负责注册所有基于 WorldPacket 的事件触发器
     class WorldPacketTriggerContext : public NamedObjectContext<Trigger>
     {
     public:
+        /// 注册各类网络事件与区域触发器映射
         WorldPacketTriggerContext()
         {
             creators["gossip hello"] = [](PlayerbotAI* ai) { return new WorldPacketTrigger(ai, "gossip hello"); };

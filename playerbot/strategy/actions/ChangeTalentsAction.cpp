@@ -6,6 +6,7 @@
 
 using namespace ai;
 
+/// 执行动作主逻辑（修改天赋指令动作）
 bool ChangeTalentsAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -116,7 +117,7 @@ bool ChangeTalentsAction::Execute(Event& event)
             }
         }
 
-        // learn available spells
+        // learn available spells (学习所有可学法术)
         ai->DoSpecificAction("auto learn spell");
     }
     else
@@ -159,6 +160,7 @@ bool ChangeTalentsAction::Execute(Event& event)
     return true;
 }
 
+/// 获取当前战场所有可用的预设行进路径列表
 std::vector<TalentPath*> ChangeTalentsAction::getPremadePaths(uint8 cls, std::string findName, BotRoles role)
 {
     std::vector<TalentPath*> ret;
@@ -176,6 +178,7 @@ std::vector<TalentPath*> ChangeTalentsAction::getPremadePaths(uint8 cls, std::st
     return ret;
 }
 
+/// 获取当前战场所有可用的预设行进路径列表
 std::vector<TalentPath*> ChangeTalentsAction::getPremadePaths(Player* bot, TalentSpec* oldSpec)
 {
     std::vector<TalentPath*> ret;
@@ -193,6 +196,7 @@ std::vector<TalentPath*> ChangeTalentsAction::getPremadePaths(Player* bot, Talen
     return ret;
 }
 
+/// 根据起止据点编号获取预设的战场战术路径
 TalentPath* ChangeTalentsAction::getPremadePath(uint8 cls, int id)
 {
     for (auto& path : sPlayerbotAIConfig.classSpecs[cls].talentPath)
@@ -209,6 +213,7 @@ TalentPath* ChangeTalentsAction::getPremadePath(uint8 cls, int id)
     return &sPlayerbotAIConfig.classSpecs[cls].talentPath[0];
 }
 
+/// 向聊天频道列出当前战场的预设路径信息（调试用）
 void ChangeTalentsAction::listPremadePaths(uint8 cls, std::vector<TalentPath*> paths, std::ostringstream* out)
 {
     if (paths.size() == 0)
@@ -227,6 +232,7 @@ void ChangeTalentsAction::listPremadePaths(uint8 cls, std::vector<TalentPath*> p
     *out << ".";
 }
 
+/// 从多条可选战场预设路径中随机或按权重挑选一条
 TalentPath* ChangeTalentsAction::PickPremadePath(std::vector<TalentPath*> paths, bool useProbability)
 {
     int totProbability = 0;
@@ -252,9 +258,10 @@ TalentPath* ChangeTalentsAction::PickPremadePath(std::vector<TalentPath*> paths,
     return paths[0];
 }
 
+/// 根据预设或自动算法为机器人分配剩余天赋点数
 bool ChangeTalentsAction::AutoSelectTalents(Player* bot, std::ostringstream* out, BotRoles role)
 {
-    //Does the bot have talentpoints?
+    // Does the bot have talentpoints? (检查机器人是否有未分配的天赋点)
     if (bot->GetLevel() < 10)
     {
         *out << "No free talent points.";
@@ -266,7 +273,7 @@ bool ChangeTalentsAction::AutoSelectTalents(Player* bot, std::ostringstream* out
     std::string specLink = sRandomPlayerbotMgr.GetData(bot->GetGUIDLow(), "specLink");
     uint8 cls = bot->getClass();
 
-    //Continue the current spec
+    // Continue the current spec (沿用当前已激活的天赋专精)
     if (specNo > 0)
     {
         TalentSpec newSpec = *GetBestPremadeSpec(bot, specId);
@@ -292,7 +299,7 @@ bool ChangeTalentsAction::AutoSelectTalents(Player* bot, std::ostringstream* out
         }
     }
 
-    //Spec was not found or not sufficient
+    // Spec was not found or not sufficient (未找到匹配专精或点数不足)
     if (bot->CalculateTalentsPoints() > 0 || (!specNo && specLink.empty()))
     {
         TalentSpec oldSpec(bot);
@@ -302,7 +309,7 @@ bool ChangeTalentsAction::AutoSelectTalents(Player* bot, std::ostringstream* out
         if (oldSpec.points)
             paths = getPremadePaths(bot, &oldSpec);
 
-        if (paths.size() == 0) //No spec like the old one found. Pick any.
+        if (paths.size() == 0) // No spec like the old one found. Pick any. (未找到与原专精匹配的方案，随机挑选一套。)
         {
             if (bot->CalculateTalentsPoints() > 0)
                 *out << "No specs like the current spec found.";
@@ -315,7 +322,7 @@ bool ChangeTalentsAction::AutoSelectTalents(Player* bot, std::ostringstream* out
 
         if(paths.size() > 0 && oldSpec.GetTalentPoints() > 0)
         {
-            //Check if any spec has the same tree as the current spec.
+            // Check if any spec has the same tree as the current spec. (检查是否有任何天赋方案与当前专精处于同一天赋树。)
             bool hasSameTree = false;
             for (auto it : paths)
             {
@@ -326,7 +333,7 @@ bool ChangeTalentsAction::AutoSelectTalents(Player* bot, std::ostringstream* out
                 }
             }
 
-            if (hasSameTree) //Remove specs that do not end up in the same tree.
+            if (hasSameTree) // Remove specs that do not end up in the same tree. (剔除最终不属于同一主修天赋树的方案。)
             {
                 auto it = paths.begin();
                 while (it != paths.end()) 
@@ -380,7 +387,7 @@ bool ChangeTalentsAction::AutoSelectTalents(Player* bot, std::ostringstream* out
     return (specNo == 0) ? false : true;
 }
 
-//Returns a pre-made talent spec that best suits the bots current talents. 
+// Returns a pre-made talent spec that best suits the bots current talents. (返回最契合机器人当前天赋加点的预设天赋方案。)
 TalentSpec* ChangeTalentsAction::GetBestPremadeSpec(Player* bot, int specId)
 {
     TalentPath* path = getPremadePath(bot->getClass(), specId);
@@ -395,6 +402,7 @@ TalentSpec* ChangeTalentsAction::GetBestPremadeSpec(Player* bot, int specId)
     return &sPlayerbotAIConfig.classSpecs[bot->getClassMask()].baseSpec;
 }
 
+/// 执行动作主逻辑（自动分配天赋动作）
 bool AutoSetTalentsAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();

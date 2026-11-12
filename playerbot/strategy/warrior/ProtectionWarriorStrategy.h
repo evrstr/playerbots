@@ -1,8 +1,10 @@
+// 战士 - 防护战士策略头文件 (ProtectionWarriorStrategy.h)
 #pragma once
 #include "WarriorStrategy.h"
 
 namespace ai
 {
+    // 防护战士专精占位策略：用于专精识别与占位的策略类
     class ProtectionWarriorPlaceholderStrategy : public SpecPlaceholderStrategy
     {
     public:
@@ -11,6 +13,7 @@ namespace ai
         std::string getName() override { return "protection"; }
     };
 
+    // 防护战士策略：定义该专精/场景下的触发器与默认行为
     class ProtectionWarriorStrategy : public WarriorStrategy
     {
     public:
@@ -25,6 +28,7 @@ namespace ai
         virtual NextAction** GetDefaultCombatActions() override;
     };
 
+    // 防护战士PVE策略：定义该专精/场景下的触发器与默认行为
     class ProtectionWarriorPveStrategy : public ProtectionWarriorStrategy
     {
     public:
@@ -38,6 +42,7 @@ namespace ai
         void InitDeadTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 防护战士PVP策略：定义该专精/场景下的触发器与默认行为
     class ProtectionWarriorPvpStrategy : public ProtectionWarriorStrategy
     {
     public:
@@ -51,6 +56,7 @@ namespace ai
         void InitDeadTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 防护战士团队副本策略：定义该专精/场景下的触发器与默认行为
     class ProtectionWarriorRaidStrategy : public ProtectionWarriorStrategy
     {
     public:
@@ -64,6 +70,7 @@ namespace ai
         void InitDeadTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 防护战士AOE群体策略：定义该专精/场景下的触发器与默认行为
     class ProtectionWarriorAoeStrategy : public WarriorAoeStrategy
     {
     public:
@@ -74,6 +81,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 防护战士AOE群体PVE策略：定义该专精/场景下的触发器与默认行为
     class ProtectionWarriorAoePveStrategy : public ProtectionWarriorAoeStrategy
     {
     public:
@@ -85,6 +93,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 防护战士AOE群体PVP策略：定义该专精/场景下的触发器与默认行为
     class ProtectionWarriorAoePvpStrategy : public ProtectionWarriorAoeStrategy
     {
     public:
@@ -96,6 +105,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 防护战士AOE群体团队副本策略：定义该专精/场景下的触发器与默认行为
     class ProtectionWarriorAoeRaidStrategy : public ProtectionWarriorAoeStrategy
     {
     public:
@@ -107,6 +117,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 防护战士增益Buff策略：定义该专精/场景下的触发器与默认行为
     class ProtectionWarriorBuffStrategy : public WarriorBuffStrategy
     {
     public:
@@ -117,6 +128,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 防护战士增益BuffPVE策略：定义该专精/场景下的触发器与默认行为
     class ProtectionWarriorBuffPveStrategy : public ProtectionWarriorBuffStrategy
     {
     public:
@@ -128,6 +140,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 防护战士增益BuffPVP策略：定义该专精/场景下的触发器与默认行为
     class ProtectionWarriorBuffPvpStrategy : public ProtectionWarriorBuffStrategy
     {
     public:
@@ -139,6 +152,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 防护战士增益Buff团队副本策略：定义该专精/场景下的触发器与默认行为
     class ProtectionWarriorBuffRaidStrategy : public ProtectionWarriorBuffStrategy
     {
     public:
@@ -150,6 +164,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 防护战士爆发增益策略：定义该专精/场景下的触发器与默认行为
     class ProtectionWarriorBoostStrategy : public WarriorBoostStrategy
     {
     public:
@@ -160,6 +175,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 防护战士爆发增益PVE策略：定义该专精/场景下的触发器与默认行为
     class ProtectionWarriorBoostPveStrategy : public ProtectionWarriorBoostStrategy
     {
     public:
@@ -171,6 +187,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 防护战士爆发增益PVP策略：定义该专精/场景下的触发器与默认行为
     class ProtectionWarriorBoostPvpStrategy : public ProtectionWarriorBoostStrategy
     {
     public:
@@ -182,6 +199,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 防护战士爆发增益团队副本策略：定义该专精/场景下的触发器与默认行为
     class ProtectionWarriorBoostRaidStrategy : public ProtectionWarriorBoostStrategy
     {
     public:
@@ -193,6 +211,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 防护战士控制(CC)策略：定义该专精/场景下的触发器与默认行为
     class ProtectionWarriorCcStrategy : public WarriorCcStrategy
     {
     public:
@@ -203,6 +222,7 @@ namespace ai
         virtual void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 防护战士控制(CC)PVE策略：定义该专精/场景下的触发器与默认行为
     class ProtectionWarriorCcPveStrategy : public ProtectionWarriorCcStrategy
     {
     public:
@@ -214,6 +234,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 防护战士控制(CC)PVP策略：定义该专精/场景下的触发器与默认行为
     class ProtectionWarriorCcPvpStrategy : public ProtectionWarriorCcStrategy
     {
     public:
@@ -225,6 +246,7 @@ namespace ai
         void InitNonCombatTriggers(std::list<TriggerNode*>& triggers) override;
     };
 
+    // 防护战士控制(CC)团队副本策略：定义该专精/场景下的触发器与默认行为
     class ProtectionWarriorCcRaidStrategy : public ProtectionWarriorCcStrategy
     {
     public:

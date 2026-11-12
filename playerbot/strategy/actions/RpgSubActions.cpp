@@ -19,6 +19,7 @@
 
 using namespace ai;
 
+/// 动作执行前的准备钩子
 void RpgHelper::BeforeExecute()
 {
     bot->SetSelectionGuid(guidP());
@@ -28,6 +29,7 @@ void RpgHelper::BeforeExecute()
     setFacing(guidP());
 }
 
+/// 动作执行后的收尾钩子
 void RpgHelper::AfterExecute(bool doDelay, bool waitForGroup, std::string nextAction)
 {
     uint32 goToDifferentTargetChance = 10;
@@ -43,6 +45,7 @@ void RpgHelper::AfterExecute(bool doDelay, bool waitForGroup, std::string nextAc
         setDelay(waitForGroup);
 }
 
+/// 调整机器人朝向面对指定世界对象
 void RpgHelper::setFacingTo(GuidPosition guidPosition)
 {
     if (!sPlayerbotAIConfig.turnInRpg)
@@ -54,6 +57,7 @@ void RpgHelper::setFacingTo(GuidPosition guidPosition)
     bot->m_movementInfo.RemoveMovementFlag(MovementFlags(MOVEFLAG_SPLINE_ENABLED | MOVEFLAG_FORWARD));
 }
 
+/// 调整机器人朝向指定角度
 void RpgHelper::setFacing(GuidPosition guidPosition)
 {
     if (!sPlayerbotAIConfig.turnInRpg)
@@ -76,6 +80,7 @@ void RpgHelper::setFacing(GuidPosition guidPosition)
     unit->m_movementInfo.RemoveMovementFlag(MovementFlags(MOVEFLAG_SPLINE_ENABLED | MOVEFLAG_FORWARD));
 }
 
+/// 重置并清除强制朝向锁定
 void RpgHelper::resetFacing(GuidPosition guidPosition)
 {
     if (!sPlayerbotAIConfig.turnInRpg)
@@ -98,6 +103,7 @@ void RpgHelper::resetFacing(GuidPosition guidPosition)
     }
 }
 
+/// 设置下一次随机发言或表情前的冷却延迟
 void RpgHelper::setDelay(bool waitForGroup)
 {
     if ((!ai->HasRealPlayerMaster() && !bot->GetGroup()) || (bot->GetGroup() && bot->GetGroup()->IsLeader(bot->GetObjectGuid()) && waitForGroup))
@@ -106,6 +112,7 @@ void RpgHelper::setDelay(bool waitForGroup)
         ai->SetActionDuration(sPlayerbotAIConfig.rpgDelay / 5);
 }
 
+/// 执行动作主逻辑（RPG 表情动作）
 bool RpgEmoteAction::Execute(Event& event)
 {
     rpg->BeforeExecute();
@@ -142,11 +149,12 @@ bool RpgEmoteAction::Execute(Event& event)
     return true;
 }
 
+/// 执行动作主逻辑（取消当前 RPG 交互动作）
 bool RpgCancelAction::Execute(Event& event)
 {
     rpg->OnCancel();  
 
-    if (!urand(0,3) || AI_VALUE(GuidPosition, "rpg target").GetEntry() != AI_VALUE(TravelTarget*, "travel target")->GetEntry() || AI_VALUE(TravelTarget*, "travel target")->GetStatus() != TravelStatus::TRAVEL_STATUS_WORK) //1 out of 4 to ignore current travel target after cancel.
+    if (!urand(0,3) || AI_VALUE(GuidPosition, "rpg target").GetEntry() != AI_VALUE(TravelTarget*, "travel target")->GetEntry() || AI_VALUE(TravelTarget*, "travel target")->GetStatus() != TravelStatus::TRAVEL_STATUS_WORK) // 1 out of 4 to ignore current travel target after cancel. (取消后有 1/4 概率将当前旅行目标加入忽略。)
         AI_VALUE(std::set<ObjectGuid>&, "ignore rpg target").insert(AI_VALUE(GuidPosition, "rpg target")); 
 
     RESET_AI_VALUE(GuidPosition, "rpg target"); rpg->AfterExecute(false, false, ""); DoDelay(); 
@@ -156,6 +164,7 @@ bool RpgCancelAction::Execute(Event& event)
     return true;
 };
 
+/// 执行动作主逻辑（RPG 乘坐飞行点动作）
 bool RpgTaxiAction::Execute(Event& event)
 {
     rpg->BeforeExecute();
@@ -222,6 +231,7 @@ bool RpgTaxiAction::Execute(Event& event)
     return true;
 }
 
+/// 执行动作主逻辑（RPG 探索飞行点动作）
 bool RpgDiscoverAction::Execute(Event& event)
 {
     rpg->BeforeExecute();
@@ -245,6 +255,7 @@ bool RpgDiscoverAction::Execute(Event& event)
     return bot->GetSession()->SendLearnNewTaxiNode(flightMaster);    
 }
 
+/// 执行动作主逻辑（RPG 治疗恢复动作）
 bool RpgHealAction::Execute(Event& event)
 {
     bool retVal = false;
@@ -274,6 +285,7 @@ bool RpgHealAction::Execute(Event& event)
     return retVal;
 }
 
+/// 判断当前状态下该动作是否可用/有效（RPG 交互游戏对象动作）
 bool RpgUseAction::isUseful()
 {
     GuidPosition guidP = rpg->guidP();
@@ -282,7 +294,7 @@ bool RpgUseAction::isUseful()
     {
         case 190767: {
 
-            //Do not get in cart if miner is moving some other bot. (This is a core bug, minecart will head to other more distant miner if it exists).
+            // Do not get in cart if miner is moving some other bot. (This is a core bug, minecart will head to other more distant miner if it exists). (若矿车正在跟随其他玩家则不要上车（核心已知问题：矿车会优先驶向更远的采矿者）。)
             Creature* creature = nullptr;
             MaNGOS::NearestCreatureEntryWithLiveStateInObjectRangeCheck creature_check(*bot, 28841, true, false, 500.0f, true);
             MaNGOS::CreatureLastSearcher<MaNGOS::NearestCreatureEntryWithLiveStateInObjectRangeCheck> searcher(creature, creature_check);
@@ -299,6 +311,7 @@ bool RpgUseAction::isUseful()
 }
 
 
+/// 判断当前状态下该动作是否可用/有效（RPG AI 对话动作）
 bool RpgAIChatAction::isUseful()
 {
     GuidPosition guidP = rpg->guidP();
@@ -309,6 +322,7 @@ bool RpgAIChatAction::isUseful()
     return true;
 }
 
+/// 按预设概率与延迟让机器人说出指定文本台词
 bool RpgAIChatAction::SpeakLine()
 {
     if (packets.empty())
@@ -332,7 +346,7 @@ bool RpgAIChatAction::SpeakLine()
     case CHAT_MSG_RAID_BOSS_WHISPER:
     case CHAT_MSG_RAID_BOSS_EMOTE:
     case CHAT_MSG_MONSTER_EMOTE:
-        packet >> senderGuid; //Deviation from standards. To support emotes.
+        packet >> senderGuid; // Deviation from standards. To support emotes. (为兼容文本表情而做的特殊处理。)
         packet >> senderNameLength;
         packet >> senderName;
         packet >> targetGuid;
@@ -405,6 +419,7 @@ bool RpgAIChatAction::SpeakLine()
     return true;
 }
 
+/// 等待异步对话生成结果返回
 bool RpgAIChatAction::WaitForLines()
 {
     if (!futPackets.valid())
@@ -419,6 +434,7 @@ bool RpgAIChatAction::WaitForLines()
     return false;
 }
 
+/// 向文本生成器或 LLM 请求新的对话回复内容
 bool RpgAIChatAction::RequestNewLines()
 {
     if (packets.size())
@@ -445,10 +461,14 @@ bool RpgAIChatAction::RequestNewLines()
 
     std::map<std::string, std::string> placeholders;
     if(botIstalking)
+        /// 收集当前场景下的聊天占位符变量（如目标、位置、NPC 职责等）
         ChatReplyAction::GetAIChatPlaceholders(placeholders, bot, unit);
     else
+        /// 收集当前场景下的聊天占位符变量（如目标、位置、NPC 职责等）
         ChatReplyAction::GetAIChatPlaceholders(placeholders, unit, bot);
+    /// 收集当前场景下的聊天占位符变量（如目标、位置、NPC 职责等）
     ChatReplyAction::GetAIChatPlaceholders(placeholders, bot, "bot");
+    /// 收集当前场景下的聊天占位符变量（如目标、位置、NPC 职责等）
     ChatReplyAction::GetAIChatPlaceholders(placeholders, unit, "unit", bot);
 
     std::string prePrompt = sPlayerbotAIConfig.llmPreRpgPrompt;
@@ -513,7 +533,7 @@ bool RpgAIChatAction::RequestNewLines()
         prompt.second = PlayerbotLLMInterface::SanitizeForJson(prompt.second);
     }
 
-    for (auto& prompt : placeholders) //Sanitize now instead of earlier to prevent double Sanitation
+    for (auto& prompt : placeholders) // Sanitize now instead of earlier to prevent double Sanitation (在此处统一进行文本清理，避免提前清理导致重复过滤)
     {
         prompt.second = PlayerbotLLMInterface::SanitizeForJson(prompt.second);
     }
@@ -564,6 +584,7 @@ bool RpgAIChatAction::RequestNewLines()
     return true;
 }
 
+/// 执行动作主逻辑（RPG AI 对话动作）
 bool RpgAIChatAction::Execute(Event& event)
 {
     if (WaitForLines())
@@ -578,6 +599,7 @@ bool RpgAIChatAction::Execute(Event& event)
     return false;
 }
 
+/// 处理通过命令手动触发的机器人发言
 void RpgAIChatAction::ManualChat(GuidPosition target, const std::string& line)
 {  
     SET_AI_VALUE(GuidPosition, "rpg target", target);
@@ -664,6 +686,7 @@ void RpgAIChatAction::ManualChat(GuidPosition target, const std::string& line)
     SET_GAI_VALUE2(std::string, "global string", "llmcontext manual" + std::to_string(target.GetCounter()), llmContext);
 }
 
+/// 判断指定物品是否正处于交易窗口待交易状态
 bool RpgTradeUsefulAction::IsTradingItem(uint32 entry)
 {
     TradeData* trade = bot->GetTradeData();
@@ -682,6 +705,7 @@ bool RpgTradeUsefulAction::IsTradingItem(uint32 entry)
     return false;
 }
 
+/// 执行动作主逻辑（RPG 赠送实用物品动作）
 bool RpgTradeUsefulAction::Execute(Event& event)
 {
     rpg->BeforeExecute();
@@ -706,7 +730,7 @@ bool RpgTradeUsefulAction::Execute(Event& event)
     param << " ";
     param << chat->formatItem(item);
 
-    if (ai->IsRealPlayer() && !bot->GetTradeData()) //Start the trade from the other side to open the window
+    if (ai->IsRealPlayer() && !bot->GetTradeData()) // Start the trade from the other side to open the window (从另一方发起交易以打开交易窗口)
     {
         WorldPacket packet(CMSG_INITIATE_TRADE);
         packet << bot->GetObjectGuid();
@@ -720,18 +744,18 @@ bool RpgTradeUsefulAction::Execute(Event& event)
 
     if (isTrading)
     {
-        if (IsTradingItem(item->GetEntry())) //Did we manage to add the item to the trade?
+        if (IsTradingItem(item->GetEntry())) // Did we manage to add the item to the trade? (物品是否成功放入交易栏？)
         {
             if (bot->GetGroup() && bot->GetGroup()->IsMember(guidP))
                 ai->TellPlayerNoFacing(GetMaster(), "You can use this " + chat->formatItem(item) + " better than me, " + player->GetName() + ".", PlayerbotSecurityLevel::PLAYERBOT_SECURITY_ALLOW_ALL, false);
             else
                 bot->Say("You can use this " + chat->formatItem(item) + " better than me, " + player->GetName() + ".", (bot->GetTeam() == ALLIANCE ? LANG_COMMON : LANG_ORCISH));
 
-            if (!urand(0, 4) || items.size() < 2) //Complete the trade if we have no more items to trade.
+            if (!urand(0, 4) || items.size() < 2) // Complete the trade if we have no more items to trade. (若已无更多物品可交易，则直接确认完成交易。)
             {
                 //bot->Say("End trade with" + chat->formatWorldobject(player), (bot->GetTeam() == ALLIANCE ? LANG_COMMON : LANG_ORCISH));
                 WorldPacket p(CMSG_ACCEPT_TRADE, 4);
-                p << uint32(bot->GetTradeData()->GetTraderData()->GetServerStateIndex()); // the version of the trader's offer the bot accepts
+                p << uint32(bot->GetTradeData()->GetTraderData()->GetServerStateIndex()); // the version of the trader's offer the bot accepts (机器人确认接受对方交易报价的版本号)
                 bot->GetSession()->HandleAcceptTradeOpcode(p);
             }
         }
@@ -748,6 +772,7 @@ bool RpgTradeUsefulAction::Execute(Event& event)
     return isTrading;
 }
 
+/// 执行动作主逻辑（RPG 附魔交互动作）
 bool RpgEnchantAction::Execute(Event& event)
 {
     rpg->BeforeExecute();
@@ -769,7 +794,7 @@ bool RpgEnchantAction::Execute(Event& event)
 
     std::vector<uint32> enchantSpells = AI_VALUE(std::vector<uint32>, "enchant spells");
 
-    //Needs more logic to pick best enchant to apply instead of a random one that's bette than current.
+    // Needs more logic to pick best enchant to apply instead of a random one that's bette than current. (后续需完善逻辑以挑选最优附魔而非随机选择比当前更好的附魔。)
     std::shuffle(enchantSpells.begin(), enchantSpells.end(), *GetRandomGenerator());
 
     for (auto& spellId : enchantSpells)
@@ -787,7 +812,7 @@ bool RpgEnchantAction::Execute(Event& event)
 
         ai->TellDebug(ai->GetMaster(), "enchanting" + param.str(), "debug rpg");
 
-        if (player->isRealPlayer() && !player->GetTradeData()) //Start the trade from the other side to open the window
+        if (player->isRealPlayer() && !player->GetTradeData()) // Start the trade from the other side to open the window (从另一方发起交易以打开交易窗口)
         {
             ai->TellDebug(ai->GetMaster(), "open trade window", "debug rpg");
             WorldPacket packet(CMSG_INITIATE_TRADE);
@@ -805,7 +830,7 @@ bool RpgEnchantAction::Execute(Event& event)
 
         if (isTrading)
         {
-            if (player->GetTradeData()->HasItem(item->GetObjectGuid())) //Did we manage to add the item to the trade?
+            if (player->GetTradeData()->HasItem(item->GetObjectGuid())) // Did we manage to add the item to the trade? (物品是否成功放入交易栏？)
             {
                 uint32 duration;
                 Unit* target = nullptr;
@@ -824,7 +849,7 @@ bool RpgEnchantAction::Execute(Event& event)
                     if (bot->GetTradeData())
                     {
                         WorldPacket p(CMSG_ACCEPT_TRADE, 4);
-                        p << uint32(bot->GetTradeData()->GetTraderData()->GetServerStateIndex()); // the version of the trader's offer the bot accepts
+                        p << uint32(bot->GetTradeData()->GetTraderData()->GetServerStateIndex()); // the version of the trader's offer the bot accepts (机器人确认接受对方交易报价的版本号)
                         bot->GetSession()->HandleAcceptTradeOpcode(p);
                     }
                 }
@@ -843,23 +868,25 @@ bool RpgEnchantAction::Execute(Event& event)
     return false;
 }
 
+/// 判断当前状态下该动作是否可用/有效（RPG 发起决斗动作）
 bool RpgDuelAction::isUseful()
 {
-    // do not offer duel in non pvp areas
+    // do not offer duel in non pvp areas (非 PvP/允许决斗区域不发起决斗)
     if (sPlayerbotAIConfig.IsInPvpProhibitedZone(sServerFacade.GetAreaId(bot)))
         return false;
 
-    // Players can only fight a duel with each other outside (=not inside dungeons and not in capital cities)
+    // Players can only fight a duel with each other outside (=not inside dungeons and not in capital cities) (玩家只能在野外区域进行决斗（不可在副本或主城内决斗）)
     AreaTableEntry const* casterAreaEntry = GetAreaEntryByAreaID(sServerFacade.GetAreaId(bot));
     if (casterAreaEntry && !(casterAreaEntry->flags & AREA_FLAG_DUEL))
     {
-        // Dueling isn't allowed here
+        // Dueling isn't allowed here (当前区域禁止决斗)
         return false;
     }
 
     return true;
 }
 
+/// 执行动作主逻辑（RPG 发起决斗动作）
 bool RpgDuelAction::Execute(Event& event)
 {
     GuidPosition guidP = AI_VALUE(GuidPosition, "rpg target");
@@ -872,6 +899,7 @@ bool RpgDuelAction::Execute(Event& event)
     return ai->DoSpecificAction("cast", Event("rpg action", chat->formatWorldobject(player) + " 7266"), true);
 }
 
+/// 执行动作主逻辑（RPG 使用物品动作）
 bool RpgItemAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -921,6 +949,7 @@ bool RpgItemAction::Execute(Event& event)
     return used;
 }
 
+/// 执行动作主逻辑（RPG 法术点击交互动作）
 bool RpgSpellClickAction::Execute(Event& event)
 {
     rpg->BeforeExecute();
@@ -940,6 +969,7 @@ bool RpgSpellClickAction::Execute(Event& event)
     return result;
 }
 
+/// 执行动作主逻辑（RPG 银行存物动作）
 bool RpgBankDepositAction::Execute(Event& event)
 {
     rpg->BeforeExecute();
@@ -952,6 +982,7 @@ bool RpgBankDepositAction::Execute(Event& event)
     return result;
 }
 
+/// 执行动作主逻辑（RPG 银行取物动作）
 bool RpgBankWithdrawAction::Execute(Event& event)
 {
     rpg->BeforeExecute();
@@ -968,6 +999,7 @@ bool RpgBankWithdrawAction::Execute(Event& event)
 }
 
 #ifndef MANGOSBOT_ZERO
+/// 执行动作主逻辑（RPG 公会银行存物动作）
 bool RpgGuildBankDepositAction::Execute(Event& event)
 {
     rpg->BeforeExecute();
@@ -987,6 +1019,7 @@ bool RpgGuildBankDepositAction::Execute(Event& event)
     return result;
 }
 
+/// 执行动作主逻辑（RPG 公会银行取物动作）
 bool RpgGuildBankWithdrawAction::Execute(Event& event)
 {
     rpg->BeforeExecute();

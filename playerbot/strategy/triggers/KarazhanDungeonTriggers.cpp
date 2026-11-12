@@ -1,3 +1,4 @@
+/// 卡拉赞（Karazhan）团队副本触发器实现
 
 #include "playerbot/playerbot.h"
 #include "KarazhanDungeonTriggers.h"
@@ -9,9 +10,10 @@
 
 using namespace ai;
 
+/// 检测虚空幽龙传送门阶段非主坦机器人是否需要调整射线吸收
 bool NetherspiteBeamsCheatNeedRefreshTrigger::IsActive()
 {
-    //Checking that is portal phase
+    //Checking that is portal phase | 检查是否处于传送门阶段
     NetherspiteFightStrategy* strategy = NetherspiteFightStrategy::Get(ai);
     std::list<Unit*> creatures;
     MaNGOS::AllCreaturesOfEntryInRangeCheck u_check(bot, 17369, 100);
@@ -26,13 +28,14 @@ bool NetherspiteBeamsCheatNeedRefreshTrigger::IsActive()
     if (!boss)
         return false;
 
-    //Checking that this bot is not Netherspite target to prevent overloading tank trigger
+    //Checking that this bot is not Netherspite target to prevent overloading tank trigger | 确认当前机器人并非 Boss 的目标，避免干扰坦克触发器
     return boss->GetVictim() != bot && (ai->HasAura(30468, boss) || ai->HasAura(30467, boss) || ai->HasAura(30466, boss));
 }
 
+/// 检测虚空幽龙传送门阶段坦克是否需要刷新射线位置
 bool NetherspiteBeamsPlayerCheatNeedRefreshTrigger::IsActive()
 {
-    //Checking that is portal phase
+    //Checking that is portal phase | 检查是否处于传送门阶段
     NetherspiteFightStrategy* strategy = NetherspiteFightStrategy::Get(ai);
     std::list<Unit*> creatures;
     MaNGOS::AllCreaturesOfEntryInRangeCheck u_check(bot, 17369, 100);
@@ -47,18 +50,19 @@ bool NetherspiteBeamsPlayerCheatNeedRefreshTrigger::IsActive()
     if (!boss)
         return false;
 
-    //Checking that this bot is Netherspite target
+    //Checking that this bot is Netherspite target | 确认当前机器人是正在抗怪的坦克
     return ai->IsTank(bot) && boss->GetVictim() == bot;
 }
 
+/// 检测埃兰之影是否正在施放魔爆术（29973）
 bool ShadeOfAranCastingArcaneExplosionTrigger::IsActive()
 {
-    //Checking that Shade of Aran is casting arcane explosion
+    //Checking that Shade of Aran is casting arcane explosion | 检查埃兰之影是否正在施放奥术爆炸（魔爆术）
     ShadeOfAranFightStrategy* strategy = ShadeOfAranFightStrategy::Get(ai);
 
     if (strategy)
     {
-        // No need to check if we are on arcane currently
+        // No need to check if we are on arcane currently | 若已处于奥术阶段则无需重复检查
         if (strategy->GetPhase() == AranPhase::PHASE_ARCANE)
             return true;
             
@@ -76,9 +80,10 @@ bool ShadeOfAranCastingArcaneExplosionTrigger::IsActive()
     return false;
 }
 
+/// 检测埃兰之影的魔爆术是否已施放完毕
 bool ShadeOfAranDoneCastingArcaneExplosionTrigger::IsActive()
 {
-    //Checking that Shade of Aran is done casting arcane explosion
+    //Checking that Shade of Aran is done casting arcane explosion | 检查埃兰之影魔爆术是否结束
     ShadeOfAranFightStrategy* strategy = ShadeOfAranFightStrategy::Get(ai);
 
     if (strategy)
@@ -101,14 +106,15 @@ bool ShadeOfAranDoneCastingArcaneExplosionTrigger::IsActive()
     return false;
 }
 
+/// 检测埃兰之影是否正在施放烈焰花环（30004）
 bool ShadeOfAranCastingFlameWreathTrigger::IsActive()
 {
-    //Checking that Shade of Aran is casting flame wreath
+    //Checking that Shade of Aran is casting flame wreath | 检查埃兰之影是否正在施放烈焰花环
     ShadeOfAranFightStrategy* strategy = ShadeOfAranFightStrategy::Get(ai);
 
     if (strategy)
     {
-        // No need to check if we are on fire currently
+        // No need to check if we are on fire currently | 若已处于火焰阶段则无需重复检查
         if (strategy->GetPhase() == AranPhase::PHASE_FIRE)
             return false;
 
@@ -126,14 +132,15 @@ bool ShadeOfAranCastingFlameWreathTrigger::IsActive()
     return false;
 }
 
+/// 检测埃兰之影是否正在施放暴风雪（29969）
 bool ShadeOfAranCastingBlizzardTrigger::IsActive()
 {
-    //Checking that Shade of Aran is casting blizzard
+    //Checking that Shade of Aran is casting blizzard | 检查埃兰之影是否正在施放暴风雪
     ShadeOfAranFightStrategy* strategy = ShadeOfAranFightStrategy::Get(ai);
 
     if (strategy)
     {
-        // No need to check if we are on frost currently
+        // No need to check if we are on frost currently | 若已处于冰霜阶段则无需重复检查
         if (strategy->GetPhase() == AranPhase::PHASE_FROST)
             return false;
 
@@ -151,9 +158,10 @@ bool ShadeOfAranCastingBlizzardTrigger::IsActive()
     return false;
 }
 
+/// 检测埃兰之影生命值是否降至 40% 以下召唤水元素
 bool ShadeOfAranElementalsTrigger::IsActive()
 {
-    //Checking that the water elementals are out
+    //Checking that the water elementals are out | 检查水元素是否已召唤
     ShadeOfAranFightStrategy* strategy = ShadeOfAranFightStrategy::Get(ai);
 
     if (strategy && !strategy->GetElementals())
@@ -169,6 +177,7 @@ bool ShadeOfAranElementalsTrigger::IsActive()
     return false;
 }
 
+/// 检测玛克扎尔王子战中是否因虚弱（30843）、暗影新星或距离过近需躲避
 bool PrinceMalchezaarTooCloseTrigger::IsActive()
 {
     PullStrategy* strategy = PullStrategy::Get(ai);
@@ -183,9 +192,10 @@ bool PrinceMalchezaarTooCloseTrigger::IsActive()
     return false;
 }
 
+/// 检测近战职业是否需要在王子施放暗影新星（30852）时后撤躲避
 bool PrinceMalchezaarTooCloseTrigger::MeleeWaitCheck(Unit* target)
 {
-    // Check if we should be someone staying out of Shadow Nova blast
+    // Check if we should be someone staying out of Shadow Nova blast | 检查近战是否需要退出暗影新星爆炸范围
     if (target && target->GetHealthPercent() > 30.0f && target->IsCreature())
     {
         if (ai->IsMelee(bot, true) && target->GetVictim() != bot && target->GetDistance(bot) > 8.0f)
@@ -201,6 +211,7 @@ bool PrinceMalchezaarTooCloseTrigger::MeleeWaitCheck(Unit* target)
     return false;
 }
 
+/// 检测队伍中是否有人身中虚弱（30843）减益效果
 bool PrinceMalchezaarTooCloseTrigger::EnfeeblePart()
 {
     Group* group = bot->GetGroup();

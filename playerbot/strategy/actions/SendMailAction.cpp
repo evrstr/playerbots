@@ -8,6 +8,7 @@
 
 using namespace ai;
 
+/// 执行动作主逻辑（发送邮件指令动作）
 bool SendMailAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -17,6 +18,7 @@ bool SendMailAction::Execute(Event& event)
     std::string text = event.getParam();
     Player* receiver = requester;
     Player* tellTo = requester;
+    // 按空格拆分命令行参数
     std::vector<std::string> ss = split(text, ' ');
     if (ss.size() > 1)
     {
@@ -33,6 +35,7 @@ bool SendMailAction::Execute(Event& event)
 
     if (!tellTo) tellTo = receiver;
 
+    // 解析命令参数中的物品链接或 ID 列表
     ItemIds ids = chat->parseItems(text);
     if (ids.size() > 1)
     {

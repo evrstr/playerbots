@@ -4,6 +4,7 @@
 
 using namespace ai;
 
+// 解析 "动作名!权重" 格式字符串为 NextAction 对象
 NextAction* toNextAction(std::string action)
 {
     std::vector<std::string> tokens = split(action, '!');
@@ -16,6 +17,7 @@ NextAction* toNextAction(std::string action)
     return NULL;
 }
 
+// 拆分逗号分隔的动作列表（忽略花括号嵌套内的逗号）为 NextAction 数组
 NextAction** toNextActionArray(std::string actions)
 {
     std::vector<std::string> tokens;
@@ -37,10 +39,11 @@ NextAction** toNextActionArray(std::string actions)
         if (na)
             res[index++] = na;
     }
-	res[index++] = NULL;
+    res[index++] = NULL;
     return res;
 }
 
+// 解析 "触发器>动作列表" 规则行为 TriggerNode
 TriggerNode* toTriggerNode(std::string actionLine)
 {
     std::vector<std::string> tokens = split(actionLine, '>');
@@ -51,6 +54,7 @@ TriggerNode* toTriggerNode(std::string actionLine)
     return NULL;
 }
 
+// 初始化非战斗触发器：优先加载角色专属自定义规则，否则回退加载公共规则(owner=0)
 void CustomStrategy::InitNonCombatTriggers(std::list<TriggerNode*> &triggers)
 {
     if (actionLines.empty())
@@ -68,14 +72,16 @@ void CustomStrategy::InitNonCombatTriggers(std::list<TriggerNode*> &triggers)
     }
 }
 
+// 战斗状态下复用同一套自定义规则触发器
 void CustomStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     InitNonCombatTriggers(triggers);
 }
 
+/// 从 ai_playerbot_custom_strategy 数据表按顺序读取规则行
 void CustomStrategy::LoadActionLines(uint32 owner)
 {
-    // The qualifier comes from chat ("co +custom::<name>")
+    // The qualifier comes from chat ("co +custom::<name>") | 限定名来自聊天指令
     std::string name = qualifier;
     CharacterDatabase.escape_string(name);
     auto results = CharacterDatabase.PQuery("SELECT action_line FROM ai_playerbot_custom_strategy WHERE name = '%s' and owner = '%u' order by idx",
@@ -91,6 +97,7 @@ void CustomStrategy::LoadActionLines(uint32 owner)
     }
 }
 
+// 清空已缓存的自定义规则行，以便下次重新加载
 void CustomStrategy::Reset()
 {
     actionLines.clear();

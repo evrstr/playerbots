@@ -9,6 +9,7 @@
 
 using namespace ai;
 
+/// 判断当前状态下该动作是否可用/有效（公会共享拍卖购入动作）
 bool GuildShareAhBuyAction::isUseful()
 {
     if (!bot->GetGuildId())
@@ -34,8 +35,10 @@ bool GuildShareAhBuyAction::isUseful()
     return true;
 }
 
+/// 查找距离机器人最近的拍卖师单位
 Unit* GuildShareAhBuyAction::FindNearbyAuctioneer()
 {
+    // 遍历附近 NPC 列表
     std::list<ObjectGuid> npcs = AI_VALUE(std::list<ObjectGuid>, "nearest npcs");
     for (auto& guid : npcs)
     {
@@ -46,6 +49,7 @@ Unit* GuildShareAhBuyAction::FindNearbyAuctioneer()
     return nullptr;
 }
 
+/// 判断机器人是否已学会并有材料制作指定物品
 bool GuildShareAhBuyAction::CanBotCraftItem(uint32 itemId)
 {
     for (auto& [spellId, spellState] : bot->GetSpellMap())
@@ -66,6 +70,7 @@ bool GuildShareAhBuyAction::CanBotCraftItem(uint32 itemId)
     return false;
 }
 
+/// 判断指定材料是否可用于机器人当前专业制造
 bool GuildShareAhBuyAction::CanBotUseReagent(ItemPrototype const* reagentProto)
 {
     if (!reagentProto)
@@ -91,6 +96,7 @@ bool GuildShareAhBuyAction::CanBotUseReagent(ItemPrototype const* reagentProto)
     return false;
 }
 
+/// 统计机器人邮箱中的邮件或附件物品总数
 uint32 GuildShareAhBuyAction::CountMailboxItems(uint32 itemId)
 {
     uint32 count = 0;
@@ -177,6 +183,7 @@ std::map<uint32, uint32> GuildShareAhBuyAction::GetNeededItems()
     return needed;
 }
 
+/// 执行动作主逻辑（公会共享拍卖购入动作）
 bool GuildShareAhBuyAction::Execute(Event& event)
 {
     Unit* auctioneer = FindNearbyAuctioneer();
@@ -216,6 +223,7 @@ bool GuildShareAhBuyAction::Execute(Event& event)
 
     uint32 availableBudget = AI_VALUE2(uint32, "free money for", uint32(NeedMoneyFor::guild));
 
+    /// 拍卖候选项结构体：存储筛选出的拍卖行可购入物品信息与价格评估
     struct AuctionCandidate
     {
         AuctionEntry* auction;
@@ -233,7 +241,7 @@ bool GuildShareAhBuyAction::Execute(Event& event)
     {
         AuctionEntry* auction = itr->second;
         if (!auction || auction->buyout == 0)
-            continue; // Skip auctions with no buyout
+            continue; // Skip auctions with no buyout (跳过没有一口价的拍卖物品)
 
         if (auction->owner == bot->GetGUIDLow())
             continue;
@@ -249,7 +257,7 @@ bool GuildShareAhBuyAction::Execute(Event& event)
         if (it == neededItems.end())
             continue;
 
-        // Don't buy more than we actually need
+        // Don't buy more than we actually need (不要购买超出实际需求数量的物品)
         if (auctionCount > it->second)
             continue;
 
@@ -264,7 +272,7 @@ bool GuildShareAhBuyAction::Execute(Event& event)
         bool isFinished = finishedItemIds.count(auctionItemId) > 0;
         uint32 pricePerItem = auction->buyout / auctionCount;
 
-        // Prioritize items over crafting materials
+        // Prioritize items over crafting materials (物品本身优先级高于制造材料)
         if (bestCandidate.auction)
         {
             if (bestCandidate.isFinishedItem && !isFinished)

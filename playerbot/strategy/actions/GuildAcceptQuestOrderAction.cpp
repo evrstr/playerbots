@@ -5,6 +5,7 @@
 
 using namespace ai;
 
+/// 判断当前状态下该动作是否可用/有效（接受公会任务委托动作）
 bool GuildAcceptQuestOrderAction::isUseful()
 {
     if (!bot->GetGuildId())
@@ -16,6 +17,7 @@ bool GuildAcceptQuestOrderAction::isUseful()
     return AI_VALUE(bool, "needs guild quest order accept");
 }
 
+/// 执行动作主逻辑（接受公会任务委托动作）
 bool GuildAcceptQuestOrderAction::Execute(Event& event)
 {
     GuildOrder order = AI_VALUE(GuildOrder, "guild order");
@@ -28,7 +30,7 @@ bool GuildAcceptQuestOrderAction::Execute(Event& event)
 
     QuestStatus status = bot->GetQuestStatus(order.questId);
     if (status == QUEST_STATUS_INCOMPLETE || status == QUEST_STATUS_COMPLETE)
-        return false; // Already have it.
+        return false; // Already have it. (已经拥有该物品。)
 
     if (!bot->CanTakeQuest(quest, false))
         return false;
@@ -97,7 +99,7 @@ bool GuildAcceptQuestOrderAction::Execute(Event& event)
             return false;
     }
 
-    // Search nearby NPCs for one that offers this quest.
+    // Search nearby NPCs for one that offers this quest. (搜索附近提供该任务的 NPC。)
     std::list<ObjectGuid> npcs = AI_VALUE(std::list<ObjectGuid>, "nearest npcs");
     for (auto& guid : npcs)
     {
@@ -111,7 +113,7 @@ bool GuildAcceptQuestOrderAction::Execute(Event& event)
         if (!sServerFacade.IsInFront(bot, unit, sPlayerbotAIConfig.sightDistance, CAST_ANGLE_IN_FRONT))
             sServerFacade.SetFacingTo(bot, unit);
 
-        // Accept the quest via the opcode handler.
+        // Accept the quest via the opcode handler. (通过操作码处理器接受任务。)
         WorldPacket p(CMSG_QUESTGIVER_ACCEPT_QUEST);
         uint32 unk1 = 0;
         p << unit->GetObjectGuid() << order.questId << unk1;
@@ -130,7 +132,7 @@ bool GuildAcceptQuestOrderAction::Execute(Event& event)
         }
     }
 
-    // Also check nearby game objects (some quests come from objects).
+    // Also check nearby game objects (some quests come from objects). (同时检查附近的游戏对象（部分任务由物体触发）。)
     std::list<ObjectGuid> gos = AI_VALUE(std::list<ObjectGuid>, "nearest game objects no los");
     for (auto& guid : gos)
     {

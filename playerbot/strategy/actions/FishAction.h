@@ -5,11 +5,15 @@
 
 namespace ai
 {
+    /// 前往钓鱼点动作：寻找附近合适的水域钓鱼点并移动至岸边
     class MoveToFishAction : public MovementAction, public Qualified
     {
     public:
+        /// 构造函数：初始化前往钓鱼点动作
         MoveToFishAction(PlayerbotAI* ai) : MovementAction(ai, "move to fish"), Qualified() {}
+        /// 判断当前状态下该动作是否可用/有效（前往钓鱼点动作）
         virtual bool isUseful() override;
+        /// 执行动作主逻辑（前往钓鱼点动作）
         virtual bool Execute(Event& event) override;
 
 #ifdef GenerateBotHelp
@@ -24,11 +28,15 @@ namespace ai
 #endif 
     };
 
+    /// 钓鱼动作：在水域旁施放钓鱼技能进行垂钓
     class FishAction : public CastCustomSpellAction
     {
     public:
+        /// 构造函数：初始化钓鱼动作
         FishAction(PlayerbotAI* ai) : CastCustomSpellAction(ai, "fish") {}
+        /// 判断当前状态下该动作是否可用/有效（钓鱼动作）
         virtual bool isUseful() override;
+        /// 执行动作主逻辑（钓鱼动作）
         virtual bool Execute(Event& event) override;
 
 #ifdef GenerateBotHelp
@@ -43,11 +51,14 @@ namespace ai
 #endif 
     };
 
+    /// 收杆拾取鱼漂动作：检测鱼漂上钩动画并点击收杆获取渔获
     class UseFishingBobberAction : public UseAction
     {
     public:
+        /// 构造函数：初始化收杆拾取鱼漂动作
         UseFishingBobberAction(PlayerbotAI* ai) : UseAction(ai, "use fishing bobber") {}
 
+        /// 执行动作主逻辑（收杆拾取鱼漂动作）
         bool Execute(Event& event) override;
 
 #ifdef GenerateBotHelp

@@ -1,3 +1,4 @@
+// 策略值实现：RuneForgeValues（死亡骑士符文附魔列表、天赋优先级匹配与状态校验）
 #include "RuneForgeValues.h"
 #include "playerbot/PlayerbotAI.h"
 #include "playerbot/ServerFacade.h"
@@ -9,6 +10,7 @@
 
 using namespace ai;
 
+// 遍历已学法术筛选带有符文附魔效果（SPELL_EFFECT_ENCHANT_ITEM_PERMANENT）的法术
 std::vector<uint32> RuneForgeSpellsValue::Calculate() {
     std::vector<uint32> spellIds;
 
@@ -39,12 +41,13 @@ std::vector<uint32> RuneForgeSpellsValue::Calculate() {
     return spellIds;
 }
 
+// 按邪恶/冰霜/鲜血天赋与坦克/PvP 优先级列表匹配已学会的最优符文熔铸法术
 uint32 BestRuneForgeSpellValue::Calculate() {
     std::vector<uint32> available = AI_VALUE(std::vector<uint32>, "runeforge spells");
 
     if (available.empty()) return 0;
 
-    //Todo add 1-handed versions
+    //Todo add 1-handed versions | 待办：补充单手武器专用的双持符文配置
     const uint32 runeFallenCrusader = 53344;
     const uint32 runeRazorice = 53343;
     const uint32 runeCinderglacier = 53331;
@@ -67,7 +70,7 @@ uint32 BestRuneForgeSpellValue::Calculate() {
     if (rpgStyle < 0)
         rpgStyle = ai->GetFixedBotNumber(BotTypeNumber::RPG_STYLE_NUMBER, 100);
 
-    if (rpgStyle > 20) //20% of the bots use pvp runeforge.
+    if (rpgStyle > 20) //20% of the bots use pvp runeforge. | 20% 的死亡骑士机器人选用 PvP 符文配置
         isPvp = false;
 
     bool isTank = ai->HasStrategy("tank", ai->GetState()) || spec == PlayerTalentSpec::TALENT_SPEC_DEATH_KNIGHT_BLOOD;
@@ -99,7 +102,7 @@ uint32 BestRuneForgeSpellValue::Calculate() {
         default:
             break;
     }
-    // General DPS fallback
+    // General DPS fallback | 通用 DPS 符文兜底顺序
     runeforgePriorityList.push_back(runeFallenCrusader);
     runeforgePriorityList.push_back(runeRazorice);
     runeforgePriorityList.push_back(runeCinderglacier);
@@ -118,6 +121,7 @@ uint32 BestRuneForgeSpellValue::Calculate() {
     return available.front();
 }
 
+// 比较当前主手武器符文附魔 ID 与推荐最佳符文附魔 ID 是否一致
 bool ShouldRuneForgeValue::Calculate() {
     uint32 bestSpell = AI_VALUE(uint32, "best runeforge spell");
 
@@ -126,16 +130,17 @@ bool ShouldRuneForgeValue::Calculate() {
 
     uint32 bestEnchantId = RuneForgeEnchantFromSpell(bestSpell);
 
-    MANGOS_ASSERT(bestEnchantId); //Runeforge spell does not have enchant id.
+    MANGOS_ASSERT(bestEnchantId); //Runeforge spell does not have enchant id. | 断言：符文熔铸法术必须包含有效附魔 ID
 
     int32 currentEnchantId = CurrentRuneForgeEnchant(bot);
 
-    if (currentEnchantId < 0) //No (correct) weapon.
+    if (currentEnchantId < 0) //No (correct) weapon. | 未装备合适的主手武器
         return false;
 
     return currentEnchantId != bestEnchantId;
 } 
 
+// 从符文熔铸法术信息中提取对应的永久附魔 ID
 uint32 ShouldRuneForgeValue::RuneForgeEnchantFromSpell(uint32 spellId)
 {
     const SpellEntry* pSpellInfo = sServerFacade.LookupSpellInfo(spellId);
@@ -146,6 +151,7 @@ uint32 ShouldRuneForgeValue::RuneForgeEnchantFromSpell(uint32 spellId)
     return pSpellInfo->EffectMiscValue[0];
 }
 
+// 读取机器人当前主手武器上的永久附魔 ID（无主手武器返回 -1）
 int32 ShouldRuneForgeValue::CurrentRuneForgeEnchant(Player* bot)
 {
     Item* weapon = bot->GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_MAINHAND);

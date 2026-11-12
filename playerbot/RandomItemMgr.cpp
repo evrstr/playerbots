@@ -22,6 +22,7 @@ uint64 BotEquipKey::GetKey()
     return level + 100 * clazz + 10000 * spec + 1000000 * slot + 100000000 * quality;
 }
 
+// 初始化各职业可用的装备槽位映射、物品属性权重键值及任务物品筛选器
 RandomItemMgr::RandomItemMgr()
 {
     viableSlots[EQUIPMENT_SLOT_HEAD].insert(INVTYPE_HEAD);
@@ -135,6 +136,7 @@ RandomItemMgr::RandomItemMgr()
 #endif
 }
 
+// 构建全物品评分缓存、随机附魔、职业装备池、药水、食物、弹药、材料及稀有度缓存
 void RandomItemMgr::Init()
 {
     BuildItemInfoCache();
@@ -288,6 +290,7 @@ uint32 RandomItemMgr::GetRandomItem(uint32 level, RandomItemType type, RandomIte
     return itemId;
 }
 
+// 校验物品是否满足目标等级、护甲/武器类型及职业专精装备条件
 bool RandomItemMgr::CanEquipItem(BotEquipKey key, ItemPrototype const* proto)
 {
     if (proto->Duration & 0x80000000)
@@ -408,6 +411,7 @@ bool RandomItemMgr::CheckItemStats(uint8 clazz, uint8 sp, uint8 ap, uint8 tank)
     return sp || ap || tank;
 }
 
+// 判断某防具部位和类型是否契合目标职业与天赋专精
 bool RandomItemMgr::ShouldEquipArmorForSpec(uint8 playerclass, uint8 spec, ItemPrototype const* proto)
 {
     if (proto->InventoryType == INVTYPE_TABARD)
@@ -566,6 +570,7 @@ bool RandomItemMgr::CanEquipArmor(uint8 clazz, uint8 spec, uint32 level, ItemPro
     //return CheckItemStats(clazz, sp, ap, tank);
 }
 
+// 判断某武器类型与速度是否契合目标职业与天赋专精
 bool RandomItemMgr::ShouldEquipWeaponForSpec(uint8 playerclass, uint8 spec, ItemPrototype const* proto)
 {
     EquipmentSlots slot_mh = EQUIPMENT_SLOT_START;
@@ -844,6 +849,7 @@ bool RandomItemMgr::CanEquipWeapon(uint8 clazz, ItemPrototype const* proto)
     return true;
 }
 
+// 扫描全物品表、掉落/商人/任务/制造/PvP 来源及声望需求，计算各专精属性评分
 void RandomItemMgr::BuildItemInfoCache()
 {
     struct CachedConditionEntry
@@ -1512,6 +1518,7 @@ void RandomItemMgr::BuildItemInfoCache()
     delete dropMap;
 }
 
+// 综合基础属性、随机附魔与法术效果计算物品对指定职业专精的评分权重
 uint32 RandomItemMgr::CalculateStatWeight(uint8 playerclass, uint8 spec, ItemPrototype const* proto, ItemSpecType& itSpec)
 {
     uint32 specType = ITEM_SPEC_NONE;
@@ -2742,6 +2749,7 @@ uint32 RandomItemMgr::GetPlayerSpecId(Player* player)
     return 0;
 }
 
+// 为指定角色和装备槽位查询当前等级可用的最佳装备升级物品 ID
 uint32 RandomItemMgr::GetUpgrade(Player* player, std::string spec, uint8 slot, uint32 quality, uint32 itemId)
 {
     if (!player)
@@ -2872,6 +2880,7 @@ uint32 RandomItemMgr::GetUpgrade(Player* player, std::string spec, uint8 slot, u
     return closestUpgrade;
 }
 
+// 获取指定角色和槽位按评分排序的候选升级装备列表
 std::vector<uint32> RandomItemMgr::GetUpgradeList(Player* player, uint32 specId, uint8 slot, uint32 quality, uint32 itemId, uint32 amount)
 {
     std::vector<uint32> listItems;
@@ -3334,6 +3343,7 @@ uint32 RandomItemMgr::GetLiveStatWeight(Player* player, uint32 itemId, uint32 sp
     return statWeight;
 }
 
+// 预构建按等级/职业/专精/槽位/品质分桶的快速配装缓存
 void RandomItemMgr::BuildEquipCache()
 {
     uint32 maxLevel = DEFAULT_MAX_LEVEL;
@@ -3525,7 +3535,7 @@ void RandomItemMgr::BuildAmmoCache()
         maxLevel = sWorld.getConfig(CONFIG_UINT32_MAX_PLAYER_LEVEL);
 
     sLog.outBasic("Building ammo cache for %d levels", maxLevel);
-	int counter1 = 0;
+    int counter1 = 0;
     for (uint32 level = 1; level <= maxLevel+1; level+=10)
     {
         for (uint32 subClass = ITEM_SUBCLASS_ARROW; subClass <= ITEM_SUBCLASS_BULLET; subClass++)
@@ -3541,7 +3551,7 @@ void RandomItemMgr::BuildAmmoCache()
             {
                 uint32 entry = fields[0].GetUInt32();
                 ammoCache[level / 10][subClass] = entry;
-				counter1++;
+                counter1++;
             }
         }
 
@@ -3559,7 +3569,7 @@ void RandomItemMgr::BuildAmmoCache()
             counter1++;
         }
     }
-	sLog.outString("Cached %d types of ammo", counter1); // TEST
+    sLog.outString("Cached %d types of ammo", counter1); // TEST
 }
 
 uint32 RandomItemMgr::GetAmmo(uint32 level, uint32 subClass)
@@ -3575,7 +3585,7 @@ void RandomItemMgr::BuildPotionCache()
         maxLevel = sWorld.getConfig(CONFIG_UINT32_MAX_PLAYER_LEVEL);
 
     sLog.outBasic("Building potion cache for %d levels", maxLevel);
-	int counter2 = 0;
+    int counter2 = 0;
     for (uint32 level = 1; level <= maxLevel; level+=10)
     {
         uint32 effects[] = { SPELL_EFFECT_HEAL, SPELL_EFFECT_ENERGIZE };
@@ -3636,11 +3646,11 @@ void RandomItemMgr::BuildPotionCache()
         {
             uint32 effect = effects[i];
             uint32 size = potionCache[level / 10][effect].size();
-			counter2++;
+            counter2++;
             sLog.outDetail("Potion cache for level=%d, effect=%d: %d items", level, effect, size);
         }
     }
-	sLog.outString("Cached %d types of potions", counter2); // TEST
+    sLog.outString("Cached %d types of potions", counter2); // TEST
 }
 
 void RandomItemMgr::BuildFoodCache()
@@ -3650,7 +3660,7 @@ void RandomItemMgr::BuildFoodCache()
         maxLevel = sWorld.getConfig(CONFIG_UINT32_MAX_PLAYER_LEVEL);
 
     sLog.outBasic("Building food cache for %d levels", maxLevel);
-	int counter3 = 0;
+    int counter3 = 0;
     for (uint32 level = 1; level <= maxLevel+1; level+=10)
     {
         uint32 categories[] = { 11, 59 };
@@ -3694,11 +3704,11 @@ void RandomItemMgr::BuildFoodCache()
         {
             uint32 category = categories[i];
             uint32 size = foodCache[level / 10][category].size();
-			counter3++;
+            counter3++;
             sLog.outDetail("Food cache for level=%d, category=%d: %d items", level, category, size);
         }
     }
-	sLog.outString("Cached %d types of food", counter3);
+    sLog.outString("Cached %d types of food", counter3);
 }
 
 uint32 RandomItemMgr::GetRandomPotion(uint32 level, uint32 effect)
@@ -3808,7 +3818,7 @@ void RandomItemMgr::BuildTradeCache()
         maxLevel = sWorld.getConfig(CONFIG_UINT32_MAX_PLAYER_LEVEL);
 
     sLog.outBasic("Building trade cache for %d levels", maxLevel);
-	int counter4 = 0;
+    int counter4 = 0;
     for (uint32 level = 1; level <= maxLevel+1; level+=10)
     {
         for (uint32 itemId = 0; itemId < sItemStorage.GetMaxEntry(); ++itemId)
@@ -3837,9 +3847,9 @@ void RandomItemMgr::BuildTradeCache()
     {
         uint32 size = tradeCache[level / 10].size();
         sLog.outDetail("Trade cache for level=%d: %d items", level, size);
-		counter4++;
+        counter4++;
     }
-	sLog.outString("Cached %d trade categories", counter4); // TEST
+    sLog.outString("Cached %d trade categories", counter4); // TEST
 }
 
 uint32 RandomItemMgr::GetRandomTrade(uint32 level)
@@ -3875,6 +3885,7 @@ std::vector<uint32> RandomItemMgr::GetGemsList()
     return _gems;
 }
 
+// 统计物品在世界掉落/宝箱/任务中的出现稀有度供 AHBot 与配装参考
 void RandomItemMgr::BuildRarityCache()
 {
     auto results = CharacterDatabase.PQuery("select item, rarity from ai_playerbot_rarity_cache");

@@ -1,3 +1,4 @@
+/// 测试生成器：全量世界任务自动化测试套件生成器（BL-46）
 #include "playerbot/playerbot.h"
 #include "TestRegistry.h"
 #include "Quests/QuestDef.h"
@@ -13,7 +14,7 @@
 using namespace ai;
 
 // =====================================================
-// Quest suite generator - BL-46
+// Quest suite generator - BL-46 | 任务测试套件生成器（BL-46）
 //
 // Generates one test per quest (and per objective, per level profile):
 //   pickup           - teleport to the quest giver, the bot must accept the quest via its AI
@@ -35,9 +36,10 @@ using namespace ai;
 
 namespace
 {
-    // True when the core never marks the quest rewarded server-side (repeatables, dailies,
+    // True when the core never marks the quest rewarded server-side (repeatables, dailies, | 若核心服务端不会将其标为已领奖状态（如日常/可重复任务），需改用 quest turnedin 监听器
     // weekly/monthly/seasonal/dungeon-finder) — those need the "quest turnedin" monitor because
     // "quest rewarded" can never fire. Mirrors wotlk Quest::CanIncreaseRewardedQuestCounters.
+/// 判断任务是否在服务端永不标记为已领奖（如可重复、日常、周常等任务）
     bool QuestNeverRewarded(Quest const* quest)
     {
 #if defined(MANGOSBOT_TWO)
@@ -54,7 +56,7 @@ namespace
         uint32 mapId = 0;
         float x = 0, y = 0, z = 0;
         bool continent = false;
-        uint32 guid = 0;   // creature.spawn guid - real guid so injected rpg targets pass IsCreature/IsGameObject checks
+        uint32 guid = 0;   // creature.spawn guid - real guid so injected rpg targets pass IsCreature/IsGameObject checks | 使用真实的 creature.spawn GUID 以确保注入的 RPG 目标能通过 IsCreature/IsGameObject 检验
         uint32 entry = 0;
         uint32 phaseMask = 1;
     };
@@ -65,6 +67,7 @@ namespace
     uint32 const MAX_QUESTGEN_SKIP_LOGS = 20;
     uint32 const MAX_CHAIN_DEPTH = 12;
 
+/// 将任务标题清洗为全小写下划线连接的测试名称标识符
     std::string SanitizeQuestName(std::string title)
     {
         for (char& c : title)
@@ -98,8 +101,9 @@ namespace
         return out;
     }
 
-    // "a"/"h"/"n" from the RequiredRaces mask plus giver/taker faction hostility; 0 (both/all)
+    // "a"/"h"/"n" from the RequiredRaces mask plus giver/taker faction hostility; 0 (both/all) | 根据 RequiredRaces 掩码与 NPC 敌对状态确定 a/h/n 阵营后缀
     // counts as neutral when no NPC of the quest rules out a team.
+/// 根据种族掩码及发布/交付 NPC 阵营敌对状态生成阵营标记（a/h/n）
     std::string FactionToken(uint32 requiredRaces, bool teamAlliance, bool teamHorde)
     {
         if (!teamHorde)
@@ -119,6 +123,7 @@ namespace
         return "n";
     }
 
+/// 检查指定生物 Entry 对特定阵营是否敌对
     bool NpcHostileToTeam(uint32 creatureEntry, bool horde)
     {
         CreatureInfo const* cInfo = sObjectMgr.GetCreatureTemplate(creatureEntry);
@@ -133,13 +138,14 @@ namespace
         return npcFaction->IsHostileTo(*teamFaction);
     }
 
-    // One require line drives both the in-test assertions (RequireBotIs) and the bot creation
+    // One require line drives both the in-test assertions (RequireBotIs) and the bot creation | 单条 require 规则同时驱动脚本内断言校验与测试机器人的自动化创建参数
     // parameters (GetBotCreationRequirement feeds CreateBot, which takes the same key=value
     // tokens). Classes/races are emitted numerically - ChatHelper parses ids as well.
     //
     // Defaults: no class restriction -> paladin (solid solo class). Race is left to the factory
     // (GetRandomRace keeps race/class valid) unless the quest restricts the race; a quest that
     // restricts BOTH race and class is skipped by the caller (combination risk).
+/// 生成既可用于脚本前置断言（require bot is）也可用于建号参数的需求行
     std::string RequireLine(uint32 level, Quest const* quest, bool teamAlliance, bool teamHorde)
     {
         std::ostringstream out;
@@ -148,7 +154,7 @@ namespace
         uint32 classMask = quest->GetRequiredClasses();
         uint32 raceMask = quest->GetRequiredRaces();
 
-        // Race/class masks in this tree are 1 << (id - 1) (convertEnumToFlag).
+        // Race/class masks in this tree are 1 << (id - 1) (convertEnumToFlag). | 本代码库中种族/职业位掩码采用 1 << (id - 1)
         if (classMask)
         {
             for (uint32 cls = 1; cls <= 11; ++cls)
@@ -167,7 +173,7 @@ namespace
 
         if (!classMask && raceMask)
         {
-            // Only emit a race the chosen class can actually be: Player::Create rejects invalid
+            // Only emit a race the chosen class can actually be: Player::Create rejects invalid | 仅生成与所选职业合法匹配的种族（避免如兽人圣骑士等建号失败组合）
             // race/class pairs (e.g. orc paladin), and a failed creation wedges the queued test.
             for (uint32 race = 1; race <= 11; ++race)
             {
@@ -193,8 +199,9 @@ namespace
         return out.str();
     }
 
-    // Walk the PrevQuestId chain and emit "reward quest <id>" spoof lines so the bot can take
+    // Walk the PrevQuestId chain and emit "reward quest <id>" spoof lines so the bot can take | 沿着 PrevQuestId 前置任务链生成 reward quest 跳过指令
     // the target quest. Returns false when the chain is broken or "either/or" (negative ids).
+/// 回溯前置任务链（PrevQuestId）并生成前置任务的奖励注入指令
     bool ChainSpoofLines(Quest const* quest, std::vector<std::string>& lines)
     {
         int32 prev = quest->GetPrevQuestId();
@@ -245,6 +252,7 @@ namespace
     }
 }
 
+/// 扫描世界数据库任务、生物刷新与事件配置，批量注册接任务/目标/交付/赶路测试
 void TestRegistry::RegisterQuestSuiteTests()
 {
     FindPointCreatureData allSpawns(WorldPosition(), 0, 0);
@@ -311,7 +319,7 @@ void TestRegistry::RegisterQuestSuiteTests()
         }
     }
 
-    // Collect every creature objective entry, then resolve one spawn per entry from the spawnIndex.
+    // Collect every creature objective entry, then resolve one spawn per entry from the spawnIndex. | 收集所有生物击杀目标，并从刷新索引中解析对应刷新点
     std::unordered_map<uint32, std::unordered_set<uint32>> questObjectiveEntries;
     std::unordered_set<uint32> objectiveEntrySet;
 
@@ -332,7 +340,7 @@ void TestRegistry::RegisterQuestSuiteTests()
         }
     }
 
-    // BL-47(a) follow-up (five_signets / Field Marshal Snowfall 15701): the QUEST-level event check
+    // BL-47(a) follow-up (five_signets / Field Marshal Snowfall 15701): the QUEST-level event check | BL-47(a)：检查生物刷新点的事件绑定，无激活事件关联的任务刷新点视为不存在
     // below does not cover creatures whose SPAWN is event-linked. Snowfall's spawn
     // (game_event_creature event 120 = AV weekend) does not exist while the event is off, so the
     // accept can never fire and every pickup run burned its full timeout. Spawn-event links come
@@ -345,8 +353,8 @@ void TestRegistry::RegisterQuestSuiteTests()
         return it == spawnEventAvailable.end() ? true : it->second;
     };
 
-    // First spawn wins; a continent spawn replaces a non-continent one.
-    uint32 skipEventSpawnObj = 0; // objective spawns skipped for inactive-event gating (see load above)
+    // First spawn wins; a continent spawn replaces a non-continent one. | 优先采用首个刷新点，且大陆主世界刷新点优先于副本点
+    uint32 skipEventSpawnObj = 0; // objective spawns skipped for inactive-event gating (see load above) | 因对应游戏事件未激活而跳过的任务目标刷新点计数
     uint32 skipPhaseSpawnObj = 0;
     std::unordered_map<uint32, QuestSpawn> objectiveSpawns;
     for (uint32 entry : objectiveEntrySet)
@@ -372,7 +380,7 @@ void TestRegistry::RegisterQuestSuiteTests()
         return mapEntry && mapEntry->IsContinent();
     };
 
-    // Event quests are only offered while their game event is live (Quest::IsActive gates
+    // Event quests are only offered while their game event is live (Quest::IsActive gates | 节日/活动任务仅在对应事件开启时由 NPC 提供，预跳过全未开启事件的活动任务
     // CanSeeStartQuest, so the dialog status stays NONE and the accept chain can never fire).
     // A force-complete spoof cannot fix that. Load quest -> event links once and pre-skip quests
     // whose events are all inactive (the childrens_week 172 case).
@@ -448,7 +456,7 @@ void TestRegistry::RegisterQuestSuiteTests()
 
         if (!classMask && raceMask)
         {
-            // Default paladin host: skip quests whose race mask offers no paladin-valid race
+            // Default paladin host: skip quests whose race mask offers no paladin-valid race | 默认使用圣骑士机器人，若种族限制中无合法圣骑士种族则跳过
             // (e.g. the horde mask alone would make an orc paladin - invalid).
             bool validPair = false;
             for (uint32 race = 1; race <= 11 && !validPair; ++race)
@@ -462,7 +470,7 @@ void TestRegistry::RegisterQuestSuiteTests()
             }
         }
 
-        // Skill/reputation gates make pickup acceptance impossible for a fresh bot.
+        // Skill/reputation gates make pickup acceptance impossible for a fresh bot. | 新建测试机器人无法满足技能或声望前置条件，跳过
         if (quest->GetRequiredSkillValue() || quest->GetRequiredMinRepFaction())
         {
             ++skipGatedCombo;
@@ -477,7 +485,7 @@ void TestRegistry::RegisterQuestSuiteTests()
             continue;
         }
 
-        // Event quest with no active event: the giver does not offer it at all.
+        // Event quest with no active event: the giver does not offer it at all. | 无激活事件的任务不提供接取，跳过
         {
             auto evIt = questEvents.find(questId);
             if (evIt != questEvents.end())
@@ -497,7 +505,7 @@ void TestRegistry::RegisterQuestSuiteTests()
             }
         }
 
-        // Player-condition gates (player_condition) cannot be spoofed by force-completing quests.
+        // Player-condition gates (player_condition) cannot be spoofed by force-completing quests. | 带有 player_condition 条件的任务无法通过前置任务伪造绕过，跳过
         if (quest->GetRequiredCondition())
         {
             ++skipCondition;
@@ -505,7 +513,7 @@ void TestRegistry::RegisterQuestSuiteTests()
             continue;
         }
 
-        // Breadcrumb quests are only offered while the quest they point at is takeable
+        // Breadcrumb quests are only offered while the quest they point at is takeable | 引导型（Breadcrumb）任务依赖目标任务可接取状态，跳过
         // (SatisfyQuestBreadcrumbQuest) - not guaranteed for our injected hosts.
         if (quest->GetBreadcrumbForQuestId())
         {
@@ -514,7 +522,7 @@ void TestRegistry::RegisterQuestSuiteTests()
             continue;
         }
 
-        // Raid/escort/legendary/dungeon-finder quest types are out of scope for the first pass.
+        // Raid/escort/legendary/dungeon-finder quest types are out of scope for the first pass. | 第一阶段暂不覆盖团队/护送/传说/地下城查找器类型任务
         uint32 questType = quest->GetType();
         if (questType == QUEST_TYPE_RAID ||
 #ifdef MANGOSBOT_TWO
@@ -538,7 +546,7 @@ void TestRegistry::RegisterQuestSuiteTests()
             continue;
         }
 
-        // Level profiles: quest level (clamped into [minLevel, cap]), edge-XP level, cap.
+        // Level profiles: quest level (clamped into [minLevel, cap]), edge-XP level, cap. | 生成三个测试等级档位：任务等级、边缘经验等级（+9级）与满级
         std::unordered_set<uint32> levels;
         uint32 minLevel = std::max<uint32>(1, quest->GetMinLevel());
         uint32 atLevel = std::min(QUEST_LEVEL_CAP, std::max(minLevel, static_cast<uint32>(questLevel)));
@@ -616,7 +624,7 @@ void TestRegistry::RegisterQuestSuiteTests()
         {
             std::ostringstream locName;
             locName << "quest_" << questId << "_giver";
-            // Real creature guid, not coords-only: RpgStartQuestTrigger::IsActive bails out when the
+            // Real creature guid, not coords-only: RpgStartQuestTrigger::IsActive bails out when the | 必须使用真实生物 GUID 以便 RpgStartQuestTrigger 正常触发接任务
             // injected rpg target is neither creature nor gameobject, so a guid-less location would
             // make 'set rpg target' useless for the accept chain (BL-46 accept-deadlock).
             RegisterNamedLocation(locName.str(), GuidPosition(ObjectGuid(HIGHGUID_UNIT, giver->second.entry, giver->second.guid), WorldPosition(giver->second.mapId, giver->second.x, giver->second.y, giver->second.z)));
@@ -665,7 +673,7 @@ void TestRegistry::RegisterQuestSuiteTests()
                     logSkip("gray quest at profile level (bot skips gray unless traveling)", questId);
                 }
 
-                // BL-46 travel flavor: drop the bot ~90 yd off the giver and let it genuinely
+                // BL-46 travel flavor: drop the bot ~90 yd off the giver and let it genuinely | BL-46 旅行接任务变体：在距离 NPC 约 90 码处落地，验证跑图到达后的自动接任务链路
                 // travel back. The arrival flip then happens inside MoveToTravelTargetAction
                 // itself, so the rpg chain gets a fair chance instead of fighting a forced pin.
                 {
@@ -676,13 +684,13 @@ void TestRegistry::RegisterQuestSuiteTests()
                     for (auto const& line : chainLines)
                         tlines.push_back(line);
                     tlines.push_back("monitor quest active " + std::to_string(questId) + " => pass \"Quest picked up on arrival\"");
-                    // 900+, not 600: the Jordred sample failed honest at 600 s - the travel leg
+                    // 900+, not 600: the Jordred sample failed honest at 600 s - the travel leg | 超时设 900 秒以上，预留充足赶路与遭遇战时间
                     // itself (walk from the near-point plus roam interference) can legitimately
                     // take longer than 600 s.
                     tlines.push_back("monitor time > 900 => fail \"Timeout: quest not picked up after travelling to the giver (<time elapsed>)\"");
                     tlines.push_back("monitor bot dead => abort \"Bot died before picking up quest\"");
                     tlines.push_back("monitor npc dead quest_" + std::to_string(questId) + "_giver => abort \"Quest giver died during the test\"");
-                    // Standard flow end-to-end (operator-approved 2026-09-27): no rpg injection,
+                    // Standard flow end-to-end (operator-approved 2026-09-27): no rpg injection, | 端到端标准流程：不强制注入 RPG 目标，依靠非强制目的地到达时自然触发
                     // no strategy pins. The nonforced destination carries the giver's entry, so
                     // while traveling only 'move to travel target' runs (rpg choose is gated on
                     // 'travel target traveling'); the nonforced 'set destination' grants a

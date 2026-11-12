@@ -9,6 +9,7 @@
 
 using namespace ai;
 
+/// 执行动作主逻辑（RPG 交互动作）
 bool RpgAction::Execute(Event& event)
 {    
     GuidPosition guidP = AI_VALUE(GuidPosition, "rpg target");
@@ -32,11 +33,13 @@ bool RpgAction::Execute(Event& event)
     return true;
 }
 
+/// 判断当前状态下该动作是否可用/有效（RPG 交互动作）
 bool RpgAction::isUseful()
 {
     return (AI_VALUE(std::string, "next rpg action").empty() || AI_VALUE(std::string, "next rpg action") == "rpg") && AI_VALUE(GuidPosition, "rpg target");
 }
 
+/// 根据评分选定并设置下一步要执行的 RPG 子动作
 bool RpgAction::SetNextRpgAction()
 {
     Strategy* rpgStrategy; 
@@ -149,6 +152,7 @@ bool RpgAction::SetNextRpgAction()
     return true;
 }
 
+/// 将指定 GUID 或目标加入临时忽略列表
 bool RpgAction::AddIgnore(ObjectGuid guid)
 {
     if (HasIgnore(guid))
@@ -166,6 +170,7 @@ bool RpgAction::AddIgnore(ObjectGuid guid)
     return true;
 }
 
+/// 从临时忽略列表中移除指定目标
 bool RpgAction::RemIgnore(ObjectGuid guid)
 {
     if (!HasIgnore(guid))
@@ -180,6 +185,7 @@ bool RpgAction::RemIgnore(ObjectGuid guid)
     return true;
 }
 
+/// 检查指定目标是否处于临时忽略列表中
 bool RpgAction::HasIgnore(ObjectGuid guid)
 {
     std::set<ObjectGuid>& ignoreList = context->GetValue<std::set<ObjectGuid>&>("ignore rpg target")->Get();

@@ -5,6 +5,7 @@
 
 using namespace ai;
 
+/// 执行动作主逻辑（绑定炉石点动作）
 bool SetHomeAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
@@ -47,6 +48,7 @@ bool SetHomeAction::Execute(Event& event)
         }
     }
 
+    // 遍历附近 NPC 列表
     std::list<ObjectGuid> npcs = AI_VALUE(std::list<ObjectGuid>, "nearest npcs");
     for (std::list<ObjectGuid>::iterator i = npcs.begin(); i != npcs.end(); i++)
     {

@@ -6,6 +6,7 @@ char * strstri (const char* str1, const char* str2);
 
 namespace ai
 {
+    /// 背包/装备物品遍历访问者基类
     class IterateItemsVisitor
     {
     public:
@@ -14,6 +15,7 @@ namespace ai
         virtual bool Visit(Item* item) = 0;
     };
 
+    /// 通用物品查找访问者基类，按 Accept 条件收集匹配物品
     class FindItemVisitor : public IterateItemsVisitor {
     public:
         FindItemVisitor() : IterateItemsVisitor(), result(0) {}
@@ -37,6 +39,7 @@ namespace ai
         std::list<Item*> result;
     };
 
+    /// 收集所有遍历到的物品
     class FindAllItemVisitor : public FindItemVisitor {
     public:
         FindAllItemVisitor() : FindItemVisitor() {}
@@ -44,6 +47,7 @@ namespace ai
         virtual bool Accept(const ItemPrototype* proto) override { return true; };
     };
 
+    /// 仅收集机器人当前满足使用条件的物品
     class FindUsableItemVisitor : public FindItemVisitor {
     public:
         FindUsableItemVisitor(Player* bot) : FindItemVisitor()
@@ -64,6 +68,7 @@ namespace ai
     };
 
 
+    /// 按指定物品品质收集最多 count 个物品
     class FindItemsByQualityVisitor : public IterateItemsVisitor
     {
     public:
@@ -96,6 +101,7 @@ namespace ai
         std::list<Item*> result;
     };
 
+    /// 按指定品质收集可交易（非灵魂绑定）物品
     class FindItemsToTradeByQualityVisitor : public FindItemsByQualityVisitor
     {
     public:
@@ -110,6 +116,7 @@ namespace ai
         }
     };
 
+    /// 按物品主分类与子分类收集物品
     class FindItemsByClassVisitor : public IterateItemsVisitor
     {
     public:
@@ -136,6 +143,7 @@ namespace ai
         std::list<Item*> result;
     };
 
+    /// 按分类收集可交易（非灵魂绑定）物品
     class FindItemsToTradeByClassVisitor : public IterateItemsVisitor
     {
     public:
@@ -169,6 +177,7 @@ namespace ai
         std::list<Item*> result;
     };
 
+    /// 统计指定物品 ID 的总数量
     class QueryItemCountVisitor : public IterateItemsVisitor
     {
     public:
@@ -194,6 +203,7 @@ namespace ai
     };
 
 
+    /// 按名称子串统计物品总数量
     class QueryNamedItemCountVisitor : public QueryItemCountVisitor
     {
     public:
@@ -215,6 +225,7 @@ namespace ai
         std::string name;
     };
 
+    /// 按名称子串查找物品
     class FindNamedItemVisitor : public FindItemVisitor {
     public:
         FindNamedItemVisitor(Player* bot, std::string name) : FindItemVisitor()
@@ -231,6 +242,7 @@ namespace ai
         std::string name;
     };
 
+    /// 按精确物品 ID 查找物品
     class FindItemByIdVisitor : public FindItemVisitor {
     public:
         FindItemByIdVisitor(uint32 id) : FindItemVisitor()
@@ -247,6 +259,7 @@ namespace ai
         uint32 id;
     };
 
+    /// 按物品 ID 集合查找物品
     class FindItemByIdsVisitor : public FindItemVisitor {
     public:
         FindItemByIdsVisitor(ItemIds ids) : FindItemVisitor()
@@ -263,6 +276,7 @@ namespace ai
         ItemIds ids;
     };
 
+    /// 查找可装备至指定装备槽位的物品
     class FindItemBySlotVisitor : public FindItemVisitor {
     public:
         FindItemBySlotVisitor(Player* bot, uint32 slot) : FindItemVisitor()
@@ -282,6 +296,7 @@ namespace ai
         Player* bot;
     };
 
+    /// 汇总所有物品 ID 的堆叠总数及绑定状态
     class ListItemsVisitor : public IterateItemsVisitor
     {
     public:
@@ -303,6 +318,7 @@ namespace ai
         }
     };
 
+    /// 按品质统计物品件数分布
     class ItemCountByQuality : public IterateItemsVisitor
     {
     public:
@@ -323,6 +339,7 @@ namespace ai
     };
 
 
+    /// 查找具有指定法术效果（如回血/回蓝）的可使用药水或合剂
     class FindPotionVisitor : public FindUsableItemVisitor
     {
     public:
@@ -340,7 +357,7 @@ namespace ai
 
                     for (int i = 0 ; i < 3; i++)
                     {
-                        // Energize also covers rage and energy potions, which are not mana potions.
+                        // Energize also covers rage and energy potions, which are not mana potions. | 回能效果也包含怒气和能量药水，需限定 POWER_MANA
                         if (spellInfo->Effect[i] == effectId &&
                             (effectId != SPELL_EFFECT_ENERGIZE || spellInfo->EffectMiscValue[i] == POWER_MANA))
                             return true;
@@ -354,6 +371,7 @@ namespace ai
         uint32 effectId;
     };
 
+    /// 查找指定法术分类的食物或饮料（可选仅限造物）
     class FindFoodVisitor : public FindUsableItemVisitor
     {
     public:
@@ -376,6 +394,7 @@ namespace ai
         bool conjured;
     };
 
+    /// 查找可召唤坐骑的物品
     class FindMountVisitor : public FindUsableItemVisitor
     {
     public:
@@ -386,7 +405,7 @@ namespace ai
 
 #ifdef MANGOSBOT_TWO
             if (proto->Spells[0].SpellId == SPELL_ID_GENERIC_LEARN_PET && bot->HasSpell(proto->Spells[1].SpellId))
-                return false; //Do not include mount items the bot already learned.
+                return false; //Do not include mount items the bot already learned. (跳过已学会的坐骑物品)
 #endif
 
             for (int j = 0; j < MAX_ITEM_PROTO_SPELLS; j++)
@@ -412,6 +431,7 @@ namespace ai
         uint32 effectId;
     };
 
+    /// 查找可召唤小宠物的物品
     class FindPetVisitor : public FindUsableItemVisitor
     {
     public:
@@ -433,9 +453,9 @@ namespace ai
                         if (spellInfo->Effect[i] == SPELL_EFFECT_SUMMON_CRITTER)
 #else
 #ifdef MANGOSBOT_ONE
-						if (spellInfo->Effect[i] == SPELL_EFFECT_97)
+                        if (spellInfo->Effect[i] == SPELL_EFFECT_97)
 #else
-						if (spellInfo->Effect[i] == SPELL_EFFECT_SUMMON_PET)
+                        if (spellInfo->Effect[i] == SPELL_EFFECT_SUMMON_PET)
 #endif
 #endif
                             return true;
@@ -447,6 +467,7 @@ namespace ai
 
     };
 
+    /// 查找匹配远程武器类型的可用弹药（箭矢/子弹/投掷武器）
     class FindAmmoVisitor : public FindUsableItemVisitor
     {
     public:
@@ -487,6 +508,7 @@ namespace ai
         uint32 weaponType;
     };
 
+    /// 查找可使用的任务物品
     class FindQuestItemVisitor : public FindUsableItemVisitor
     {
     public:
@@ -502,6 +524,7 @@ namespace ai
         }
     };
 
+    /// 查找可直接打开拾取且未上锁的容器类物品（如蚌壳、箱子）
     class FindOpenItemVisitor : public FindUsableItemVisitor
     {
     public:
@@ -534,6 +557,7 @@ namespace ai
         }
     };
 
+    /// 查找可学习的商业技能配方或图纸
     class FindRecipeVisitor : public FindUsableItemVisitor
     {
     public:
@@ -574,6 +598,7 @@ namespace ai
         SkillType skill;
     };
 
+    /// 按 AI 计算出的物品用途(ItemUsage)筛选物品
     class FindItemUsageVisitor : public FindItemVisitor
     {
     public:
@@ -596,6 +621,7 @@ namespace ai
         ItemUsage usage;
     };
 
+    /// 查找应出售给 NPC 商人（或拍卖行）的物品
     class FindVendorItemsVisitor : public FindItemVisitor
     {
     public:

@@ -1,4 +1,4 @@
-﻿#include "playerbot/playerbot.h"
+#include "playerbot/playerbot.h"
 #include "WorldBuffTravelActions.h"
 #include "ChooseTravelTargetAction.h"
 #include "playerbot/TravelMgr.h"
@@ -6,6 +6,7 @@
 
 using namespace ai;
 
+/// 获取世界增益旅行指定步骤对应的区域名称
 static const char* GetStepZoneName(WorldBuffTravelStep step, Player* bot)
 {
     bool horde = IsHordeFaction(bot);
@@ -26,6 +27,7 @@ static const char* GetStepZoneName(WorldBuffTravelStep step, Player* bot)
     }
 }
 
+/// 判断世界增益旅行指定步骤是否需要搜寻游戏对象（如轻歌花/篝火）
 static bool IsStepGoSearch(WorldBuffTravelStep step, Player* bot)
 {
     bool horde = IsHordeFaction(bot);
@@ -45,6 +47,7 @@ static bool IsStepGoSearch(WorldBuffTravelStep step, Player* bot)
     return false;
 }
 
+/// 获取世界增益旅行指定步骤对应的目标 NPC Entry ID
 static uint32 GetStepNpcEntry(WorldBuffTravelStep step, Player* bot)
 {
     bool horde = IsHordeFaction(bot);
@@ -60,6 +63,7 @@ static uint32 GetStepNpcEntry(WorldBuffTravelStep step, Player* bot)
     }
 }
 
+/// 查找距离机器人最近的净化的轻歌花刷新点数据
 static const GameObjectData* FindClosestSongflowerSpawn(Player* bot)
 {
     const GameObjectData* best = nullptr;
@@ -69,6 +73,7 @@ static const GameObjectData* FindClosestSongflowerSpawn(Player* bot)
     float botY = bot->GetPositionY();
     float botZ = bot->GetPositionZ();
 
+    /// 轻歌花坐标搜索辅助结构体：查找费伍德森林距离最近的轻歌花刷新点
     struct SongflowerFinder
     {
         uint32 mapId;
@@ -104,6 +109,7 @@ static const GameObjectData* FindClosestSongflowerSpawn(Player* bot)
     return finder.best;
 }
 
+/// 在机器人附近搜寻指定目标区域的法师传送门游戏对象
 static GameObject* FindNearbyPortalGO(PlayerbotAI* ai, Player* bot,
     const std::list<ObjectGuid>& gos, const char* destKeyword)
 {
@@ -139,6 +145,7 @@ static GameObject* FindNearbyPortalGO(PlayerbotAI* ai, Player* bot,
     return nullptr;
 }
 
+/// 通过术士召唤法术或安全回退传送将目标玩家召唤至召唤者位置
 static bool SummonPlayerToSummoner(Player* summoner, Player* target, PlayerbotAI* summonerAI)
 {
     if (!summoner || !target || summoner == target)
@@ -147,8 +154,8 @@ static bool SummonPlayerToSummoner(Player* summoner, Player* target, PlayerbotAI
     if (summoner->IsBeingTeleported() || target->IsBeingTeleported())
         return false;
 
-    // Preferred path: let the target accept a normal summon request. Only if it cannot
-    // (dead / in combat) fall back to a thread-safe direct teleport.
+    // Preferred path: let the target accept a normal summon request. Only if it cannot (优先路径：让目标接受正常召唤请求；仅当目标无法)
+    // (dead / in combat) fall back to a thread-safe direct teleport. (（死亡/战斗中）回退到线程安全的直接传送。)
     if (!PlayerbotAI::SendSummonRequest(summoner, target))
     {
         uint32 destMapId = summoner->GetMapId();
@@ -165,7 +172,7 @@ static bool SummonPlayerToSummoner(Player* summoner, Player* target, PlayerbotAI
     return true;
 }
 
-// Apply a buff to the bot and also share it with any real players in the group
+// Apply a buff to the bot and also share it with any real players in the group (为机器人自身施加增益并同步分享给队伍中的真实玩家)
 void WorldBuffTravelApplyAction::ApplyBuffToSelfAndRealPlayers(uint32 spellId)
 {
     PlayerbotAI::AddAura(bot, spellId);
@@ -192,11 +199,13 @@ void WorldBuffTravelApplyAction::ApplyBuffToSelfAndRealPlayers(uint32 spellId)
     }
 }
 
+/// 跟随主人同步搭乘飞行坐骑航线
 bool WorldBuffTravelApplyAction::TakeFlightFromMaster(uint32 npcEntry, uint32 destTaxiNode)
 {
     if (bot->IsTaxiFlying())
         return true;
 
+    // 遍历附近 NPC 列表
     std::list<ObjectGuid> npcs = AI_VALUE(std::list<ObjectGuid>, "nearest npcs no los");
     for (auto& guid : npcs)
     {
@@ -233,7 +242,7 @@ bool WorldBuffTravelApplyAction::TakeFlightFromMaster(uint32 npcEntry, uint32 de
     return false;
 }
 
-// If bot is a warlock at a regrouping step, summon far away group members and sync their step.
+// If bot is a warlock at a regrouping step, summon far away group members and sync their step. (若机器人是处于集合阶段的术士，则召唤远处的队友并同步其进度步骤。)
 bool WorldBuffTravelApplyAction::TrySummonFarAwayMembers(WorldBuffTravelStep step)
 {
     if (bot->getClass() != CLASS_WARLOCK)
@@ -327,7 +336,7 @@ bool WorldBuffTravelApplyAction::TrySummonFarAwayMembers(WorldBuffTravelStep ste
         {
             ai->TellPlayer(GetMaster(), "Summoning " + std::string(toSummon->GetName()) + " to the group!");
 
-            // Sync the summoned member's step to the warlock's step
+            // Sync the summoned member's step to the warlock's step (将被召唤队友的世界增益阶段步骤同步为术士当前步骤)
             PlayerbotAI* memberAI = toSummon->GetPlayerbotAI();
             if (memberAI)
             {
@@ -355,6 +364,7 @@ bool WorldBuffTravelApplyAction::TrySummonFarAwayMembers(WorldBuffTravelStep ste
     return didSummon || (remainingToSummon > 0) || (pendingCount > 0);
 }
 
+/// 为世界增益旅行当前阶段施加对应的世界增益 Buff
 void WorldBuffTravelApplyAction::ApplyBuffsForStep(WorldBuffTravelStep step)
 {
     bool horde = IsHordeFaction(bot);
@@ -366,7 +376,7 @@ void WorldBuffTravelApplyAction::ApplyBuffsForStep(WorldBuffTravelStep step)
         ai->TellPlayer(GetMaster(), "Gained Rallying Cry of the Dragonslayer!");
         break;
     case WorldBuffTravelStep::STEP_GRYPHON_MASTER:
-        // Alliance only
+        // Alliance only (仅限联盟)
         if (!TakeFlightFromMaster(NPC_DUNGAR_LONGDRINK, TAXI_NODE_BOOTY_BAY))
         {
             ai->TellPlayer(GetMaster(), "Failed to take flight from Dungar Longdrink.");
@@ -401,7 +411,7 @@ void WorldBuffTravelApplyAction::ApplyBuffsForStep(WorldBuffTravelStep step)
     case WorldBuffTravelStep::STEP_THYSSIANA:
         if (horde)
         {
-            // Horde only
+            // Horde only (仅限部落)
             ai->TellPlayer(GetMaster(), "Arrived at Shyn in Camp Mojache. Heading to Dire Maul...");
         }
         else
@@ -415,7 +425,7 @@ void WorldBuffTravelApplyAction::ApplyBuffsForStep(WorldBuffTravelStep step)
         }
         break;
     case WorldBuffTravelStep::STEP_FEATHERMOON:
-        // Alliance only
+        // Alliance only (仅限联盟)
         ai->TellPlayer(GetMaster(), "Arrived at Feathermoon Stronghold. Heading to Feralas mainland...");
         break;
     case WorldBuffTravelStep::STEP_FORGOTTEN_COAST:
@@ -445,6 +455,7 @@ void WorldBuffTravelApplyAction::ApplyBuffsForStep(WorldBuffTravelStep step)
     }
 }
 
+/// 推进世界增益旅行流程至下一阶段步骤
 void WorldBuffTravelApplyAction::AdvanceStep()
 {
     TravelTarget* travelTarget = AI_VALUE(TravelTarget*, "travel target");
@@ -454,7 +465,7 @@ void WorldBuffTravelApplyAction::AdvanceStep()
     uint8 step = AI_VALUE(uint8, "world buff travel step");
     step++;
 
-    // Horde: skip Alliance-only steps
+    // Horde: skip Alliance-only steps (部落：跳过仅限联盟的步骤)
     bool horde = IsHordeFaction(bot);
     while (horde && step < static_cast<uint8>(WorldBuffTravelStep::STEP_DONE) &&
         IsAllianceOnlyStep(static_cast<WorldBuffTravelStep>(step)))
@@ -472,6 +483,7 @@ void WorldBuffTravelApplyAction::AdvanceStep()
     context->GetValue<uint8>("world buff travel step")->Set(step);
 }
 
+/// 执行动作主逻辑（世界增益旅行自动套用动作）
 bool WorldBuffTravelApplyAction::Execute(Event& event)
 {
     uint8 rawStep = AI_VALUE(uint8, "world buff travel step");
@@ -506,6 +518,7 @@ bool WorldBuffTravelApplyAction::Execute(Event& event)
     return true;
 }
 
+/// 执行动作主逻辑（世界增益旅行设定目标动作）
 bool WorldBuffTravelSetTargetAction::Execute(Event& event)
 {
     uint8 rawStep = AI_VALUE(uint8, "world buff travel step");
@@ -516,7 +529,7 @@ bool WorldBuffTravelSetTargetAction::Execute(Event& event)
     const char* name = GetStepZoneName(step, bot);
     if (!name || !name[0])
     {
-        // DM_PORTAL: regroup at the DM North
+        // DM_PORTAL: regroup at the DM North (厄运传送门阶段：在厄运北区域集合)
         if (step == WorldBuffTravelStep::STEP_DM_PORTAL)
         {
             uint32 destZone = GetDMPortalDestZone(bot);
@@ -534,7 +547,7 @@ bool WorldBuffTravelSetTargetAction::Execute(Event& event)
             return MoveTo(goData->mapid, goData->posX, goData->posY, goData->posZ);
         }
 
-        // PORTAL_HOME: regroup at the nearest Songflower
+        // PORTAL_HOME: regroup at the nearest Songflower (回城传送门阶段：在最近的轻歌花位置集合)
         if (step == WorldBuffTravelStep::STEP_PORTAL_HOME)
         {
             uint32 homeZone = GetHomeZone(bot);
@@ -594,6 +607,7 @@ bool WorldBuffTravelSetTargetAction::Execute(Event& event)
         const GameObjectData* best = nullptr;
         float bestDistSq = std::numeric_limits<float>::max();
 
+        /// 篝火对象搜索辅助结构体：在附近网格中定位可用的火焰节篝火或指定对象
         struct BonfireFinder
         {
             uint32 mapId;
@@ -696,6 +710,7 @@ bool WorldBuffTravelSetTargetAction::Execute(Event& event)
     return true;
 }
 
+/// 执行动作主逻辑（厄运之槌增益获取确认动作）
 bool WorldBuffTravelDMBuffedAction::Execute(Event& event)
 {
     ai->TellPlayer(GetMaster(), "Got all DM Tribute buffs! Leaving the instance...");
@@ -704,6 +719,7 @@ bool WorldBuffTravelDMBuffedAction::Execute(Event& event)
     return true;
 }
 
+/// 执行动作主逻辑（厄运之槌撤离完成确认动作）
 bool WorldBuffTravelDMExitedAction::Execute(Event& event)
 {
     const char* portalName = IsHordeFaction(bot) ? "Orgrimmar" : "Darnassus";
@@ -713,11 +729,13 @@ bool WorldBuffTravelDMExitedAction::Execute(Event& event)
     return true;
 }
 
+/// 判断当前状态下该动作是否可用/有效（厄运之槌法师开门动作）
 bool WorldBuffTravelDMCastPortalAction::isUseful()
 {
     return bot->getClass() == CLASS_MAGE;
 }
 
+/// 执行动作主逻辑（厄运之槌法师开门动作）
 bool WorldBuffTravelDMCastPortalAction::Execute(Event& event)
 {
     if (bot->IsNonMeleeSpellCasted(false, false, true))
@@ -726,6 +744,7 @@ bool WorldBuffTravelDMCastPortalAction::Execute(Event& event)
     const char* keyword = GetDMPortalKeyword(bot);
     uint32 portalSpell = GetDMPortalSpell(bot);
 
+    // 遍历附近游戏对象列表
     std::list<ObjectGuid> gos = AI_VALUE(std::list<ObjectGuid>, "nearest game objects no los");
     if (FindNearbyPortalGO(ai, bot, gos, keyword))
     {
@@ -749,6 +768,7 @@ bool WorldBuffTravelDMCastPortalAction::Execute(Event& event)
     return false;
 }
 
+/// 执行动作主逻辑（厄运之槌乘传送门动作）
 bool WorldBuffTravelDMTakePortalAction::Execute(Event& event)
 {
     if (bot->IsNonMeleeSpellCasted(false, false, true))
@@ -759,6 +779,7 @@ bool WorldBuffTravelDMTakePortalAction::Execute(Event& event)
 
     const char* keyword = GetDMPortalKeyword(bot);
 
+    // 遍历附近游戏对象列表
     std::list<ObjectGuid> gos = AI_VALUE(std::list<ObjectGuid>, "nearest game objects no los");
     GameObject* portalGO = FindNearbyPortalGO(ai, bot, gos, keyword);
     if (portalGO)
@@ -782,11 +803,13 @@ bool WorldBuffTravelDMTakePortalAction::Execute(Event& event)
     return false;
 }
 
+/// 判断当前状态下该动作是否可用/有效（世界增益法师开门动作）
 bool WorldBuffTravelCastPortalAction::isUseful()
 {
     return bot->getClass() == CLASS_MAGE;
 }
 
+/// 执行动作主逻辑（世界增益法师开门动作）
 bool WorldBuffTravelCastPortalAction::Execute(Event& event)
 {
     if (bot->IsNonMeleeSpellCasted(false, false, true))
@@ -795,6 +818,7 @@ bool WorldBuffTravelCastPortalAction::Execute(Event& event)
     const char* keyword = GetHomePortalKeyword(bot);
     uint32 portalSpell = GetHomePortalSpell(bot);
 
+    // 遍历附近游戏对象列表
     std::list<ObjectGuid> gos = AI_VALUE(std::list<ObjectGuid>, "nearest game objects no los");
     if (FindNearbyPortalGO(ai, bot, gos, keyword))
     {
@@ -818,6 +842,7 @@ bool WorldBuffTravelCastPortalAction::Execute(Event& event)
     return false;
 }
 
+/// 执行动作主逻辑（世界增益乘传送门动作）
 bool WorldBuffTravelTakePortalAction::Execute(Event& event)
 {
     if (bot->IsNonMeleeSpellCasted(false, false, true))
@@ -828,6 +853,7 @@ bool WorldBuffTravelTakePortalAction::Execute(Event& event)
 
     const char* keyword = GetHomePortalKeyword(bot);
 
+    // 遍历附近游戏对象列表
     std::list<ObjectGuid> gos = AI_VALUE(std::list<ObjectGuid>, "nearest game objects no los");
     GameObject* portalGO = FindNearbyPortalGO(ai, bot, gos, keyword);
     if (portalGO)
@@ -851,12 +877,13 @@ bool WorldBuffTravelTakePortalAction::Execute(Event& event)
     return false;
 }
 
+/// 执行动作主逻辑（完成世界增益行程动作）
 bool WorldBuffTravelFinishAction::Execute(Event& event)
 {
     TravelTarget* travelTarget = AI_VALUE(TravelTarget*, "travel target");
     travelTarget->SetForced(false);
 
-    // Horde: Apply Warchief's Blessing last when getting back to Orgrimmar.
+    // Horde: Apply Warchief's Blessing last when getting back to Orgrimmar. (部落：最后返回奥格瑞玛领取酋长的祝福。)
     if (IsHordeFaction(bot) && !bot->HasAura(SPELL_WARCHIEFS_BLESSING))
     {
         PlayerbotAI::AddAura(bot, SPELL_WARCHIEFS_BLESSING);

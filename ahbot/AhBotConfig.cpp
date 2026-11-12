@@ -9,6 +9,7 @@ AhBotConfig::AhBotConfig()
 {
 }
 
+// 将逗号分隔的物品 ID 字符串解析并插入集合
 template <class T>
 void LoadSet(std::string value, T &res)
 {
@@ -23,6 +24,7 @@ void LoadSet(std::string value, T &res)
     }
 }
 
+// 读取 ahbot.conf 配置文件并初始化所有参数
 bool AhBotConfig::Initialize()
 {
     if (!config.SetSource(SYSCONFDIR"ahbot.conf", "AHBot_"))

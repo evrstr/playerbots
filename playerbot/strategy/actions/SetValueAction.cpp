@@ -4,6 +4,7 @@
 
 using namespace ai;
 
+/// 执行动作主逻辑（设置策略值指令动作）
 bool SetValueAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();

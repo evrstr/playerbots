@@ -7,6 +7,7 @@
 using namespace ai;
 
 
+/// 执行动作主逻辑（设置避让区域动作）
 bool SetAvoidAreaAction::Execute(Event& event)
 {
     PathFinder pathfinder(bot->GetMapId(), bot->GetInstanceId());
@@ -28,17 +29,17 @@ bool SetAvoidAreaAction::Execute(Event& event)
         if (!cInfo)
             continue;
 
-        if (cInfo->NpcFlags > 0) //Ignore npcs.
+        if (cInfo->NpcFlags > 0) // Ignore npcs. (忽略 NPC。)
             continue;
 
-        if (cInfo->MaxLevel < bot->GetLevel() - 3) //Ignore lower level mobs.
+        if (cInfo->MaxLevel < bot->GetLevel() - 3) // Ignore lower level mobs. (忽略低等级怪物。)
             continue;
 
         FactionTemplateEntry const* factionEntry = sFactionTemplateStore.LookupEntry(cInfo->Faction);
         ReputationRank reactionHum = PlayerbotAI::GetFactionReaction(humanFaction, factionEntry);
         ReputationRank reactionOrc = PlayerbotAI::GetFactionReaction(orcFaction, factionEntry);
 
-        if (reactionHum >= REP_NEUTRAL || reactionOrc >= REP_NEUTRAL) //ignore mobs friendly to opposing faction (they share avoid maps)
+        if (reactionHum >= REP_NEUTRAL || reactionOrc >= REP_NEUTRAL) // ignore mobs friendly to opposing faction (they share avoid maps) (忽略对立阵营友好的怪物（共用避让表）)
             continue;
 
         Unit* targetUnit = ai->GetUnit(target);
@@ -54,6 +55,7 @@ bool SetAvoidAreaAction::Execute(Event& event)
     return true;
 }
 
+/// 判断当前状态下该动作是否可用/有效（设置避让区域动作）
 bool SetAvoidAreaAction::isUseful()
 {
     if (bot->GetInstanceId())

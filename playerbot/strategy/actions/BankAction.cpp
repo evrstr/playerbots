@@ -32,11 +32,13 @@ namespace
     }
 }
 
+/// 执行动作主逻辑（银行存取指令动作）
 bool BankAction::Execute(Event& event)
 {
     Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
     std::string text = event.getParam();
 
+    // 遍历附近 NPC 列表
     std::list<ObjectGuid> npcs = AI_VALUE(std::list<ObjectGuid>, "nearest npcs no los");
     for (std::list<ObjectGuid>::iterator i = npcs.begin(); i != npcs.end(); i++)
     {
@@ -51,6 +53,7 @@ bool BankAction::Execute(Event& event)
     return false;
 }
 
+/// 解析并执行聊天指令子命令（银行存取指令动作）
 bool BankAction::ExecuteCommand(Player* requester, const std::string& text, Unit* bank)
 {
     if (text.empty() || text == "?")
@@ -88,6 +91,7 @@ bool BankAction::ExecuteCommand(Player* requester, const std::string& text, Unit
     return result;
 }
 
+/// 从个人银行或公会银行取出指定物品
 bool BankAction::Withdraw(Player* requester, const uint32 itemid)
 {
     Item* pItem = FindItemInBank(itemid);
@@ -124,6 +128,7 @@ bool BankAction::Withdraw(Player* requester, const uint32 itemid)
     return true;
 }
 
+/// 将指定物品存入个人银行或公会银行
 bool BankAction::Deposit(Player* requester, Item* pItem)
 {
     std::ostringstream out;
@@ -154,9 +159,10 @@ bool BankAction::Deposit(Player* requester, Item* pItem)
 
     out << "put " << itemText << " to bank";
     ai->TellPlayer(requester, out.str());
-	return true;
+    return true;
 }
 
+/// 按类别或名称汇总列出背包中的物品清单
 void BankAction::ListItems(Player* requester)
 {
     ai->TellPlayer(requester, "=== Bank ===");
@@ -199,6 +205,7 @@ void BankAction::ListItems(Player* requester)
     ai->InventoryTellItems(requester, items, soulbound);
 }
 
+/// 在银行及银行背包栏位中查找指定物品
 Item* BankAction::FindItemInBank(uint32 ItemId)
 {
     for (uint8 slot = BANK_SLOT_ITEM_START; slot < BANK_SLOT_ITEM_END; slot++)
@@ -210,7 +217,7 @@ Item* BankAction::FindItemInBank(uint32 ItemId)
             if (!pItemProto)
                 continue;
 
-            if (pItemProto->ItemId == ItemId)   // have required item
+            if (pItemProto->ItemId == ItemId)   // have required item (已持有必需物品)
                 return pItem;
         }
     }
@@ -239,12 +246,14 @@ Item* BankAction::FindItemInBank(uint32 ItemId)
     return NULL;
 }
 
+/// 自动将背包中适合存放的多余物资存入银行或公会银行
 bool BankAction::AutoDeposit()
 {
     bool deposited = false;
 
     std::string itemusageQualifier = "usage " + std::to_string((uint8)ItemUsage::ITEM_USAGE_BANK);
 
+    // 查找背包中匹配的物品
     std::list<Item*> items = AI_VALUE2(std::list<Item*>, "inventory items", itemusageQualifier);
     for (auto item : items)
     {
@@ -258,7 +267,7 @@ bool BankAction::AutoDeposit()
         const std::string itemId = std::to_string(proto->ItemId);
         const std::string itemQualifier = ItemQualifier(item).GetQualifier();
 
-        // Don't bank items needed for guild orders
+        // Don't bank items needed for guild orders (不要将公会委托所需的物品存入银行)
         ItemQualifier qualifier(item);
         std::string qualStr = qualifier.GetQualifier();
         ItemUsage currentUsage = AI_VALUE2(ItemUsage, "item usage", qualStr);
@@ -281,6 +290,7 @@ bool BankAction::AutoDeposit()
     return deposited;
 }
 
+/// 自动从银行或公会银行提取当前所需的物资或消耗品
 bool BankAction::AutoWithdraw()
 {
     bool withdrew = false;

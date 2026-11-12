@@ -1,3 +1,4 @@
+// 圣骑士 - 触发器实现文件 (PaladinTriggers.cpp)：定义圣骑士增益、减益、冷却及状态检查触发条件
 
 #include "playerbot/playerbot.h"
 #include "PaladinTriggers.h"
@@ -5,20 +6,22 @@
 
 using namespace ai;
 
+// 检查触发条件是否激活 (SealTrigger)
 bool SealTrigger::IsActive()
 {
-	Unit* target = GetTarget();
-	return !ai->HasAura("seal of justice", target) &&
+    Unit* target = GetTarget();
+    return !ai->HasAura("seal of justice", target) &&
         !ai->HasAura("seal of command", target) &&
         !ai->HasAura("seal of vengeance", target) &&
-		!ai->HasAura("seal of righteousness", target) &&
+        !ai->HasAura("seal of righteousness", target) &&
         !ai->HasAura("seal of the crusader", target) &&
-		!ai->HasAura("seal of light", target) &&
+        !ai->HasAura("seal of light", target) &&
         !ai->HasAura("seal of blood", target) &&
         !ai->HasAura("seal of wisdom", target) &&
         AI_VALUE2(bool, "combat", "self target");
 }
 
+// 检查触发条件是否激活 (BlessingTrigger)
 bool BlessingTrigger::IsActive()
 {
     Unit* target = GetTarget();
@@ -67,6 +70,7 @@ bool BlessingTrigger::IsActive()
     return false;
 }
 
+// 检查触发条件是否激活 (GreaterBlessingTrigger)
 bool GreaterBlessingTrigger::IsActive()
 {
     Unit* target = GetTarget();
@@ -113,6 +117,7 @@ bool GreaterBlessingTrigger::IsActive()
     return false;
 }
 
+// 检查触发条件是否激活 (BlessingOnPartyTrigger)
 bool BlessingOnPartyTrigger::IsActive()
 {
     std::vector<std::string> altBlessings;
@@ -157,6 +162,7 @@ bool BlessingOnPartyTrigger::IsActive()
     return ai->GetUnit(AI_VALUE2(ObjectGuid, "party member without my aura", blessings));
 }
 
+// 检查触发条件是否激活 (GreaterBlessingOnPartyTrigger)
 bool GreaterBlessingOnPartyTrigger::IsActive()
 {
     if (!bot->GetMap()->IsDungeon() && !bot->GetMap()->IsBattleGround())
@@ -200,6 +206,7 @@ bool GreaterBlessingOnPartyTrigger::IsActive()
     return target && bot->IsInGroup(target);
 }
 
+// 检查触发条件是否激活 (NoPaladinAuraTrigger)
 bool NoPaladinAuraTrigger::IsActive()
 {
     std::vector<std::string> altAuras;
@@ -254,6 +261,7 @@ bool NoPaladinAuraTrigger::IsActive()
     return needAura;
 }
 
+// 检查触发条件是否激活 (HammerOfJusticeOnEnemyTrigger)
 bool HammerOfJusticeOnEnemyTrigger::IsActive()
 {
     Unit* target = GetTarget();
@@ -277,10 +285,12 @@ bool HammerOfJusticeOnEnemyTrigger::IsActive()
     return false;
 }
 
+// 检查触发条件是否激活 (ConsecrationTrigger)
 bool ConsecrationTrigger::IsActive()
 {
     if (SpellNoCooldownTrigger::IsActive())
     {
+// 巫妖王之怒 (WotLK 80级) 版本逻辑
 #ifdef MANGOSBOT_TWO
         return true;
 #else
@@ -291,10 +301,12 @@ bool ConsecrationTrigger::IsActive()
     return false;
 }
 
+// 检查触发条件是否激活 (ExorcismTrigger)
 bool ExorcismTrigger::IsActive()
 {
     if (SpellNoCooldownTrigger::IsActive())
     {
+// 巫妖王之怒 (WotLK 80级) 版本逻辑
 #ifdef MANGOSBOT_TWO
         return ai->HasAura("the art of war", bot);
 #else

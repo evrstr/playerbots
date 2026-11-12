@@ -8,6 +8,7 @@
 using namespace ai;
 
 #ifndef WIN32
+/// 不区分大小写的字符串比较辅助函数
 inline int strcmpi(const char* s1, const char* s2)
 {
     for (; *s1 && *s2 && (toupper(*s1) == toupper(*s2)); ++s1, ++s2);
@@ -15,6 +16,7 @@ inline int strcmpi(const char* s1, const char* s2)
 }
 #endif
 
+/// 执行动作主逻辑（在线查询指令动作）
 bool WhoAction::Execute(Event& event)
 {
     Player* owner = event.getOwner();
@@ -62,12 +64,13 @@ bool WhoAction::Execute(Event& event)
     if (tell.empty())
         return false;
 
-    // ignore random bot chat filter
+    // ignore random bot chat filter (忽略随机机器人聊天过滤)
     ai->TellPlayer(owner, tell);
     return true;
 }
 
 
+/// 查询当前交易请求或目标的可交易状态
 std::string WhoAction::QueryTrade(std::string text)
 {
     std::ostringstream out;
@@ -89,6 +92,7 @@ std::string WhoAction::QueryTrade(std::string text)
     return "";
 }
 
+/// 查询并输出机器人已学习的专业与武器技能等级
 std::string WhoAction::QuerySkill(std::string text)
 {
     std::ostringstream out;
@@ -117,6 +121,7 @@ std::string WhoAction::QuerySkill(std::string text)
     return out.str();
 }
 
+/// 查询并汇报机器人当前的天赋专精分配情况
 std::string WhoAction::QuerySpec(std::string text)
 {
     std::ostringstream out;

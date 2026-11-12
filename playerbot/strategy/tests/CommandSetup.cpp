@@ -1,3 +1,4 @@
+/// 测试命令：测试环境初始化与场景布置命令实现
 #include "playerbot/playerbot.h"
 #include "CommandSetup.h"
 #include "playerbot/WorldPosition.h"
@@ -12,6 +13,7 @@
 
 using namespace ai;
 
+/// 执行 teleport 命令：按命名地点或坐标将机器人安全传送到位
 TestResult CommandSetupTeleport::Execute(const std::string& params, Player* bot,
                     PlayerbotAI* ai, TestContext& ctx, std::string& message)
 {
@@ -33,6 +35,7 @@ TestResult CommandSetupTeleport::Execute(const std::string& params, Player* bot,
     }
 }
 
+/// 执行 gm 命令：切换机器人 GM 模式及可见性（gm visible on/off）
 TestResult CommandSetupGM::Execute(const std::string& params, Player* bot, PlayerbotAI* ai, TestContext& ctx, std::string& message)
 {
     if (params == "on")
@@ -78,6 +81,7 @@ TestResult CommandSetupGM::Execute(const std::string& params, Player* bot, Playe
     }
 }
 
+/// 执行 give 命令：向机器人背包或银行发放指定 ID 与数量的物品
 TestResult CommandSetupGiveItem::Execute(const std::string& params, Player* bot,
                     PlayerbotAI* ai, TestContext& ctx, std::string& message)
 {
@@ -127,6 +131,7 @@ TestResult CommandSetupGiveItem::Execute(const std::string& params, Player* bot,
     }
 }
 
+/// 执行 equip 命令：为机器人直接生成并装备指定物品
 TestResult CommandSetupEquipItem::Execute(const std::string& params, Player* bot,
                     PlayerbotAI* ai, TestContext& ctx, std::string& message)
 {
@@ -143,6 +148,7 @@ TestResult CommandSetupEquipItem::Execute(const std::string& params, Player* bot
     }
 }
 
+/// 执行 clear 命令：清理机器人周围指定半径内非例外条目的生物
 TestResult CommandSetupClearMobs::Execute(const std::string& params, Player* bot,
                     PlayerbotAI* ai, TestContext& ctx, std::string& message)
 {
@@ -167,7 +173,7 @@ TestResult CommandSetupClearMobs::Execute(const std::string& params, Player* bot
         exceptEntry = atoi(exceptStr.c_str());
     }
 
-    // Force load the grid at bot's location to ensure creatures are visible
+    // Force load the grid at bot's location to ensure creatures are visible | 强制加载机器人当前所在坐标网格以确保生物可见
     bot->GetMap()->ForceLoadGrid(bot->GetPositionX(), bot->GetPositionY());
 
     std::list<Creature*> creatures;
@@ -187,7 +193,7 @@ TestResult CommandSetupClearMobs::Execute(const std::string& params, Player* bot
             continue;
         }
 
-        // Skip critters and non-combat pets
+        // Skip critters and non-combat pets | 跳过小动物与非战斗宠物
 #ifndef MANGOSBOT_ZERO 
         if (creature->GetCreatureType() == CREATURE_TYPE_CRITTER || creature->GetCreatureType() == CREATURE_TYPE_NON_COMBAT_PET)
 #else          
@@ -203,6 +209,7 @@ TestResult CommandSetupClearMobs::Execute(const std::string& params, Player* bot
     return TestResult::PASS;
 }
 
+/// 执行 set destination 命令：为机器人设置旅行目的地（支持 nonforced 模式）
 TestResult CommandSetupSetDestination::Execute(const std::string& params, Player* bot,
                     PlayerbotAI* ai, TestContext& ctx, std::string& message)
 {
@@ -211,8 +218,8 @@ TestResult CommandSetupSetDestination::Execute(const std::string& params, Player
     if (params.find("destination ") == 0)
         dest = params.substr(std::string("destination ").length());
 
-    // Optional trailing qualifier: "... nonforced" lets the bot genuinely travel to the
-    // destination instead of pinning it (a forced target fights the arrival check that
+    // Optional trailing qualifier: "... nonforced" lets the bot genuinely travel to the | 可选尾部修饰符 "... nonforced"：允许机器人真实赶路前往目的地而非硬锁，
+    // destination instead of pinning it (a forced target fights the arrival check that | 避免强制目标与到达检测产生冲突。
     // teleported-delivery bypasses).
     const std::string nonForcedTag = " nonforced";
     if (dest.size() > nonForcedTag.size() &&
@@ -235,7 +242,7 @@ TestResult CommandSetupSetDestination::Execute(const std::string& params, Player
     TravelTarget* target = AI_VALUE(TravelTarget*,"travel target");
     if (target)
     {
-        // Pass the guid-backed entry through: rpg triggers match "rpg target entry == travel
+        // Pass the guid-backed entry through: rpg triggers match "rpg target entry == travel | 传入真实 GUID 对应的生物 Entry，确保灰名/低级任务 RPG 触发器能正确匹配
         // target entry" for gray/low-level quests, and a coords-only destination reports 0.
         TemporaryTravelDestination* tempDest = new TemporaryTravelDestination(loc, (int32)loc.GetEntry());
         target->SetTarget(tempDest, tempDest->GetPosition());
@@ -243,7 +250,7 @@ TestResult CommandSetupSetDestination::Execute(const std::string& params, Player
         target->SetForced(!nonForced);
         target->SetConditions({"not::manual bool::is travel refresh"});
 
-        // The default TRAVEL budget is distance-based (2x theoretical walk time + 3 s), sized for
+        // The default TRAVEL budget is distance-based (2x theoretical walk time + 3 s), sized for | 赋予真实长途旅行时间预算，防止 90 码短途途中因战斗/上马延迟导致目标过期（BL-47(a)）
         // destinations the bot itself picks from far away. A test's 90 yd drop computes to ~16 s,
         // so any real-world delay on the leg (one combat, a mount-up, the 10 s re-path gate)
         // expires the target before the arrival flip can happen and the default re-roll machinery
@@ -263,9 +270,10 @@ TestResult CommandSetupSetDestination::Execute(const std::string& params, Player
     return TestResult::PASS;
 }
 
-// BL-46: aim the bot's rpg machinery at a specific world object. After this step the normal
+// BL-46: aim the bot's rpg machinery at a specific world object. After this step the normal | BL-46：将机器人 RPG 机制指向指定世界对象，后续由旅行到达自动触发接交任务链路
 // chain runs: arrival flips the travel target to WORK, the rpg trigger fires, and the
 // accept/hand-in action runs - the bot decides, the step only points it.
+/// 执行 set rpg target 命令：将机器人的 RPG 目标手动指向指定世界对象
 TestResult CommandSetupRpgTarget::Execute(const std::string& params, Player* bot,
                     PlayerbotAI* ai, TestContext& ctx, std::string& message)
 {
@@ -285,19 +293,20 @@ TestResult CommandSetupRpgTarget::Execute(const std::string& params, Player* bot
     return TestResult::PASS;
 }
 
+/// 执行 teleport group 命令：通过所属线程将队伍全部成员跨图传送至机器人身边
 TestResult CommandSetupTeleportGroup::Execute(const std::string& params, Player* bot,
                     PlayerbotAI* ai, TestContext& ctx, std::string& message)
 {
     Group* group = bot->GetGroup();
     if (!group)
     {
-        // BL-44: a missing group used to be a silent PASS ("skipping"), which let a lost group join
+        // BL-44: a missing group used to be a silent PASS ("skipping"), which let a lost group join | BL-44：缺少队伍时直接诚实判定失败（不再静默跳过导致后续超时）
         // (BL-42) surface later as the hop monitor's timeout. Fail honestly at the moment of the hop.
         message = "teleport group: group never formed (bot has no group)";
         return TestResult::ABORT;
     }
 
-    // BL-44: optional "expect=<n>" - abort when the group never reached the expected size instead of
+    // BL-44: optional "expect=<n>" - abort when the group never reached the expected size instead of | BL-44：支持可选 "expect=<n>" 参数，若队伍人数不足直接中止测试
     // delivering to a fragment and letting the pass monitor time out.
     uint32 expect = 0;
     {
@@ -334,7 +343,7 @@ TestResult CommandSetupTeleportGroup::Execute(const std::string& params, Player*
         if (!member || member == bot)
             continue;
 
-        // Test bots normally share the host's map, but route through the owning thread anyway so
+        // Test bots normally share the host's map, but route through the owning thread anyway so | 通过 RunOnOwningThread 调度传送确保跨地图线程安全，并在回调内部记录真实传送结果
         // the helper stays safe (and consistent with the rest of the codebase) if a test spans maps.
         //
         // The delivery is logged from *inside* the callback, because that is the only place that knows it
@@ -349,7 +358,7 @@ TestResult CommandSetupTeleportGroup::Execute(const std::string& params, Player*
 
         ai->RunOnOwningThread(member, [&ctx, mapId, x, y, z, orient](Player* m)
         {
-            // The return value matters: Player::TeleportTo refuses a charmed player, an invalid
+            // The return value matters: Player::TeleportTo refuses a charmed player, an invalid | 检查 TeleportTo 返回值以准确记录失败情况；详情日志仅在 LogLevel >= 2 时输出
             // coordinate, or a map the player may not enter - reporting the attempt without it was the
             // original over-claim. outDetail because one line per member per call is too much noise for
             // the generated instance scenarios; run with LogLevel = 2 to see it.
@@ -358,7 +367,7 @@ TestResult CommandSetupTeleportGroup::Execute(const std::string& params, Player*
             const bool wasTeleporting = m->IsBeingTeleported();
             const bool moved = m->TeleportTo(mapId, x, y, z, orient);
 
-            // BL-44: record the members that were ACTUALLY delivered (moved=true). The "group on map"
+            // BL-44: record the members that were ACTUALLY delivered (moved=true). The "group on map" | BL-44：仅记录实际传送成功的成员 GUID，用于因果模式校验防止巧合路过误判
             // monitor switches to causal mode when this sink is non-empty, so a member that roams to
             // the host's map by coincidence can no longer satisfy the pass condition. ctx (TestAction's
             // member) outlives the deferred callback: callbacks run on the next world tick while the
@@ -377,6 +386,7 @@ TestResult CommandSetupTeleportGroup::Execute(const std::string& params, Player*
     return TestResult::PASS;
 }
 
+/// 执行 pull 命令：查找或刷出指定生物并强制拉入战斗（禁用脱战归位）
 TestResult CommandSetupPull::Execute(const std::string& params, Player* bot,
                     PlayerbotAI* ai, TestContext& ctx, std::string& message)
 {
@@ -387,10 +397,10 @@ TestResult CommandSetupPull::Execute(const std::string& params, Player* bot,
         return TestResult::IMPOSSIBLE;
     }
 
-    // Force load the grid at bot's location to ensure creatures are visible
+    // Force load the grid at bot's location to ensure creatures are visible | 强制加载周围网格
     bot->GetMap()->ForceLoadGrid(bot->GetPositionX(), bot->GetPositionY());
 
-    // First: search via Cell::VisitWorldObjects
+    // First: search via Cell::VisitWorldObjects | 第一步：通过 Cell::VisitWorldObjects 在 500 码内查找
     Creature* target = nullptr;
     {
         std::list<Creature*> creatures;
@@ -408,7 +418,7 @@ TestResult CommandSetupPull::Execute(const std::string& params, Player* bot,
         }
     }
 
-    // Second: search via Map object store (finds creatures not in loaded grid cells)
+    // Second: search via Map object store (finds creatures not in loaded grid cells) | 第二步：搜索地图全量对象库（兼容未加载网格中的生物）
     if (!target)
     {
         auto& store = bot->GetMap()->GetObjectsStore();
@@ -427,7 +437,7 @@ TestResult CommandSetupPull::Execute(const std::string& params, Player* bot,
         }
     }
 
-    // Third: spawn the creature if it doesn't exist in the instance
+    // Third: spawn the creature if it doesn't exist in the instance | 第三步：若副本中不存在则直接刷出该生物
     if (!target)
     {
         static bool pullDebugLogged = false;
@@ -455,10 +465,10 @@ TestResult CommandSetupPull::Execute(const std::string& params, Player* bot,
 
     bot->SetSelectionGuid(target->GetObjectGuid());
     bot->Attack(target, true);
-    // Make the boss attack the bot too (prevents evade)
+    // Make the boss attack the bot too (prevents evade) | 让 Boss 主动攻击机器人以防脱离战斗
     if (target->AI())
         target->AI()->AttackStart(bot);
-    // Disable leashing so the boss doesn't evade
+    // Disable leashing so the boss doesn't evade | 禁用脱战归位距离（Leashing）
     target->GetCombatManager().SetLeashingDisable(true);
     ctx.focusMobEntry = entryId;
     ctx.focusMobGuid = target->GetObjectGuid();
@@ -467,6 +477,7 @@ TestResult CommandSetupPull::Execute(const std::string& params, Player* bot,
     return TestResult::PASS;
 }
 
+/// 执行 spawn mob 命令：按距离、朝向、等级与血量参数刷出测试用怪物
 TestResult CommandSpawnMob::Execute(const std::string& params, Player* bot,
                     PlayerbotAI* ai, TestContext& ctx, std::string& message)
 {
@@ -579,6 +590,7 @@ TestResult CommandSpawnMob::Execute(const std::string& params, Player* bot,
     return TestResult::PASS;
 }
 
+/// 执行 follow focus 命令：命令小队切换为跟随策略并协助攻击焦点目标
 TestResult CommandFollowFocus::Execute(const std::string& params, Player* bot,
                     PlayerbotAI* ai, TestContext& ctx, std::string& message)
 {
@@ -597,6 +609,7 @@ TestResult CommandFollowFocus::Execute(const std::string& params, Player* bot,
     return TestResult::PASS;
 }
 
+/// 执行 kill focus 命令：直接击杀当前记录的焦点怪物
 TestResult CommandKillFocus::Execute(const std::string& params, Player* bot,
                     PlayerbotAI* ai, TestContext& ctx, std::string& message)
 {
@@ -618,6 +631,7 @@ TestResult CommandKillFocus::Execute(const std::string& params, Player* bot,
     return TestResult::PASS;
 }
 
+/// 执行 await focus corpse 命令：等待焦点怪物进入尸体状态（带超时宽限）
 TestResult CommandAwaitFocusCorpse::Execute(const std::string& params, Player* bot,
                     PlayerbotAI* ai, TestContext& ctx, std::string& message)
 {
@@ -658,9 +672,10 @@ TestResult CommandAwaitFocusCorpse::Execute(const std::string& params, Player* b
     return TestResult::FAIL;
 }
 
+/// 执行 set value 命令：解析数据类型并修改机器人 AI ObjectContext 中的指定 Value
 TestResult CommandSetValue::Execute(const std::string& params, Player* bot, PlayerbotAI* ai, TestContext& ctx, std::string& message)
 {
-    // Expected format: "set value <datatype> <valueName> <valueToSetTo>"
+    // Expected format: "set value <datatype> <valueName> <valueToSetTo>" | 预期格式："set value <datatype> <valueName> <valueToSetTo>"
     AiObjectContext* context = bot->GetPlayerbotAI()->GetAiObjectContext();
 
     std::string datatype;
@@ -710,18 +725,19 @@ TestResult CommandSetValue::Execute(const std::string& params, Player* bot, Play
     message = "Unsupported datatype for set value: " + datatype;
     return TestResult::IMPOSSIBLE;
 }
-// BL-47(a) follow-up: honest setup check for "is the giver/taker actually alive in the world".
+// BL-47(a) follow-up: honest setup check for "is the giver/taker actually alive in the world". | BL-47(a) 后续：快速前置检查任务发布者/交付者在世界中是否存活
 // five_signets evidence: the bot teleported to the giver's exact coords and the travel flip fired,
 // but the creature was not found by an 80-yd unit search - the run then burned 900 s on an accept
 // that could never happen. This command fails fast instead. Usage:
 //   "require creature alive <location> [yd]"   (yd defaults to 300; searches around the bot)
+/// 执行 require creature alive 命令：验证命名点周围指定半径内目标生物是否存活
 TestResult CommandRequireCreatureAlive::Execute(const std::string& params, Player* bot,
                     PlayerbotAI* ai, TestContext& ctx, std::string& message)
 {
     std::string locName = params;
     float radius = 300.0f;
 
-    // Optional trailing numeric radius: "<location> <yd>"
+    // Optional trailing numeric radius: "<location> <yd>" | 可选尾部半径参数："<location> <yd>"
     size_t lastSpace = locName.find_last_of(" \t");
     if (lastSpace != std::string::npos)
     {
@@ -735,7 +751,7 @@ TestResult CommandRequireCreatureAlive::Execute(const std::string& params, Playe
         }
     }
 
-    // Trim leading whitespace left over from the command-name split.
+    // Trim leading whitespace left over from the command-name split. | 去除命令分割后残留的前导空白
     size_t nameStart = locName.find_first_not_of(" \t");
     if (nameStart == std::string::npos)
     {
@@ -753,7 +769,7 @@ TestResult CommandRequireCreatureAlive::Execute(const std::string& params, Playe
 
     if (!loc || !loc.IsCreature() || !loc.GetEntry())
     {
-        // GameObject locations (rare givers/takers) are not covered by this check - skip honestly.
+        // GameObject locations (rare givers/takers) are not covered by this check - skip honestly. | 少数游戏对象类型任务点不适用生物存活校验，诚实跳过
         message = "Location " + locName + " is not a creature - alive check skipped";
         return TestResult::PASS;
     }

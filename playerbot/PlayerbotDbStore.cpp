@@ -13,6 +13,7 @@ INSTANTIATE_SINGLETON_1(PlayerbotDbStore);
 
 using namespace ai;
 
+// 从 ai_playerbot_db_store 表加载指定预设的战斗/非战斗/死亡/反应策略及保存的状态值
 void PlayerbotDbStore::Load(PlayerbotAI *ai, std::string preset)
 {
     uint64 guid = ai->GetBot()->GetObjectGuid().GetRawValue();
@@ -54,6 +55,7 @@ void PlayerbotDbStore::Load(PlayerbotAI *ai, std::string preset)
     }
 }
 
+// 将机器人当前策略与可持久化 AI 状态值保存到数据库
 void PlayerbotDbStore::Save(PlayerbotAI *ai, std::string preset)
 {
     uint64 guid = ai->GetBot()->GetObjectGuid().GetRawValue();
@@ -72,6 +74,7 @@ void PlayerbotDbStore::Save(PlayerbotAI *ai, std::string preset)
     SaveValue(guid, preset, "react", FormatStrategies("react", ai->GetStrategies(BotState::BOT_STATE_REACTION)));
 }
 
+// 将策略名称列表格式化为 "+strat1,+strat2" 字符串
 std::string PlayerbotDbStore::FormatStrategies(std::string type, std::list<std::string_view> strategies)
 {
     std::ostringstream out;
@@ -82,6 +85,7 @@ std::string PlayerbotDbStore::FormatStrategies(std::string type, std::list<std::
     return res.substr(0, res.size() - 1);
 }
 
+// 删除指定机器人及预设名的持久化记录
 void PlayerbotDbStore::Reset(PlayerbotAI *ai, std::string preset)
 {
     uint64 guid = ai->GetBot()->GetObjectGuid().GetRawValue();
@@ -91,6 +95,7 @@ void PlayerbotDbStore::Reset(PlayerbotAI *ai, std::string preset)
     CharacterDatabase.PExecute("DELETE FROM `ai_playerbot_db_store` WHERE `guid` = '%lu' AND `preset` = '%s'", guid, preset.c_str());
 }
 
+// 转义并写入单条键值配置到数据库
 void PlayerbotDbStore::SaveValue(uint64 guid, std::string preset, std::string key, std::string value)
 {
     // preset comes from chat ("save ai <preset>"); strategy and value strings can hold names with quotes

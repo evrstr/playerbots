@@ -18,6 +18,7 @@ PlayerbotTextMgr::~PlayerbotTextMgr()
 {
 }
 
+// 全局替换字符串中的所有匹配子串
 void PlayerbotTextMgr::ReplaceAll(std::string & str, const std::string & from, const std::string & to) {
     if (from.empty())
         return;
@@ -34,6 +35,7 @@ void PlayerbotTextMgr::ReplacePlaceholders(std::string& text, const std::map<std
         ReplaceAll(text, placeholder.first, placeholder.second);
 }
 
+// 从 ai_playerbot_texts 表加载全部机器人对话文本及多语言本地化字段
 void PlayerbotTextMgr::LoadBotTexts()
 {
     botTexts.clear();
@@ -62,6 +64,7 @@ void PlayerbotTextMgr::LoadBotTexts()
     sLog.outBasic("%d playerbot texts loaded", count);
 }
 
+// 从 ai_playerbot_texts_chance 加载各台词触发概率配置
 void PlayerbotTextMgr::LoadBotTextChance()
 {
     if (botTextChance.empty())
@@ -81,7 +84,7 @@ void PlayerbotTextMgr::LoadBotTextChance()
     }
 }
 
-// general texts
+// general texts | 通用台词获取接口
 
 std::string PlayerbotTextMgr::GetBotText(std::string name)
 {
@@ -121,7 +124,7 @@ std::string PlayerbotTextMgr::GetBotText(std::string name, std::map<std::string,
     return botText;
 }
 
-// chat replies
+// chat replies | 聊天回复台词获取接口
 
 std::string PlayerbotTextMgr::GetBotText(ChatReplyType replyType, std::map<std::string, std::string> placeholders)
 {
@@ -170,7 +173,7 @@ std::string PlayerbotTextMgr::GetBotText(ChatReplyType replyType, std::string na
     return GetBotText(replyType, placeholders);
 }
 
-// probabilities
+// probabilities | 触发概率控制接口
 
 bool PlayerbotTextMgr::rollTextChance(std::string name)
 {
@@ -206,6 +209,7 @@ void PlayerbotTextMgr::AddLocalePriority(int32 locale)
     botTextLocalePriority[locale]++;
 }
 
+// 统计当前在线玩家使用最多的客户端语言索引以决定台词语言
 int32 PlayerbotTextMgr::GetLocalePriority()
 {
     int32 topLocale = -1;

@@ -10,6 +10,7 @@
 
 using namespace ai;
 
+/// 执行动作主逻辑（公会银行指令动作）
 bool GuildBankAction::Execute(Event& event)
 {
 #ifndef MANGOSBOT_ZERO
@@ -41,6 +42,7 @@ bool GuildBankAction::Execute(Event& event)
 #endif
 }
 
+/// 执行动作主逻辑（公会银行指令动作）
 bool GuildBankAction::Execute(std::string text, GameObject* bank, Player* requester)
 {
     bool result = true;
@@ -61,6 +63,7 @@ bool GuildBankAction::Execute(std::string text, GameObject* bank, Player* reques
     return result;
 }
 
+/// 将角色背包中的物品移动到银行栏位
 bool GuildBankAction::MoveFromCharToBank(Item* item, GameObject* bank, Player* requester)
 {
 #ifndef MANGOSBOT_ZERO
@@ -71,7 +74,7 @@ bool GuildBankAction::MoveFromCharToBank(Item* item, GameObject* bank, Player* r
     Guild* guild = sGuildMgr.GetGuildById(bot->GetGuildId());
     //guild->SwapItems(bot, 0, playerSlot, 0, INVENTORY_SLOT_BAG_0, 0);
 
-    // check source pos rights (item moved to bank)
+    // check source pos rights (item moved to bank) (检查源物品栏位权限（移入银行）)
     if (!guild->IsMemberHaveRights(bot->GetGUIDLow(), 0, GUILD_BANK_RIGHT_DEPOSIT_ITEM))
         out << BOT_TEXT("error_cant_put") << chat->formatItem(item) << BOT_TEXT("error_gbank_rights");
     else
@@ -87,6 +90,7 @@ bool GuildBankAction::MoveFromCharToBank(Item* item, GameObject* bank, Player* r
 #endif
 }
 
+/// 自动将背包中适合存放的多余物资存入银行或公会银行
 bool GuildBankAction::AutoDeposit(GameObject* bank)
 {
 #ifndef MANGOSBOT_ZERO
@@ -102,9 +106,10 @@ bool GuildBankAction::AutoDeposit(GameObject* bank)
 
     bool deposited = false;
 
-    // Deposit surplus trade goods and reagents
+    // Deposit surplus trade goods and reagents (将多余的商品与专业材料存入银行)
     for (uint8 usageType : {(uint8)ItemUsage::ITEM_USAGE_VENDOR, (uint8)ItemUsage::ITEM_USAGE_AH})
     {
+        // 查找背包中匹配的物品
         std::list<Item*> items = AI_VALUE2(std::list<Item*>, "inventory items", "usage " + std::to_string(usageType));
         for (auto item : items)
         {
@@ -115,7 +120,7 @@ bool GuildBankAction::AutoDeposit(GameObject* bank)
             if (!proto)
                 continue;
 
-            // Only deposit trade goods and reagents
+            // Only deposit trade goods and reagents (仅存放商品和专业材料)
             if (proto->Class != ITEM_CLASS_TRADE_GOODS && proto->Class != ITEM_CLASS_REAGENT)
                 continue;
 
@@ -125,7 +130,7 @@ bool GuildBankAction::AutoDeposit(GameObject* bank)
             if (proto->Bonding == BIND_WHEN_PICKED_UP)
                 continue;
 
-            // Don't deposit guild task items
+            // Don't deposit guild task items (不要存放公会任务所需物品)
             ItemQualifier qualifier(item);
             std::string qualStr = qualifier.GetQualifier();
             ItemUsage currentUsage = AI_VALUE2(ItemUsage, "item usage", qualStr);
@@ -145,6 +150,7 @@ bool GuildBankAction::AutoDeposit(GameObject* bank)
 #endif
 }
 
+/// 自动从银行或公会银行提取当前所需的物资或消耗品
 bool GuildBankAction::AutoWithdraw(GameObject* bank)
 {
 #ifndef MANGOSBOT_ZERO
@@ -179,7 +185,7 @@ bool GuildBankAction::AutoWithdraw(GameObject* bank)
 
             bool shouldWithdraw = false;
 
-            // Check if item is an equip upgrade
+            // Check if item is an equip upgrade (检查物品是否为当前装备的升级替换品)
             if (proto->InventoryType != INVTYPE_NON_EQUIP && bot->CanUseItem(proto) == EQUIP_ERR_OK)
             {
                 ItemQualifier qualifier(item);
@@ -188,7 +194,7 @@ bool GuildBankAction::AutoWithdraw(GameObject* bank)
                     shouldWithdraw = true;
             }
 
-            // Check if item is needed for crafting
+            // Check if item is needed for crafting (检查物品是否为专业制造所需材料)
             if (!shouldWithdraw && (proto->Class == ITEM_CLASS_TRADE_GOODS || proto->Class == ITEM_CLASS_REAGENT))
             {
                 ItemQualifier qualifier(item);
