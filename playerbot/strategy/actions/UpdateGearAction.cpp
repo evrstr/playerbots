@@ -3,6 +3,7 @@
 #include "UpdateGearAction.h"
 #include "playerbot/RandomPlayerbotMgr.h"
 #include "playerbot/AiFactory.h"
+#include <set>
 
 using namespace ai;
 
@@ -115,9 +116,15 @@ bool UpdateGearAction::Execute(Event& event)
         }
         else
         {
-            std::ostringstream ss;
-            ss << "Missing configuration for AiPlayerbot.GearProgressionSystem." << std::to_string(itemProgressionLevel) << "." << std::to_string(cls) << "." << std::to_string(spec) << "." << std::to_string(slot);
-            ai->TellError(requester, ss.str());
+            // -1 表示未配置该槽位，仅对每个 (phase, cls, spec, slot) 组合报告一次缺失，防止每个机器人重复刷屏
+            static std::set<uint32> reportedMissing;
+            uint32 const key = ((((uint32)itemProgressionLevel * MAX_CLASSES + (uint32)cls) * 4 + (uint32)spec) * SLOT_EMPTY) + (uint32)slot;
+            if (reportedMissing.insert(key).second)
+            {
+                std::ostringstream ss;
+                ss << "Missing configuration for AiPlayerbot.GearProgressionSystem." << std::to_string(itemProgressionLevel) << "." << std::to_string(cls) << "." << std::to_string(spec) << "." << std::to_string(slot);
+                ai->TellError(requester, ss.str());
+            }
         }
 
     }

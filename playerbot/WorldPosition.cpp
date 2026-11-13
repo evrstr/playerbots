@@ -991,7 +991,9 @@ bool WorldPosition::loadVMap(uint32 mapId, int x, int y)
     if (isVmapLoaded(mapId, x, y))
         return true;
 
-    return VMAP::VMapFactory::createOrGetVMapManager()->loadMap(sWorld.GetDataPath().c_str(), mapId, x, y);
+    // 补充 "vmaps/" 子路径（原传 DataPath 缺失该层，导致 fopen 失败将整张地图拉黑）
+    static std::string const vmapBasePath = sWorld.GetDataPath() + "vmaps/";
+    return VMAP::VMapFactory::createOrGetVMapManager()->loadMap(vmapBasePath.c_str(), mapId, x, y);
 }
 
 std::vector<WorldPosition> WorldPosition::fromPointsArray(const std::vector<G3D::Vector3>& path) const
